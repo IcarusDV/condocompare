@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docs
+README.md
+CLAUDE.md
+docs/

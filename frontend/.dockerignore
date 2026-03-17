@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+.next/
+out/
+
+# IDE
+.idea/
+.vscode/
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docs
+README.md
+CLAUDE.md
+
+# Tests
+coverage/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
