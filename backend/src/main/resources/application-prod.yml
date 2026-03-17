@@ -1,0 +1,47 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: ${HIKARI_MAX_POOL:10}
+      minimum-idle: ${HIKARI_MIN_IDLE:3}
+      idle-timeout: 300000
+      max-lifetime: 600000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+# Production logging - JSON structured
+logging:
+  pattern:
+    console: '{"timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSS}","thread":"%thread","correlationId":"%X{correlationId:-}","level":"%-5level","logger":"%logger{36}","message":"%msg"}%n'
+  level:
+    root: WARN
+    com.condocompare: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: WARN
+
+# Actuator - restrict in production
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+# Swagger - disable in production
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -42,7 +42,7 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "condocompare-ia"}
+    return {"status": "healthy", "service": "condocompare-ia", "environment": settings.environment}
 
 
 @app.get("/")
@@ -50,5 +50,6 @@ async def root():
     return {
         "service": "CondoCompare IA Service",
         "version": "0.1.0",
+        "environment": settings.environment,
         "docs": "/docs",
     }

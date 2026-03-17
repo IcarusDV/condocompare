@@ -46,6 +46,7 @@ public class SecurityConfig {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/actuator/health",
+        "/health",
         "/v1/parceiros/**",  // TODO: Remover apos seed inicial
         "/v1/billing/planos/**",
         "/v1/vistorias/external/**"

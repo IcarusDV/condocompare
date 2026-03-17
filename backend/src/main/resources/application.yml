@@ -90,12 +90,13 @@ jwt:
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
-# MinIO Configuration
+# Storage Configuration (S3-compatible: MinIO local, Supabase Storage in prod)
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:condocompare-docs}
+  region: ${MINIO_REGION:us-east-1}
 
 # IA Service Configuration
 ia-service:

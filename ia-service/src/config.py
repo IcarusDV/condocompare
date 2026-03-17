@@ -14,17 +14,21 @@ class Settings(BaseSettings):
     groq_model: str = "llama-3.3-70b-versatile"
     groq_base_url: str = "https://api.groq.com/openai/v1"
 
-    # CORS
+    # CORS - configurable via CORS_ORIGINS env var (comma-separated string or JSON array)
     cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8080"]
 
-    # Storage
+    # Storage (S3-compatible: MinIO local, Supabase Storage in prod)
     minio_endpoint: str = "http://localhost:9000"
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin"
     minio_bucket: str = "condocompare-docs"
+    storage_region: str = "us-east-1"
 
     # Backend API
     backend_url: str = "http://localhost:8080/api"
+
+    # Environment
+    environment: str = "development"
 
     class Config:
         env_file = ".env"
