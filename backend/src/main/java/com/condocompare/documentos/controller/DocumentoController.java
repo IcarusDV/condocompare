@@ -149,6 +149,13 @@ public class DocumentoController {
         return ResponseEntity.ok(TipoDocumento.values());
     }
 
+    @PostMapping("/{id}/reprocess")
+    @Operation(summary = "Reprocessar documento com erro")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
+    public ResponseEntity<DocumentoResponse> reprocess(@PathVariable UUID id) {
+        return ResponseEntity.ok(documentoService.reprocess(id));
+    }
+
     // === Endpoints de Comparação de Orçamentos ===
 
     @PutMapping("/{id}/orcamento-data")

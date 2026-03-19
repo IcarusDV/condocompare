@@ -41,7 +41,8 @@ public class DocumentoMessageListener {
     private final UserRepository userRepository;
     private final WebClient iaServiceWebClient;
 
-    private static final Duration IA_TIMEOUT = Duration.ofSeconds(120);
+    private static final Duration IA_TIMEOUT = Duration.ofSeconds(180);
+    private static final int MAX_RETRIES = 3;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_PROCESS)
     public void processDocumento(DocumentoProcessingMessage message) {
@@ -51,68 +52,85 @@ public class DocumentoMessageListener {
         UUID documentoId = message.getDocumentoId();
 
         try {
-            // 1. Update status to PROCESSANDO
             updateStatus(documentoId, StatusProcessamento.PROCESSANDO, null);
-
-            // 2. Download file from MinIO
-            String textoExtraido = extractTextFromFile(message);
-            if (textoExtraido == null || textoExtraido.isBlank()) {
-                updateStatus(documentoId, StatusProcessamento.ERRO, "Nao foi possivel extrair texto do documento");
-                return;
-            }
-
-            // 3. Classify document type if OUTRO
-            String tipoFinal = message.getTipo();
-            if ("OUTRO".equals(tipoFinal)) {
-                tipoFinal = classifyDocument(textoExtraido, message.getNomeArquivo());
-                if (tipoFinal != null && !tipoFinal.equals(message.getTipo())) {
-                    updateDocumentoTipo(documentoId, tipoFinal);
-                }
-            }
-
-            // 4. Index in RAG + Extract data
-            Map<String, Object> extractedData = indexAndExtract(
-                    documentoId.toString(),
-                    message.getCondominioId() != null ? message.getCondominioId().toString() : null,
-                    tipoFinal,
-                    textoExtraido,
-                    message.getNomeArquivo()
-            );
-
-            // 5. Save extracted data to document
-            if (extractedData != null && !extractedData.isEmpty()) {
-                saveExtractedData(documentoId, extractedData);
-            }
-
-            // 6. Update condominio data if available
-            if (extractedData != null && extractedData.containsKey("condominio_data") && message.getCondominioId() != null) {
-                try {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> condominioData = (Map<String, Object>) extractedData.get("condominio_data");
-                    updateCondominioData(message.getCondominioId(), condominioData);
-                } catch (Exception e) {
-                    log.warn("Falha ao atualizar dados do condominio: {}", e.getMessage());
-                }
-            }
-
-            // 7. Update status to CONCLUIDO
-            updateStatus(documentoId, StatusProcessamento.CONCLUIDO, null);
-
-            // 8. Create notification
-            createProcessingNotification(documentoId, message.getCondominioId(), tipoFinal);
-
-            log.info("Documento processado com sucesso: id={}", documentoId);
-
+            processWithRetry(message, documentoId);
         } catch (Exception e) {
-            log.error("Erro ao processar documento: id={}", documentoId, e);
+            log.error("Erro ao processar documento apos {} tentativas: id={}", MAX_RETRIES, documentoId, e);
             updateStatus(documentoId, StatusProcessamento.ERRO,
-                    "Erro no processamento: " + e.getMessage());
+                    "Erro no processamento apos " + MAX_RETRIES + " tentativas: " + e.getMessage());
         }
     }
 
+    private void processWithRetry(DocumentoProcessingMessage message, UUID documentoId) throws Exception {
+        Exception lastException = null;
+
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                doProcess(message, documentoId);
+                return; // Success
+            } catch (Exception e) {
+                lastException = e;
+                log.warn("Tentativa {}/{} falhou para documento {}: {}", attempt, MAX_RETRIES, documentoId, e.getMessage());
+                if (attempt < MAX_RETRIES) {
+                    long backoff = (long) Math.pow(2, attempt) * 1000; // 2s, 4s
+                    Thread.sleep(backoff);
+                }
+            }
+        }
+        throw lastException;
+    }
+
+    private void doProcess(DocumentoProcessingMessage message, UUID documentoId) throws Exception {
+        // 1. Extract text
+        String textoExtraido = extractTextFromFile(message);
+        if (textoExtraido == null || textoExtraido.isBlank()) {
+            throw new RuntimeException("Nao foi possivel extrair texto do documento");
+        }
+
+        // 2. Classify if OUTRO
+        String tipoFinal = message.getTipo();
+        if ("OUTRO".equals(tipoFinal)) {
+            tipoFinal = classifyDocument(textoExtraido, message.getNomeArquivo());
+            if (tipoFinal != null && !tipoFinal.equals(message.getTipo())) {
+                updateDocumentoTipo(documentoId, tipoFinal);
+            }
+        }
+
+        // 3. Index in RAG + Extract data
+        Map<String, Object> extractedData = indexAndExtract(
+                documentoId.toString(),
+                message.getCondominioId() != null ? message.getCondominioId().toString() : null,
+                tipoFinal,
+                textoExtraido,
+                message.getNomeArquivo()
+        );
+
+        // 4. Save extracted data
+        if (extractedData != null && !extractedData.isEmpty()) {
+            saveExtractedData(documentoId, extractedData);
+        }
+
+        // 5. Update condominio
+        if (extractedData != null && extractedData.containsKey("condominio_data") && message.getCondominioId() != null) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> condominioData = (Map<String, Object>) extractedData.get("condominio_data");
+                updateCondominioData(message.getCondominioId(), condominioData);
+            } catch (Exception e) {
+                log.warn("Falha ao atualizar dados do condominio: {}", e.getMessage());
+            }
+        }
+
+        // 6. Success
+        updateStatus(documentoId, StatusProcessamento.CONCLUIDO, null);
+        createProcessingNotification(documentoId, message.getCondominioId(), tipoFinal);
+        log.info("Documento processado com sucesso: id={}", documentoId);
+    }
+
     private String extractTextFromFile(DocumentoProcessingMessage message) {
-        if (message.getMimeType() == null || !message.getMimeType().equals("application/pdf")) {
-            log.info("Documento nao e PDF, ignorando extracao de texto: mimeType={}", message.getMimeType());
+        String mimeType = message.getMimeType();
+        if (mimeType == null) {
+            log.warn("MimeType nulo para documento: id={}", message.getDocumentoId());
             return null;
         }
 
@@ -121,7 +139,6 @@ public class DocumentoMessageListener {
             byte[] fileBytes = fileStream.readAllBytes();
             fileStream.close();
 
-            // Use pypdf on the IA service to extract text
             org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(fileBytes) {
                 @Override
                 public String getFilename() {
@@ -129,13 +146,30 @@ public class DocumentoMessageListener {
                 }
             };
 
+            String extractEndpoint;
+            MediaType contentType;
+
+            if (mimeType.equals("application/pdf")) {
+                extractEndpoint = "/documents/extract";
+                contentType = MediaType.APPLICATION_PDF;
+            } else if (mimeType.startsWith("image/")) {
+                extractEndpoint = "/documents/extract-image";
+                contentType = MediaType.parseMediaType(mimeType);
+            } else if (mimeType.contains("word") || mimeType.contains("officedocument")) {
+                extractEndpoint = "/documents/extract-docx";
+                contentType = MediaType.parseMediaType(mimeType);
+            } else {
+                log.info("Tipo de arquivo nao suportado para extracao: mimeType={}", mimeType);
+                return null;
+            }
+
             org.springframework.http.client.MultipartBodyBuilder builder =
                     new org.springframework.http.client.MultipartBodyBuilder();
-            builder.part("file", resource).contentType(MediaType.APPLICATION_PDF);
+            builder.part("file", resource).contentType(contentType);
             builder.part("tipo", message.getTipo().toLowerCase());
 
             Map<String, Object> response = iaServiceWebClient.post()
-                    .uri("/documents/extract")
+                    .uri(extractEndpoint)
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(org.springframework.web.reactive.function.BodyInserters.fromMultipartData(builder.build()))
                     .retrieve()

@@ -108,7 +108,10 @@ public class DocumentoService {
             messagePublisher.publishDocumentoUploaded(message);
             log.info("Documento enfileirado para processamento: id={}", saved.getId());
         } catch (Exception e) {
-            log.warn("Falha ao enfileirar documento para processamento: id={}. Sera processado manualmente.", saved.getId(), e);
+            log.warn("Falha ao enfileirar documento para processamento: id={}.", saved.getId(), e);
+            saved.setStatus(StatusProcessamento.ERRO);
+            saved.setErroProcessamento("Fila de processamento indisponivel. Use o botao Reprocessar.");
+            documentoRepository.save(saved);
         }
 
         return documentoMapper.toResponse(saved);
@@ -237,6 +240,41 @@ public class DocumentoService {
         log.info("Documento updated: id={}, user={}", id, currentUser.getEmail());
 
         return documentoMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public DocumentoResponse reprocess(UUID id) {
+        User currentUser = getCurrentUser();
+        Documento documento = findDocumentoWithAccessCheck(id, currentUser);
+
+        if (documento.getStatus() != StatusProcessamento.ERRO && documento.getStatus() != StatusProcessamento.PENDENTE) {
+            throw new BusinessException("Apenas documentos com status ERRO ou PENDENTE podem ser reprocessados");
+        }
+
+        documento.setStatus(StatusProcessamento.PENDENTE);
+        documento.setErroProcessamento(null);
+        documentoRepository.save(documento);
+
+        try {
+            DocumentoProcessingMessage message = new DocumentoProcessingMessage(
+                    documento.getId(),
+                    documento.getCondominioId(),
+                    documento.getTipo().name(),
+                    documento.getObjectKey(),
+                    documento.getBucketName(),
+                    documento.getMimeType(),
+                    documento.getNomeArquivo()
+            );
+            messagePublisher.publishDocumentoUploaded(message);
+            log.info("Documento re-enfileirado para reprocessamento: id={}", id);
+        } catch (Exception e) {
+            documento.setStatus(StatusProcessamento.ERRO);
+            documento.setErroProcessamento("Fila de processamento indisponivel. Tente novamente mais tarde.");
+            documentoRepository.save(documento);
+            throw new BusinessException("Servico de processamento indisponivel. Tente novamente mais tarde.");
+        }
+
+        return documentoMapper.toResponse(documento);
     }
 
     // === Métodos auxiliares ===

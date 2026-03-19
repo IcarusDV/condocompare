@@ -7,10 +7,14 @@ from uuid import UUID
 
 from pypdf import PdfReader
 import io
+import json
+import logging
 
 from src.rag.chunker import chunk_document
 from src.rag.store import store_chunks, search_chunks, delete_chunks_by_documento, get_chunk_stats
 from src.services.llm import chat_completion
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -278,8 +282,6 @@ async def index_and_extract(request: IndexAndExtractRequest):
     Pipeline completo: indexa documento no RAG e extrai dados estruturados.
     Usado pelo pipeline automatico de processamento de documentos.
     """
-    import json
-
     try:
         if not request.texto.strip():
             raise HTTPException(status_code=400, detail="Texto vazio")
@@ -305,41 +307,45 @@ async def index_and_extract(request: IndexAndExtractRequest):
 
         # Extract orcamento/apolice data
         if tipo_lower in ("orcamento", "apolice"):
-            texto_truncado = request.texto[:15000]
+            texto_truncado = request.texto[:50000]
             prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
-            response = await chat_completion(
+            raw_response = await chat_completion(
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.1,
                 max_tokens=2000,
             )
             try:
-                json_str = response.strip()
+                json_str = raw_response.strip()
                 if json_str.startswith("```"):
                     json_str = json_str.split("\n", 1)[1]
                 if json_str.endswith("```"):
                     json_str = json_str.rsplit("```", 1)[0]
                 dados_extraidos = json.loads(json_str.strip())
-            except json.JSONDecodeError:
-                dados_extraidos = {}
+            except json.JSONDecodeError as e:
+                logger.error(f"JSON parse error in extraction. Raw response: {raw_response[:500]}")
+                dados_extraidos = {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response[:200]}
 
         # Also try to extract condominio data
         condominio_data = {}
         try:
-            texto_truncado = request.texto[:10000]
+            texto_truncado = request.texto[:50000]
             prompt_condo = EXTRACTION_PROMPT_CONDOMINIO.format(texto=texto_truncado)
-            response_condo = await chat_completion(
+            raw_response_condo = await chat_completion(
                 messages=[{"role": "user", "content": prompt_condo}],
                 temperature=0.1,
                 max_tokens=1500,
             )
-            json_str = response_condo.strip()
+            json_str = raw_response_condo.strip()
             if json_str.startswith("```"):
                 json_str = json_str.split("\n", 1)[1]
             if json_str.endswith("```"):
                 json_str = json_str.rsplit("```", 1)[0]
             condominio_data = json.loads(json_str.strip())
-        except Exception:
-            pass
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parse error in condominio extraction. Raw response: {raw_response_condo[:500]}")
+            condominio_data = {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response_condo[:200]}
+        except Exception as e:
+            logger.warn(f"Falha ao extrair dados do condominio: {e}")
 
         if condominio_data:
             dados_extraidos["condominio_data"] = condominio_data

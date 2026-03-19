@@ -1,12 +1,19 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from uuid import UUID, uuid4
 import io
+import json
+import logging
 
 from pypdf import PdfReader
+from PIL import Image
+import pytesseract
+from docx import Document
 
 from src.services.llm import chat_completion
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -118,6 +125,35 @@ def extract_text_from_pdf(file_content: bytes) -> str:
         raise HTTPException(status_code=400, detail=f"Erro ao ler PDF: {str(e)}")
 
 
+async def _extract_structured_data(texto: str, tipo: str) -> Dict[str, Any]:
+    """Helper to extract structured data from text using LLM."""
+    texto_truncado = texto[:50000]
+
+    if tipo == "condominio":
+        prompt = EXTRACTION_PROMPT_CONDOMINIO.format(texto=texto_truncado)
+    else:
+        prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
+
+    raw_response = await chat_completion(
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.1,
+        max_tokens=2000,
+    )
+
+    try:
+        json_str = raw_response.strip()
+        if json_str.startswith("```"):
+            json_str = json_str.split("\n", 1)[1]
+        if json_str.endswith("```"):
+            json_str = json_str.rsplit("```", 1)[0]
+        json_str = json_str.strip()
+
+        return json.loads(json_str)
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parse error in extraction. Raw response: {raw_response[:500]}")
+        return {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response[:200]}
+
+
 @router.post("/extract", response_model=DocumentExtractionResponse)
 async def extract_document(
     file: UploadFile = File(...),
@@ -147,47 +183,20 @@ async def extract_document(
         if not texto.strip():
             raise HTTPException(status_code=400, detail="Nao foi possivel extrair texto do PDF")
 
-        # Limit text size for LLM (first 15000 chars)
-        texto_truncado = texto[:15000]
-
-        # Use appropriate prompt based on type
-        if tipo == "condominio":
-            prompt = EXTRACTION_PROMPT_CONDOMINIO.format(texto=texto_truncado)
-        else:
-            prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
-
-        response = await chat_completion(
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=2000,
-        )
-
-        # Parse JSON response
-        import json
-
-        try:
-            # Clean response (remove markdown code blocks if present)
-            json_str = response.strip()
-            if json_str.startswith("```"):
-                json_str = json_str.split("\n", 1)[1]
-            if json_str.endswith("```"):
-                json_str = json_str.rsplit("```", 1)[0]
-            json_str = json_str.strip()
-
-            dados = json.loads(json_str)
-        except json.JSONDecodeError:
-            # If JSON parsing fails, return partial result
-            dados = {"erro": "Nao foi possivel extrair dados estruturados", "texto_raw": texto_truncado[:1000]}
+        # Extract structured data if orcamento/apolice
+        dados_extraidos = {}
+        if tipo in ("orcamento", "apolice", "condominio"):
+            dados_extraidos = await _extract_structured_data(texto, tipo)
 
         return DocumentExtractionResponse(
             documento_id=None,
             tipo=tipo,
-            dados_extraidos=dados,
+            dados_extraidos=dados_extraidos,
             chunks_created=0,
             status="success",
             success=True,
             message="Dados extraidos com sucesso",
-            texto_extraido=texto_truncado[:500] + "..." if len(texto) > 500 else texto,
+            texto_extraido=texto,
         )
 
     except HTTPException:
@@ -232,8 +241,6 @@ async def classify_document(request: ClassifyRequest):
     """
     Classifica automaticamente o tipo de um documento de seguro.
     """
-    import json
-
     try:
         texto_truncado = request.texto[:2000]
         prompt = CLASSIFY_PROMPT.format(
@@ -286,33 +293,8 @@ async def extract_from_text(request: ExtractTextRequest):
     Extrai dados estruturados a partir de texto ja extraido do PDF.
     Usado pelo pipeline automatico (backend envia texto, nao arquivo).
     """
-    import json
-
     try:
-        texto_truncado = request.texto[:15000]
-
-        if request.tipo.lower() in ("condominio",):
-            prompt = EXTRACTION_PROMPT_CONDOMINIO.format(texto=texto_truncado)
-        else:
-            prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
-
-        response = await chat_completion(
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=2000,
-        )
-
-        try:
-            json_str = response.strip()
-            if json_str.startswith("```"):
-                json_str = json_str.split("\n", 1)[1]
-            if json_str.endswith("```"):
-                json_str = json_str.rsplit("```", 1)[0]
-            json_str = json_str.strip()
-
-            dados = json.loads(json_str)
-        except json.JSONDecodeError:
-            dados = {"erro": "Nao foi possivel extrair dados estruturados"}
+        dados = await _extract_structured_data(request.texto, request.tipo.lower())
 
         return ExtractTextResponse(
             tipo=request.tipo,
@@ -339,3 +321,70 @@ async def get_document_embeddings(documento_id: UUID):
     Retorna os embeddings de um documento
     """
     raise HTTPException(status_code=501, detail="Em desenvolvimento")
+
+
+@router.post("/extract-image")
+async def extract_image(
+    file: UploadFile = File(...),
+    tipo: str = Form("outro"),
+):
+    """Extract text from image using OCR (pytesseract)"""
+    try:
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents))
+
+        # OCR extraction
+        texto = pytesseract.image_to_string(image, lang='por')
+
+        if not texto or not texto.strip():
+            return {"texto_extraido": "", "dados_extraidos": {}, "erro": "Nenhum texto encontrado na imagem"}
+
+        # Extract structured data if orcamento/apolice
+        dados_extraidos = {}
+        if tipo in ("orcamento", "apolice"):
+            dados_extraidos = await _extract_structured_data(texto, tipo)
+
+        return {
+            "texto_extraido": texto,
+            "dados_extraidos": dados_extraidos,
+        }
+    except Exception as e:
+        logger.error(f"Erro ao extrair texto da imagem: {e}")
+        return {"texto_extraido": "", "dados_extraidos": {}, "erro": str(e)}
+
+
+@router.post("/extract-docx")
+async def extract_docx(
+    file: UploadFile = File(...),
+    tipo: str = Form("outro"),
+):
+    """Extract text from DOCX file"""
+    try:
+        contents = await file.read()
+        doc = Document(io.BytesIO(contents))
+
+        # Extract all paragraphs
+        texto = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+
+        # Also extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = " | ".join([cell.text.strip() for cell in row.cells if cell.text.strip()])
+                if row_text:
+                    texto += "\n" + row_text
+
+        if not texto or not texto.strip():
+            return {"texto_extraido": "", "dados_extraidos": {}, "erro": "Nenhum texto encontrado no documento"}
+
+        # Extract structured data if orcamento/apolice
+        dados_extraidos = {}
+        if tipo in ("orcamento", "apolice"):
+            dados_extraidos = await _extract_structured_data(texto, tipo)
+
+        return {
+            "texto_extraido": texto,
+            "dados_extraidos": dados_extraidos,
+        }
+    except Exception as e:
+        logger.error(f"Erro ao extrair texto do DOCX: {e}")
+        return {"texto_extraido": "", "dados_extraidos": {}, "erro": str(e)}
