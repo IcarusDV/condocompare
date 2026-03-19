@@ -17,6 +17,7 @@ public record UpdateSinistroRequest(
     String descricao,
     String localOcorrencia,
     BigDecimal valorPrejuizo,
+    BigDecimal valorFranquia,
     BigDecimal valorIndenizado,
     String coberturaAcionada,
     UUID[] documentosIds,

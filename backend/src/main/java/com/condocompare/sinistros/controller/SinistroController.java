@@ -88,6 +88,13 @@ public class SinistroController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/stats")
+    @Operation(summary = "Estatísticas de sinistros")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA')")
+    public ResponseEntity<SinistroStatsResponse> getStats() {
+        return ResponseEntity.ok(sinistroService.getStats());
+    }
+
     @GetMapping("/tipos")
     @Operation(summary = "Listar tipos de sinistro")
     public ResponseEntity<TipoSinistro[]> getTipos() {

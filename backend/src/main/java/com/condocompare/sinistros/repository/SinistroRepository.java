@@ -62,6 +62,17 @@ public interface SinistroRepository extends JpaRepository<Sinistro, UUID> {
     @Query(value = "SELECT c.id, c.nome FROM condocompare.condominios c WHERE c.id IN :ids", nativeQuery = true)
     List<Object[]> findCondominioNamesByIds(@Param("ids") List<UUID> ids);
 
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (s.updated_at - s.data_ocorrencia)) / 86400) " +
+           "FROM condocompare.sinistros s WHERE s.active = true AND s.status IN ('PAGO', 'NEGADO', 'APROVADO')",
+           nativeQuery = true)
+    Double avgResolucaoDias();
+
+    @Query(value = "SELECT TO_CHAR(s.data_ocorrencia, 'YYYY-MM') as mes, COUNT(*) as total " +
+           "FROM condocompare.sinistros s WHERE s.active = true " +
+           "AND s.data_ocorrencia >= NOW() - INTERVAL '12 months' " +
+           "GROUP BY TO_CHAR(s.data_ocorrencia, 'YYYY-MM') ORDER BY mes", nativeQuery = true)
+    List<Object[]> countByMonth();
+
     @Query(value = "SELECT s.* FROM condocompare.sinistros s WHERE s.active = true AND " +
            "s.condominio_id IN :allowedIds AND " +
            "(CAST(:condominioId AS uuid) IS NULL OR s.condominio_id = :condominioId) AND " +

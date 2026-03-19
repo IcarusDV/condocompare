@@ -22,6 +22,7 @@ public record SinistroResponse(
     String descricao,
     String localOcorrencia,
     BigDecimal valorPrejuizo,
+    BigDecimal valorFranquia,
     BigDecimal valorIndenizado,
     String coberturaAcionada,
     UUID[] documentosIds,

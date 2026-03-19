@@ -567,6 +567,23 @@ export interface UpdateSinistroRequest {
   observacoes?: string
 }
 
+export interface SinistroStatsResponse {
+  total: number
+  abertos: number
+  emAnalise: number
+  aprovados: number
+  negados: number
+  pagos: number
+  cancelados: number
+  totalPrejuizo: number
+  totalIndenizado: number
+  tempoMedioResolucaoDias: number
+  taxaAprovacao: number
+  taxaNegacao: number
+  sinistrosPorMes: { mes: string; total: number }[]
+  porStatus: Record<string, number>
+}
+
 // ========== NOTIFICACOES ==========
 
 export type TipoNotificacao = 'VENCIMENTO_APOLICE' | 'VISTORIA_AGENDADA' | 'SINISTRO_ATUALIZADO' | 'DOCUMENTO_PROCESSADO'

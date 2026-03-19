@@ -8,7 +8,7 @@ const protectedPaths = ['/dashboard']
 const authPaths = ['/login', '/register']
 
 // Paths that should never be intercepted
-const publicPaths = ['/api', '/_next', '/favicon.ico', '/images', '/static', '/vistoria-externa']
+const publicPaths = ['/api', '/_next', '/favicon.ico', '/images', '/static', '/vistoria-externa', '/forgot-password', '/reset-password']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

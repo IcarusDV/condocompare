@@ -2,6 +2,8 @@ package com.condocompare.billing.controller;
 
 import com.condocompare.billing.dto.*;
 import com.condocompare.billing.service.BillingService;
+import com.condocompare.billing.service.StripeService;
+import com.stripe.exception.StripeException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class BillingController {
 
     private final BillingService billingService;
+    private final StripeService stripeService;
 
     // ===== Planos (publico) =====
 
@@ -78,5 +81,41 @@ public class BillingController {
             @RequestHeader("X-User-Id") UUID userId
     ) {
         return ResponseEntity.ok(billingService.cancelarAssinatura(userId));
+    }
+
+    // ===== Stripe Checkout =====
+
+    @PostMapping("/checkout")
+    @Operation(summary = "Criar sessao de checkout Stripe")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<CheckoutResponse> createCheckout(
+            @RequestHeader("X-User-Id") UUID userId,
+            @Valid @RequestBody CreateCheckoutRequest request
+    ) {
+        if (!stripeService.isConfigured()) {
+            // Fallback: create subscription directly without payment
+            CreateAssinaturaRequest assinaturaRequest = new CreateAssinaturaRequest(
+                request.planoId(), request.tipoPagamento()
+            );
+            billingService.createAssinatura(userId, assinaturaRequest);
+            return ResponseEntity.ok(new CheckoutResponse(null, false));
+        }
+
+        try {
+            String url = stripeService.createCheckoutSession(userId, request.planoId(), request.tipoPagamento());
+            return ResponseEntity.ok(new CheckoutResponse(url, true));
+        } catch (StripeException e) {
+            throw new RuntimeException("Erro ao criar sessao de checkout: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/webhook/stripe")
+    @Operation(summary = "Webhook do Stripe")
+    public ResponseEntity<String> stripeWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader
+    ) {
+        stripeService.handleWebhookEvent(payload, sigHeader);
+        return ResponseEntity.ok("ok");
     }
 }

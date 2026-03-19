@@ -3,6 +3,7 @@ import { sinistroService, SinistroFilter, PaginationParams } from '@/services/si
 import {
   SinistroResponse,
   SinistroListResponse,
+  SinistroStatsResponse,
   CreateSinistroRequest,
   UpdateSinistroRequest,
   Page,
@@ -15,6 +16,7 @@ export const sinistroKeys = {
     [...sinistroKeys.lists(), { filter, pagination }] as const,
   details: () => [...sinistroKeys.all, 'detail'] as const,
   detail: (id: string) => [...sinistroKeys.details(), id] as const,
+  stats: () => [...sinistroKeys.all, 'stats'] as const,
 }
 
 export function useSinistros(filter?: SinistroFilter, pagination?: PaginationParams) {
@@ -61,6 +63,13 @@ export function useDeleteSinistro() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: sinistroKeys.lists() })
     },
+  })
+}
+
+export function useSinistroStats() {
+  return useQuery<SinistroStatsResponse>({
+    queryKey: sinistroKeys.stats(),
+    queryFn: () => sinistroService.getStats(),
   })
 }
 

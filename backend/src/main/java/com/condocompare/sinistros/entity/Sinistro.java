@@ -53,6 +53,9 @@ public class Sinistro extends BaseEntity {
     @Column(name = "valor_prejuizo", precision = 12, scale = 2)
     private BigDecimal valorPrejuizo;
 
+    @Column(name = "valor_franquia", precision = 12, scale = 2)
+    private BigDecimal valorFranquia;
+
     @Column(name = "valor_indenizado", precision = 12, scale = 2)
     private BigDecimal valorIndenizado;
 

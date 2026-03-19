@@ -1,9 +1,6 @@
 package com.condocompare.auth.controller;
 
-import com.condocompare.auth.dto.AuthResponse;
-import com.condocompare.auth.dto.LoginRequest;
-import com.condocompare.auth.dto.RefreshTokenRequest;
-import com.condocompare.auth.dto.RegisterRequest;
+import com.condocompare.auth.dto.*;
 import com.condocompare.auth.service.AuthService;
 import com.condocompare.auth.service.JwtService;
 import com.condocompare.auth.service.TokenBlacklistService;
@@ -59,6 +56,20 @@ public class AuthController {
             }
         }
         return ResponseEntity.ok(Map.of("message", "Logout realizado com sucesso"));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Solicitar redefinicao de senha")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(Map.of("message", "Se o email estiver cadastrado, voce recebera um link de redefinicao."));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha com token")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso."));
     }
 
     @GetMapping("/me")

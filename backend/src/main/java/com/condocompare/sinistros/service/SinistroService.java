@@ -105,6 +105,7 @@ public class SinistroService {
         if (request.fotosUrls() != null) sinistro.setFotosUrls(request.fotosUrls());
         if (request.seguradoraProtocolo() != null) sinistro.setSeguradoraProtocolo(request.seguradoraProtocolo());
         if (request.seguradoraContato() != null) sinistro.setSeguradoraContato(request.seguradoraContato());
+        if (request.valorFranquia() != null) sinistro.setValorFranquia(request.valorFranquia());
         if (request.observacoes() != null) sinistro.setObservacoes(request.observacoes());
 
         // Add status change to history
@@ -261,6 +262,51 @@ public class SinistroService {
             .orElseThrow(() -> new BusinessException("Usuário não encontrado"));
     }
 
+    @Transactional(readOnly = true)
+    public SinistroStatsResponse getStats() {
+        long total = sinistroRepository.countActive();
+        long abertos = sinistroRepository.countByStatus(StatusSinistro.ABERTO);
+        long emAnalise = sinistroRepository.countByStatus(StatusSinistro.EM_ANALISE);
+        long aprovados = sinistroRepository.countByStatus(StatusSinistro.APROVADO);
+        long negados = sinistroRepository.countByStatus(StatusSinistro.NEGADO);
+        long pagos = sinistroRepository.countByStatus(StatusSinistro.PAGO);
+        long cancelados = sinistroRepository.countByStatus(StatusSinistro.CANCELADO);
+
+        java.math.BigDecimal totalPrejuizo = sinistroRepository.sumValorPrejuizo();
+        java.math.BigDecimal totalIndenizado = sinistroRepository.sumValorIndenizado();
+
+        Double avgDias = sinistroRepository.avgResolucaoDias();
+        double tempoMedio = avgDias != null ? Math.round(avgDias * 10.0) / 10.0 : 0;
+
+        long resolvidos = aprovados + pagos + negados;
+        double taxaAprovacao = resolvidos > 0 ? Math.round(((double)(aprovados + pagos) / resolvidos) * 1000.0) / 10.0 : 0;
+        double taxaNegacao = resolvidos > 0 ? Math.round(((double)negados / resolvidos) * 1000.0) / 10.0 : 0;
+
+        List<Map<String, Object>> sinistrosPorMes = sinistroRepository.countByMonth().stream()
+            .map(row -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("mes", row[0]);
+                m.put("total", ((Number) row[1]).longValue());
+                return m;
+            })
+            .toList();
+
+        Map<String, Long> porStatus = new HashMap<>();
+        porStatus.put("ABERTO", abertos);
+        porStatus.put("EM_ANALISE", emAnalise);
+        porStatus.put("APROVADO", aprovados);
+        porStatus.put("NEGADO", negados);
+        porStatus.put("PAGO", pagos);
+        porStatus.put("CANCELADO", cancelados);
+
+        return new SinistroStatsResponse(
+            total, abertos, emAnalise, aprovados, negados, pagos, cancelados,
+            totalPrejuizo, totalIndenizado,
+            tempoMedio, taxaAprovacao, taxaNegacao,
+            sinistrosPorMes, porStatus
+        );
+    }
+
     private SinistroResponse toResponse(Sinistro s, String condominioNome) {
         return new SinistroResponse(
             s.getId(),
@@ -275,6 +321,7 @@ public class SinistroService {
             s.getDescricao(),
             s.getLocalOcorrencia(),
             s.getValorPrejuizo(),
+            s.getValorFranquia(),
             s.getValorIndenizado(),
             s.getCoberturaAcionada(),
             s.getDocumentosIds(),

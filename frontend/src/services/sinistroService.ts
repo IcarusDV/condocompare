@@ -2,6 +2,7 @@ import { api } from '@/lib/api'
 import {
   SinistroResponse,
   SinistroListResponse,
+  SinistroStatsResponse,
   CreateSinistroRequest,
   UpdateSinistroRequest,
   TipoSinistro,
@@ -86,6 +87,11 @@ export const sinistroService = {
 
   async getStatus(): Promise<StatusSinistro[]> {
     const response = await api.get<StatusSinistro[]>(`${BASE_URL}/status`)
+    return response.data
+  },
+
+  async getStats(): Promise<SinistroStatsResponse> {
+    const response = await api.get<SinistroStatsResponse>(`${BASE_URL}/stats`)
     return response.data
   },
 }

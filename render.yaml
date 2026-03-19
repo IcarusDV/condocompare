@@ -70,6 +70,22 @@ services:
         sync: false
       - key: RABBITMQ_PASSWORD
         sync: false
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
 
   # ===========================================
   # IA Service (FastAPI) - Render Web Service

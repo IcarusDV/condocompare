@@ -47,9 +47,11 @@ public class SecurityConfig {
         "/swagger-ui.html",
         "/actuator/health",
         "/health",
-        "/v1/parceiros/**",  // TODO: Remover apos seed inicial
         "/v1/billing/planos/**",
-        "/v1/vistorias/external/**"
+        "/v1/auth/forgot-password",
+        "/v1/auth/reset-password",
+        "/v1/vistorias/external/**",
+        "/v1/billing/webhook/**"
     };
 
     @Bean

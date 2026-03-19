@@ -51,6 +51,12 @@ public class Assinatura {
     @Column(nullable = false)
     private BigDecimal valor;
 
+    @Column(name = "stripe_session_id")
+    private String stripeSessionId;
+
+    @Column(name = "stripe_payment_intent_id")
+    private String stripePaymentIntentId;
+
     @Column(columnDefinition = "TEXT")
     private String observacoes;
 

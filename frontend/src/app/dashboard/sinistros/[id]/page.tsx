@@ -24,6 +24,8 @@ import {
   IconButton,
   Tooltip,
   LinearProgress,
+  Tab,
+  Tabs,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import EditIcon from '@mui/icons-material/Edit'
@@ -44,6 +46,11 @@ import PhoneIcon from '@mui/icons-material/Phone'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
+import SmartToyIcon from '@mui/icons-material/SmartToy'
+import ChatIcon from '@mui/icons-material/Chat'
+import FolderIcon from '@mui/icons-material/Folder'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import { useAuth } from '@/contexts/AuthContext'
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext'
 import {
@@ -51,6 +58,7 @@ import {
   getTipoSinistroLabel,
   getStatusSinistroLabel,
 } from '@/services/sinistroService'
+import { iaService } from '@/services/iaService'
 import {
   SinistroResponse,
   UpdateSinistroRequest,
@@ -111,6 +119,17 @@ export default function SinistroDetailPage() {
   // Payment dialog
   const [paymentOpen, setPaymentOpen] = useState(false)
   const [paymentValue, setPaymentValue] = useState<number | ''>('')
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState(0)
+
+  // IA Communication draft
+  const [iaDraftLoading, setIaDraftLoading] = useState(false)
+  const [iaDraft, setIaDraft] = useState<string | null>(null)
+
+  // Communication log
+  const [commText, setCommText] = useState('')
+  const [addingComm, setAddingComm] = useState(false)
 
   const loadSinistro = async () => {
     try {
@@ -217,6 +236,57 @@ export default function SinistroDetailPage() {
     }
   }
 
+  const handleAddCommunication = async () => {
+    if (!commText.trim()) return
+    try {
+      setAddingComm(true)
+      await sinistroService.addHistorico(sinistroId, `[COMUNICACAO] ${commText.trim()}`)
+      setCommText('')
+      setSuccess('Comunicacao registrada')
+      loadSinistro()
+    } catch (err) {
+      console.error('Error adding communication:', err)
+      setError('Erro ao registrar comunicacao')
+    } finally {
+      setAddingComm(false)
+    }
+  }
+
+  const handleGenerateIaDraft = async () => {
+    if (!sinistro) return
+    try {
+      setIaDraftLoading(true)
+      const result = await iaService.chat({
+        message: `Gere um rascunho de comunicacao formal para a seguradora sobre o sinistro do tipo "${getTipoSinistroLabel(sinistro.tipo)}" ocorrido em ${formatDate(sinistro.dataOcorrencia)} no condominio "${sinistro.condominioNome}". Descricao: "${sinistro.descricao}". Status atual: ${getStatusSinistroLabel(sinistro.status)}. ${sinistro.seguradoraProtocolo ? `Protocolo: ${sinistro.seguradoraProtocolo}.` : ''} A comunicacao deve ser profissional, objetiva e solicitar atualizacao do status.`,
+        history: [],
+        context_type: 'sinistro',
+      })
+      if (result.response) {
+        setIaDraft(result.response)
+      }
+    } catch (err) {
+      console.error('Error generating IA draft:', err)
+      setError('Erro ao gerar rascunho com IA')
+    } finally {
+      setIaDraftLoading(false)
+    }
+  }
+
+  const handleCopyDraft = () => {
+    if (iaDraft) {
+      navigator.clipboard.writeText(iaDraft)
+      setSuccess('Rascunho copiado para a area de transferencia')
+    }
+  }
+
+  const handleUseDraftAsComm = () => {
+    if (iaDraft) {
+      setCommText(iaDraft)
+      setIaDraft(null)
+      setActiveTab(1)
+    }
+  }
+
   const handleDelete = async () => {
     const ok = await confirmDialog({
       title: 'Confirmar exclusao',
@@ -278,6 +348,11 @@ export default function SinistroDetailPage() {
   const dias = getDiasAberto()
   const flowActions = statusFlowConfig[sinistro.status] || []
 
+  // Separate historico entries: regular vs communication
+  const allHistorico = sinistro.historico || []
+  const communications = allHistorico.filter(e => String(e.descricao).startsWith('[COMUNICACAO]'))
+  const regularHistorico = allHistorico.filter(e => !String(e.descricao).startsWith('[COMUNICACAO]'))
+
   return (
     <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
       {/* Header */}
@@ -286,16 +361,24 @@ export default function SinistroDetailPage() {
           <ArrowBackIcon />
         </IconButton>
         <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
             <Typography variant="h5" fontWeight="bold">
               Sinistro {sinistro.numeroSinistro ? `#${sinistro.numeroSinistro}` : ''}
             </Typography>
             <Chip
               label={getStatusSinistroLabel(sinistro.status)}
-              sx={{ bgcolor: sc.bg, color: sc.color, fontWeight: 700, fontSize: '0.8rem', height: 28 }}
+              sx={{
+                bgcolor: sc.bg,
+                color: sc.color,
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                height: 28,
+                textDecoration: sinistro.status === 'NEGADO' ? 'line-through' : 'none',
+              }}
             />
             {isOpen && (
               <Chip
+                icon={dias > 90 ? <LocalFireDepartmentIcon sx={{ fontSize: 14 }} /> : undefined}
                 label={`${dias} dias`}
                 size="small"
                 sx={{
@@ -303,6 +386,7 @@ export default function SinistroDetailPage() {
                   color: dias > 90 ? '#ef4444' : dias > 60 ? '#f59e0b' : dias > 30 ? '#3b82f6' : '#94a3b8',
                   fontWeight: 700,
                   fontSize: '0.75rem',
+                  border: dias > 90 ? '1px solid #fecaca' : 'none',
                 }}
               />
             )}
@@ -388,47 +472,33 @@ export default function SinistroDetailPage() {
 
           {/* Financial Card */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Valores
-            </Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Valores</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2, bgcolor: '#fef2f2', border: '1px solid #fecaca', boxShadow: 'none' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <WarningAmberIcon sx={{ color: '#ef4444', fontSize: 20 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      VALOR DO PREJUIZO
-                    </Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>PREJUIZO</Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#ef4444' }}>
-                    {formatCurrency(sinistro.valorPrejuizo)}
-                  </Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#ef4444' }}>{formatCurrency(sinistro.valorPrejuizo)}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2, bgcolor: '#fffbeb', border: '1px solid #fde68a', boxShadow: 'none' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <AttachMoneyIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      VALOR DA FRANQUIA
-                    </Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>FRANQUIA</Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#f59e0b' }}>
-                    {formatCurrency(sinistro.valorFranquia)}
-                  </Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#f59e0b' }}>{formatCurrency(sinistro.valorFranquia)}</Typography>
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', boxShadow: 'none' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <AttachMoneyIcon sx={{ color: '#22c55e', fontSize: 20 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                      VALOR INDENIZADO
-                    </Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>INDENIZADO</Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#22c55e' }}>
-                    {formatCurrency(sinistro.valorIndenizado)}
-                  </Typography>
+                  <Typography variant="h5" fontWeight="bold" sx={{ color: '#22c55e' }}>{formatCurrency(sinistro.valorIndenizado)}</Typography>
                 </Paper>
               </Grid>
               {sinistro.valorPrejuizo && sinistro.valorIndenizado && (
@@ -452,26 +522,13 @@ export default function SinistroDetailPage() {
 
           {/* Protocolo Seguradora */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Protocolo da Seguradora
-            </Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Protocolo da Seguradora</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <InfoRow
-                  icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />}
-                  label="Numero do Protocolo"
-                  value={sinistro.seguradoraProtocolo || 'Nao informado'}
-                  mono={!!sinistro.seguradoraProtocolo}
-                  muted={!sinistro.seguradoraProtocolo}
-                />
+                <InfoRow icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />} label="Numero do Protocolo" value={sinistro.seguradoraProtocolo || 'Nao informado'} mono={!!sinistro.seguradoraProtocolo} muted={!sinistro.seguradoraProtocolo} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <InfoRow
-                  icon={<PhoneIcon sx={{ color: '#3b82f6' }} />}
-                  label="Contato da Seguradora"
-                  value={sinistro.seguradoraContato || 'Nao informado'}
-                  muted={!sinistro.seguradoraContato}
-                />
+                <InfoRow icon={<PhoneIcon sx={{ color: '#3b82f6' }} />} label="Contato da Seguradora" value={sinistro.seguradoraContato || 'Nao informado'} muted={!sinistro.seguradoraContato} />
               </Grid>
             </Grid>
             {!sinistro.seguradoraProtocolo && canEdit && (
@@ -483,96 +540,234 @@ export default function SinistroDetailPage() {
             )}
           </Paper>
 
-          {/* Timeline / Historico */}
-          <Paper sx={{ p: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-              <TimelineIcon sx={{ color: '#6366f1' }} />
-              <Typography variant="subtitle1" fontWeight="bold">
-                Historico
-              </Typography>
-              <Chip label={sinistro.historico?.length || 0} size="small" sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontWeight: 700, height: 22 }} />
-            </Box>
+          {/* Tabbed Section: Timeline / Communication / Documents / IA */}
+          <Paper sx={{ border: '1px solid #e2e8f0', boxShadow: 'none', overflow: 'hidden' }}>
+            <Tabs
+              value={activeTab}
+              onChange={(_, v) => setActiveTab(v)}
+              sx={{
+                borderBottom: '1px solid #e2e8f0',
+                '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, fontSize: '0.85rem' },
+                '& .Mui-selected': { color: '#6366f1' },
+                '& .MuiTabs-indicator': { bgcolor: '#6366f1' },
+              }}
+            >
+              <Tab icon={<TimelineIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Historico (${regularHistorico.length})`} />
+              <Tab icon={<ChatIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Comunicacao (${communications.length})`} />
+              <Tab icon={<FolderIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Documentos (${sinistro.documentosIds?.length || 0})`} />
+              <Tab icon={<SmartToyIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="IA" />
+            </Tabs>
 
-            {/* Add historico */}
-            {canEdit && (
-              <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="Adicionar atualizacao ao historico..."
-                  value={historicoText}
-                  onChange={(e) => setHistoricoText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddHistorico() } }}
-                  multiline
-                  maxRows={3}
-                />
-                <IconButton
-                  onClick={handleAddHistorico}
-                  disabled={!historicoText.trim() || addingHistorico}
-                  sx={{ bgcolor: '#6366f1', color: 'white', '&:hover': { bgcolor: '#4f46e5' }, '&:disabled': { bgcolor: '#e2e8f0' }, borderRadius: 2, width: 40, height: 40 }}
-                >
-                  {addingHistorico ? <CircularProgress size={18} color="inherit" /> : <SendIcon fontSize="small" />}
-                </IconButton>
-              </Box>
-            )}
-
-            {/* Timeline entries */}
-            {(!sinistro.historico || sinistro.historico.length === 0) ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <TimelineIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
-                <Typography color="text.secondary">Nenhum registro no historico</Typography>
-              </Box>
-            ) : (
-              <Box>
-                {[...sinistro.historico].reverse().map((entry, index) => (
-                  <Box key={index} sx={{ display: 'flex', gap: 2, mb: 0 }}>
-                    {/* Timeline line */}
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24 }}>
-                      <Box sx={{
-                        width: 12, height: 12, borderRadius: '50%',
-                        bgcolor: index === 0 ? '#6366f1' : '#e2e8f0',
-                        border: index === 0 ? '3px solid #c7d2fe' : 'none',
-                        zIndex: 1,
-                        mt: 0.5,
-                      }} />
-                      {index < sinistro.historico!.length - 1 && (
-                        <Box sx={{ width: 2, flex: 1, bgcolor: '#e2e8f0', minHeight: 30 }} />
-                      )}
+            <Box sx={{ p: 3 }}>
+              {/* Tab 0: Historico */}
+              {activeTab === 0 && (
+                <>
+                  {canEdit && (
+                    <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+                      <TextField
+                        fullWidth size="small"
+                        placeholder="Adicionar atualizacao ao historico..."
+                        value={historicoText}
+                        onChange={(e) => setHistoricoText(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddHistorico() } }}
+                        multiline maxRows={3}
+                      />
+                      <IconButton
+                        onClick={handleAddHistorico}
+                        disabled={!historicoText.trim() || addingHistorico}
+                        sx={{ bgcolor: '#6366f1', color: 'white', '&:hover': { bgcolor: '#4f46e5' }, '&:disabled': { bgcolor: '#e2e8f0' }, borderRadius: 2, width: 40, height: 40 }}
+                      >
+                        {addingHistorico ? <CircularProgress size={18} color="inherit" /> : <SendIcon fontSize="small" />}
+                      </IconButton>
                     </Box>
-                    {/* Content */}
-                    <Box sx={{ pb: 3, flex: 1 }}>
-                      <Typography variant="body2" sx={{ lineHeight: 1.6, color: '#334155' }}>
-                        {entry.descricao}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDateTime(entry.data)}
-                        </Typography>
-                        {entry.usuario && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <PersonIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
-                            <Typography variant="caption" color="text.secondary">
-                              {entry.usuario}
-                            </Typography>
+                  )}
+                  {regularHistorico.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <TimelineIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
+                      <Typography color="text.secondary">Nenhum registro no historico</Typography>
+                    </Box>
+                  ) : (
+                    <Box>
+                      {[...regularHistorico].reverse().map((entry, index) => (
+                        <Box key={index} sx={{ display: 'flex', gap: 2, mb: 0 }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 24 }}>
+                            <Box sx={{
+                              width: 12, height: 12, borderRadius: '50%',
+                              bgcolor: index === 0 ? '#6366f1' : '#e2e8f0',
+                              border: index === 0 ? '3px solid #c7d2fe' : 'none',
+                              zIndex: 1, mt: 0.5,
+                            }} />
+                            {index < regularHistorico.length - 1 && (
+                              <Box sx={{ width: 2, flex: 1, bgcolor: '#e2e8f0', minHeight: 30 }} />
+                            )}
                           </Box>
-                        )}
+                          <Box sx={{ pb: 3, flex: 1 }}>
+                            <Typography variant="body2" sx={{ lineHeight: 1.6, color: '#334155' }}>
+                              {entry.descricao}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 0.5 }}>
+                              <Typography variant="caption" color="text.secondary">{formatDateTime(entry.data)}</Typography>
+                              {entry.usuario && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                  <PersonIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
+                                  <Typography variant="caption" color="text.secondary">{entry.usuario}</Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
+                </>
+              )}
+
+              {/* Tab 1: Comunicacao */}
+              {activeTab === 1 && (
+                <>
+                  {canEdit && (
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>
+                        Registrar comunicacao com a seguradora
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <TextField
+                          fullWidth size="small"
+                          placeholder="Descreva a comunicacao realizada..."
+                          value={commText}
+                          onChange={(e) => setCommText(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddCommunication() } }}
+                          multiline maxRows={4}
+                        />
+                        <IconButton
+                          onClick={handleAddCommunication}
+                          disabled={!commText.trim() || addingComm}
+                          sx={{ bgcolor: '#3b82f6', color: 'white', '&:hover': { bgcolor: '#2563eb' }, '&:disabled': { bgcolor: '#e2e8f0' }, borderRadius: 2, width: 40, height: 40 }}
+                        >
+                          {addingComm ? <CircularProgress size={18} color="inherit" /> : <SendIcon fontSize="small" />}
+                        </IconButton>
                       </Box>
                     </Box>
-                  </Box>
-                ))}
-              </Box>
-            )}
+                  )}
+                  {communications.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <ChatIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
+                      <Typography color="text.secondary">Nenhuma comunicacao registrada</Typography>
+                      <Typography variant="caption" color="text.secondary">Registre as comunicacoes com a seguradora para manter o historico</Typography>
+                    </Box>
+                  ) : (
+                    <Box>
+                      {[...communications].reverse().map((entry, index) => (
+                        <Paper key={index} sx={{ p: 2, mb: 2, bgcolor: '#eff6ff', border: '1px solid #dbeafe', boxShadow: 'none' }}>
+                          <Typography variant="body2" sx={{ lineHeight: 1.6, color: '#1e40af' }}>
+                            {String(entry.descricao).replace('[COMUNICACAO] ', '')}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary">{formatDateTime(entry.data)}</Typography>
+                            {entry.usuario && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <PersonIcon sx={{ fontSize: 14, color: '#94a3b8' }} />
+                                <Typography variant="caption" color="text.secondary">{entry.usuario}</Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  )}
+                </>
+              )}
+
+              {/* Tab 2: Documentos */}
+              {activeTab === 2 && (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <FolderIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
+                  {sinistro.documentosIds && sinistro.documentosIds.length > 0 ? (
+                    <>
+                      <Typography color="text.secondary" sx={{ mb: 2 }}>{sinistro.documentosIds.length} documento(s) vinculado(s)</Typography>
+                      {sinistro.documentosIds.map((docId, i) => (
+                        <Chip
+                          key={i}
+                          label={`Documento ${i + 1}`}
+                          size="small"
+                          onClick={() => router.push(`/dashboard/documentos`)}
+                          sx={{ m: 0.5, bgcolor: '#ede9fe', color: '#6366f1', cursor: 'pointer', '&:hover': { bgcolor: '#c7d2fe' } }}
+                        />
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      <Typography color="text.secondary">Nenhum documento vinculado</Typography>
+                      <Typography variant="caption" color="text.secondary">Vincule documentos ao sinistro pela tela de edicao</Typography>
+                    </>
+                  )}
+                  {sinistro.fotosUrls && sinistro.fotosUrls.length > 0 && (
+                    <Box sx={{ mt: 3 }}>
+                      <Divider sx={{ mb: 2 }} />
+                      <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>{sinistro.fotosUrls.length} foto(s)</Typography>
+                      {sinistro.fotosUrls.map((url, i) => (
+                        <Chip key={i} label={`Foto ${i + 1}`} size="small" sx={{ m: 0.5, bgcolor: '#fef3c7', color: '#92400e' }} />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {/* Tab 3: IA */}
+              {activeTab === 3 && (
+                <Box>
+                  <Paper sx={{ p: 3, mb: 2, background: 'linear-gradient(135deg, #667eea08 0%, #764ba208 100%)', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <SmartToyIcon sx={{ color: '#6366f1' }} />
+                      <Typography variant="subtitle1" fontWeight="bold">Rascunho de Comunicacao com IA</Typography>
+                      <Chip label="Beta" size="small" sx={{ bgcolor: '#6366f1', color: 'white', height: 20, fontSize: '0.7rem' }} />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      A IA pode gerar um rascunho de comunicacao formal para enviar a seguradora sobre este sinistro.
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      startIcon={iaDraftLoading ? <CircularProgress size={16} color="inherit" /> : <SmartToyIcon />}
+                      onClick={handleGenerateIaDraft}
+                      disabled={iaDraftLoading}
+                      sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}
+                    >
+                      {iaDraftLoading ? 'Gerando rascunho...' : 'Gerar Rascunho'}
+                    </Button>
+                  </Paper>
+
+                  {iaDraft && (
+                    <Paper sx={{ p: 3, border: '1px solid #c7d2fe', boxShadow: 'none', bgcolor: '#f5f3ff' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#6366f1' }}>Rascunho Gerado</Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Tooltip title="Copiar para area de transferencia">
+                            <IconButton size="small" onClick={handleCopyDraft} sx={{ color: '#6366f1' }}>
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Button size="small" variant="outlined" onClick={handleUseDraftAsComm} sx={{ borderColor: '#6366f1', color: '#6366f1', textTransform: 'none' }}>
+                            Usar como comunicacao
+                          </Button>
+                        </Box>
+                      </Box>
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, color: '#334155' }}>
+                        {iaDraft}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              )}
+            </Box>
           </Paper>
         </Grid>
 
         {/* Right Column */}
         <Grid item xs={12} md={4}>
-          {/* Status Flow */}
+          {/* Status Flow Actions */}
           {canEdit && flowActions.length > 0 && (
             <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-                Acoes
-              </Typography>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Acoes</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {flowActions.map((action) => (
                   <Button
@@ -603,9 +798,7 @@ export default function SinistroDetailPage() {
 
           {/* Status Flow Visualization */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Fluxo do Status
-            </Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Fluxo do Status</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {(['ABERTO', 'EM_ANALISE', 'APROVADO', 'PAGO'] as StatusSinistro[]).map((status, index) => {
                 const isCurrent = sinistro.status === status
@@ -671,9 +864,7 @@ export default function SinistroDetailPage() {
 
           {/* Meta Info */}
           <Paper sx={{ p: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Detalhes
-            </Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Detalhes</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <DetailRow label="Criado em" value={formatDateTime(sinistro.createdAt)} />
               <DetailRow label="Atualizado em" value={formatDateTime(sinistro.updatedAt)} />

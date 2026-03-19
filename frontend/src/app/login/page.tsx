@@ -415,11 +415,14 @@ export default function LoginPage() {
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
               <Typography
+                component={Link}
+                href="/forgot-password"
                 variant="caption"
                 sx={{
                   color: '#6366f1',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  textDecoration: 'none',
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >

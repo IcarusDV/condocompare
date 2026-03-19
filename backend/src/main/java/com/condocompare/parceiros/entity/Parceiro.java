@@ -64,7 +64,7 @@ public class Parceiro {
     private String cep;
 
     // Categorias de servico (pode ter multiplas)
-    @ElementCollection(targetClass = CategoriaParceiro.class, fetch = FetchType.LAZY)
+    @ElementCollection(targetClass = CategoriaParceiro.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "parceiro_categorias", joinColumns = @JoinColumn(name = "parceiro_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "categoria")
