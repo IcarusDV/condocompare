@@ -9,6 +9,7 @@ import com.condocompare.notificacoes.entity.TipoNotificacao;
 import com.condocompare.sinistros.entity.Sinistro;
 import com.condocompare.sinistros.entity.StatusSinistro;
 import com.condocompare.sinistros.repository.SinistroRepository;
+import com.condocompare.common.service.EmailService;
 import com.condocompare.users.entity.Role;
 import com.condocompare.users.entity.User;
 import com.condocompare.users.repository.UserRepository;
@@ -37,6 +38,7 @@ public class VencimentoApoliceScheduler {
     private final SinistroRepository sinistroRepository;
     private final UserRepository userRepository;
     private final NotificacaoService notificacaoService;
+    private final EmailService emailService;
 
     // Executa todos os dias as 8h
     @Scheduled(cron = "0 0 8 * * *")
@@ -96,10 +98,24 @@ public class VencimentoApoliceScheduler {
             if (titulo != null) {
                 String condominioNome = condominioRepository.findById(apolice.getCondominioId())
                     .map(Condominio::getNome).orElse("N/A");
+                String seguradoraNome = apolice.getSeguradoraNome() != null ? apolice.getSeguradoraNome() : "N/A";
                 mensagem = "[" + condominioNome + "] " + mensagem;
 
                 notificacoesEnviadas += notificarUsuariosRelevantes(
                     TipoNotificacao.VENCIMENTO_APOLICE, titulo, mensagem, "APOLICE", apolice.getId());
+
+                // Send styled email to all relevant users
+                int dias = (int) diasParaVencer;
+                List<User> usuarios = userRepository.findByRoleInAndActiveTrue(
+                    List.of(Role.ADMIN, Role.CORRETORA));
+                for (User user : usuarios) {
+                    try {
+                        emailService.sendApoliceExpiringEmail(
+                            user.getEmail(), user.getName(), condominioNome, seguradoraNome, dias);
+                    } catch (Exception e) {
+                        log.warn("Falha ao enviar email de vencimento para {}: {}", user.getEmail(), e.getMessage());
+                    }
+                }
 
                 apolice.setNotificacaoVencimentoEnviada(true);
                 documentoRepository.save(apolice);
@@ -214,6 +230,9 @@ public class VencimentoApoliceScheduler {
         int count = 0;
         for (User user : usuarios) {
             notificacaoService.criarNotificacao(user.getId(), tipo, titulo, mensagem, referenciaTipo, referenciaId);
+
+
+
             count++;
         }
         return count;
