@@ -24,6 +24,7 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
+        default_schema: ${HIBERNATE_SCHEMA:condocompare}
         format_sql: false
         jdbc:
           batch_size: 25
@@ -43,6 +44,8 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    default-schema: ${FLYWAY_SCHEMA:condocompare}
+    schemas: ${FLYWAY_SCHEMA:condocompare}
 
   data:
     redis:
