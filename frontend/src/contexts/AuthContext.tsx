@@ -33,11 +33,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper to set token cookie for Next.js middleware access
 function setTokenCookie(token: string) {
-  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`
+  const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`
 }
 
 function removeTokenCookie() {
-  document.cookie = 'token=; path=/; max-age=0; SameSite=Lax'
+  const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+  document.cookie = `token=; path=/; max-age=0; SameSite=Lax${secure}`
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
