@@ -109,7 +109,7 @@ server:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:ilU5juy7Y+1oLMQYmB/NXAzxSfeq/Th7ME/COwrfE2o=}
+  secret: ${JWT_SECRET:vG/BajCGAJMg23Nx+PcJIuUBQlUeY8VOMv+HfWmyFP7KYRsNE3UVejZ1QNUxv1kGTc4zcf6fCQli8Mwo+BMxkQ==}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
