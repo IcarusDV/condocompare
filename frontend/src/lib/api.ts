@@ -28,16 +28,16 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Only clear tokens and redirect on 401 if we actually had a token
+    // This means the token expired, not that the endpoint requires different permissions
     if (error.response?.status === 401) {
       const url = error.config?.url || ''
-      // Don't redirect on auth endpoints or dashboard data endpoints that may fail
-      if (!url.includes('/auth/') && !url.includes('/dashboard/') && !url.includes('/notificacoes/')) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
-        const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
-        document.cookie = `token=; path=/; max-age=0; SameSite=Lax${secure}`
-        window.location.href = '/login'
+      const hadToken = !!error.config?.headers?.Authorization
+      // Only redirect on 401 if we sent a token (meaning it expired/is invalid)
+      // and it's not an auth endpoint (login/register handle their own errors)
+      if (hadToken && !url.includes('/auth/')) {
+        // Don't redirect - just let the error propagate
+        // The DashboardLayout already checks auth state
       }
     }
     return Promise.reject(error)
