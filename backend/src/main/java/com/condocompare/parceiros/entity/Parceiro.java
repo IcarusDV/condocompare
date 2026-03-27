@@ -65,7 +65,7 @@ public class Parceiro {
 
     // Categorias de servico (pode ter multiplas)
     @ElementCollection(targetClass = CategoriaParceiro.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "parceiro_categorias", joinColumns = @JoinColumn(name = "parceiro_id"))
+    @CollectionTable(name = "parceiro_categorias", schema = "condocompare", joinColumns = @JoinColumn(name = "parceiro_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "categoria")
     private Set<CategoriaParceiro> categorias = new HashSet<>();
