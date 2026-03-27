@@ -6,7 +6,7 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:condocompare}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:condocompare}?currentSchema=${HIBERNATE_SCHEMA:condocompare}
     username: ${POSTGRES_USER:condocompare}
     password: ${POSTGRES_PASSWORD:condocompare123}
     driver-class-name: org.postgresql.Driver
