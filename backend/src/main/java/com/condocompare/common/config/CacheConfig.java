@@ -1,6 +1,10 @@
 package com.condocompare.common.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -18,8 +22,21 @@ import java.util.Map;
 @EnableCaching
 public class CacheConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
+
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+    public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+        try {
+            connectionFactory.getConnection().ping();
+            log.info("Redis available - using Redis cache");
+            return redisCacheManager(connectionFactory);
+        } catch (Exception e) {
+            log.warn("Redis unavailable - using in-memory cache");
+            return new ConcurrentMapCacheManager();
+        }
+    }
+
+    private RedisCacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
             .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
             .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
@@ -27,23 +44,11 @@ public class CacheConfig {
             .entryTtl(Duration.ofMinutes(10));
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-
-        // User cache: 30 minutes (users rarely change)
         cacheConfigurations.put("users", defaultConfig.entryTtl(Duration.ofMinutes(30)));
-
-        // Seguradoras cache: 1 hour (rarely changes)
         cacheConfigurations.put("seguradoras", defaultConfig.entryTtl(Duration.ofHours(1)));
-
-        // Dashboard metrics cache: 2 minutes (frequently accessed, tolerable staleness)
         cacheConfigurations.put("dashboard-metrics", defaultConfig.entryTtl(Duration.ofMinutes(2)));
-
-        // Dashboard charts cache: 5 minutes
         cacheConfigurations.put("dashboard-charts", defaultConfig.entryTtl(Duration.ofMinutes(5)));
-
-        // Condominio names cache: 15 minutes (used heavily in list queries)
         cacheConfigurations.put("condominio-names", defaultConfig.entryTtl(Duration.ofMinutes(15)));
-
-        // Planos cache: 1 hour (billing plans rarely change)
         cacheConfigurations.put("planos", defaultConfig.entryTtl(Duration.ofHours(1)));
 
         return RedisCacheManager.builder(connectionFactory)
