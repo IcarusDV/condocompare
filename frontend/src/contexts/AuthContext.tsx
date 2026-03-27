@@ -77,7 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData)
 
     console.log('AuthContext: Redirecting to dashboard...')
-    // Use window.location for more reliable navigation after login
+    // Small delay to ensure cookie is set before redirect
+    await new Promise(resolve => setTimeout(resolve, 100))
     window.location.href = '/dashboard'
   }
 

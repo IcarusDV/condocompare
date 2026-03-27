@@ -29,13 +29,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Don't redirect on auth endpoints - let the login/register pages handle their own errors
       const url = error.config?.url || ''
-      if (!url.includes('/auth/login') && !url.includes('/auth/register')) {
+      // Don't redirect on auth endpoints or dashboard data endpoints that may fail
+      if (!url.includes('/auth/') && !url.includes('/dashboard/') && !url.includes('/notificacoes/')) {
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
         localStorage.removeItem('user')
-        document.cookie = 'token=; path=/; max-age=0; SameSite=Lax'
+        const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+        document.cookie = `token=; path=/; max-age=0; SameSite=Lax${secure}`
         window.location.href = '/login'
       }
     }
