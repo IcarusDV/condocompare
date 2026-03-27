@@ -65,6 +65,9 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:condocompare}
     password: ${RABBITMQ_PASSWORD:condocompare123}
+    virtual-host: ${RABBITMQ_VHOST:/}
+    ssl:
+      enabled: ${RABBITMQ_SSL:false}
     listener:
       simple:
         retry:
