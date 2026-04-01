@@ -41,9 +41,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch'
 
 const roles = [
-  { value: 'CORRETORA', label: 'Corretora', description: 'Acesso completo a todos condominios' },
-  { value: 'ADMINISTRADORA', label: 'Administradora', description: 'Gerencie condominios que administra' },
-  { value: 'SINDICO', label: 'Sindico', description: 'Visao exclusiva do seu condominio' },
+  { value: 'CORRETORA', label: 'Corretora', description: 'Acesso completo a todos condomínios' },
+  { value: 'ADMINISTRADORA', label: 'Administradora', description: 'Gerencie condomínios que administra' },
+  { value: 'SINDICO', label: 'Síndico', description: 'Visão exclusiva do seu condomínio' },
 ]
 
 const highlights = [
@@ -97,7 +97,7 @@ export default function RegisterPage() {
     setError('')
 
     if (formData.password !== formData.confirmPassword) {
-      setError('As senhas nao conferem')
+      setError('As senhas não conferem')
       return
     }
 
@@ -376,7 +376,7 @@ export default function RegisterPage() {
               Crie sua conta
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Preencha os dados para comecar a usar o CondoCompare
+              Preencha os dados para começar a usar o CondoCompare
             </Typography>
           </Box>
 

@@ -56,7 +56,7 @@ const statusConfig: Record<StatusApolice, { label: string; color: string; bgColo
   VENCIDA: { label: 'Vencida', color: '#dc2626', bgColor: '#fef2f2', icon: ErrorIcon },
   VENCENDO: { label: 'Vencendo', color: '#d97706', bgColor: '#fffbeb', icon: WarningAmberIcon },
   VIGENTE: { label: 'Vigente', color: '#16a34a', bgColor: '#f0fdf4', icon: CheckCircleIcon },
-  SEM_APOLICE: { label: 'Sem Apolice', color: '#6b7280', bgColor: '#f9fafb', icon: HelpOutlineIcon },
+  SEM_APOLICE: { label: 'Sem Apólice', color: '#6b7280', bgColor: '#f9fafb', icon: HelpOutlineIcon },
 }
 
 const tipoConstrucaoLabels: Record<TipoConstrucao, string> = {
@@ -168,7 +168,7 @@ export default function CondominiosPage() {
 
   const { data, isLoading: loading, error: queryError, refetch } = useCondominios(queryFilter, queryPagination)
   const deleteCondominio = useDeleteCondominio()
-  const error = queryError ? 'Erro ao carregar condominios. Tente novamente.' : null
+  const error = queryError ? 'Erro ao carregar condomínios. Tente novamente.' : null
 
   // Sync filters/search/page to URL search params
   const isInitialMount = useRef(true)
@@ -233,8 +233,8 @@ export default function CondominiosPage() {
   const handleDelete = async () => {
     if (!selectedId) { handleMenuClose(); return }
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
-      message: 'Tem certeza que deseja excluir este condominio?',
+      title: 'Confirmar exclusão',
+      message: 'Tem certeza que deseja excluir este condomínio?',
       severity: 'error',
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
@@ -242,10 +242,10 @@ export default function CondominiosPage() {
     if (ok) {
       try {
         await deleteCondominio.mutateAsync(selectedId)
-        setSnackbar({ open: true, message: 'Condominio excluido com sucesso.' })
+        setSnackbar({ open: true, message: 'Condomínio excluído com sucesso.' })
       } catch (err) {
         console.error('Error deleting condominio:', err)
-        setSnackbar({ open: true, message: 'Erro ao excluir condominio.' })
+        setSnackbar({ open: true, message: 'Erro ao excluir condomínio.' })
       }
     }
     handleMenuClose()
@@ -260,7 +260,7 @@ export default function CondominiosPage() {
       { key: 'estado', label: 'Estado' },
       { key: 'tipo', label: 'Tipo' },
       { key: 'seguradora', label: 'Seguradora' },
-      { key: 'statusApolice', label: 'Status Apolice' },
+      { key: 'statusApolice', label: 'Status Apólice' },
     ]
     const csvData = data.content.map(c => ({
       nome: c.nome,
@@ -286,10 +286,10 @@ export default function CondominiosPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" color="text.primary">
-            Condominios
+            Condomínios
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Gerencie os condominios cadastrados na plataforma
+            Gerencie seus condomínios.
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -314,7 +314,7 @@ export default function CondominiosPage() {
               onClick={() => router.push('/dashboard/condominios/novo')}
               sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
             >
-              Novo Condominio
+              Novo Condomínio
             </Button>
           )}
         </Box>
@@ -334,8 +334,8 @@ export default function CondominiosPage() {
           if (!data?.content.length) return
           const { exportService } = require('@/services/exportService')
           exportService.exportToPDF({
-            title: 'Condominios',
-            subtitle: `Total: ${data.totalElements} condominios`,
+            title: 'Condomínios',
+            subtitle: `Total: ${data.totalElements} condomínios`,
             columns: [
               { header: 'Nome', key: 'nome', width: 25 },
               { header: 'CNPJ', key: 'cnpj', width: 18 },
@@ -363,9 +363,9 @@ export default function CondominiosPage() {
       </Menu>
 
       {/* Stats Cards */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr' }, gap: 2, mb: 3 }}>
         {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} variant="rounded" height={88} />
           ))
         ) : (
@@ -385,28 +385,6 @@ export default function CondominiosPage() {
               bgColor="#f0fdf4"
               onClick={() => {
                 setFilters({ apoliceVencendo: false, apoliceVencida: false })
-                setPage(0)
-              }}
-            />
-            <StatCard
-              title="Vencendo"
-              value={stats.vencendo}
-              icon={WarningAmberIcon}
-              color="#d97706"
-              bgColor="#fffbeb"
-              onClick={() => {
-                setFilters({ apoliceVencendo: true, apoliceVencida: false })
-                setPage(0)
-              }}
-            />
-            <StatCard
-              title="Vencidas"
-              value={stats.vencidas}
-              icon={ErrorIcon}
-              color="#dc2626"
-              bgColor="#fef2f2"
-              onClick={() => {
-                setFilters({ apoliceVencendo: false, apoliceVencida: true })
                 setPage(0)
               }}
             />
@@ -441,22 +419,6 @@ export default function CondominiosPage() {
             >
               Filtros{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
             </Button>
-            <Chip
-              label="Vencendo"
-              size="small"
-              variant={filters.apoliceVencendo ? 'filled' : 'outlined'}
-              color="warning"
-              onClick={() => handleFilterChange('apoliceVencendo', !filters.apoliceVencendo)}
-              sx={{ cursor: 'pointer' }}
-            />
-            <Chip
-              label="Vencidas"
-              size="small"
-              variant={filters.apoliceVencida ? 'filled' : 'outlined'}
-              color="error"
-              onClick={() => handleFilterChange('apoliceVencida', !filters.apoliceVencida)}
-              sx={{ cursor: 'pointer' }}
-            />
           </Box>
         </Box>
 
@@ -470,10 +432,10 @@ export default function CondominiosPage() {
                 onChange={(e) => handleFilterChange('estado', e.target.value)}
               >
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="SP">Sao Paulo</MenuItem>
+                <MenuItem value="SP">São Paulo</MenuItem>
                 <MenuItem value="RJ">Rio de Janeiro</MenuItem>
                 <MenuItem value="MG">Minas Gerais</MenuItem>
-                <MenuItem value="PR">Parana</MenuItem>
+                <MenuItem value="PR">Paraná</MenuItem>
                 <MenuItem value="RS">Rio Grande do Sul</MenuItem>
                 <MenuItem value="SC">Santa Catarina</MenuItem>
               </Select>
@@ -523,8 +485,8 @@ export default function CondominiosPage() {
           <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#fafafa' }}>
             <Typography variant="body2" color="text.secondary">
               {data.totalElements === 0
-                ? 'Nenhum condominio encontrado'
-                : `${data.totalElements} condominio${data.totalElements !== 1 ? 's' : ''} encontrado${data.totalElements !== 1 ? 's' : ''}`
+                ? 'Nenhum condomínio encontrado'
+                : `${data.totalElements} condomínio${data.totalElements !== 1 ? 's' : ''} encontrado${data.totalElements !== 1 ? 's' : ''}`
               }
               {(filters.apoliceVencendo || filters.apoliceVencida || filters.estado || filters.cidade || filters.tipoConstrucao || filters.seguradora) && (
                 <> &bull; <Button size="small" sx={{ ml: 0.5, textTransform: 'none', p: 0, minWidth: 'auto' }} onClick={() => { setFilters({}); setPage(0) }}>Limpar filtros</Button></>
@@ -562,7 +524,7 @@ export default function CondominiosPage() {
                   Dias
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 0.5 }}>
-                  Acoes
+                  Ações
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -582,12 +544,12 @@ export default function CondominiosPage() {
                   <TableCell colSpan={9} align="center" sx={{ py: 6 }}>
                     <ApartmentIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                     <Typography color="text.secondary" fontWeight={500}>
-                      Nenhum condominio encontrado
+                      Nenhum condomínio encontrado
                     </Typography>
                     <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>
                       {search || Object.keys(filters).length > 0
                         ? 'Tente ajustar os filtros de busca'
-                        : 'Cadastre o primeiro condominio para comecar'
+                        : 'Cadastre o primeiro condomínio para começar'
                       }
                     </Typography>
                     {canEdit && !search && Object.keys(filters).length === 0 && (
@@ -598,7 +560,7 @@ export default function CondominiosPage() {
                         sx={{ mt: 2 }}
                         onClick={() => router.push('/dashboard/condominios/novo')}
                       >
-                        Novo Condominio
+                        Novo Condomínio
                       </Button>
                     )}
                   </TableCell>
@@ -732,7 +694,7 @@ export default function CondominiosPage() {
               setRowsPerPage(parseInt(e.target.value, 10))
               setPage(0)
             }}
-            labelRowsPerPage="Linhas por pagina:"
+            labelRowsPerPage="Linhas por página:"
             labelDisplayedRows={({ from, to, count }) =>
               `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
             }

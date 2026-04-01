@@ -131,7 +131,7 @@ export function DocumentoUploadDialog({
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return `${file.name}: Tipo nao permitido`
+      return `${file.name}: Tipo não permitido`
     }
     if (file.size > MAX_FILE_SIZE) {
       return `${file.name}: Excede 50MB`
@@ -148,11 +148,11 @@ export function DocumentoUploadDialog({
 
     for (const file of newFiles) {
       if (files.length + validFiles.length >= MAX_FILES) {
-        errors.push(`Maximo de ${MAX_FILES} arquivos por vez`)
+        errors.push(`Máximo de ${MAX_FILES} arquivos por vez`)
         break
       }
       if (currentNames.includes(file.name)) {
-        errors.push(`${file.name}: Ja adicionado`)
+        errors.push(`${file.name}: Já adicionado`)
         continue
       }
       const validationError = validateFile(file)
@@ -203,7 +203,7 @@ export function DocumentoUploadDialog({
 
   const handleUpload = async () => {
     if (files.length === 0 || !condominioId) {
-      setError('Adicione arquivos e selecione o condominio')
+      setError('Adicione arquivos e selecione o condomínio')
       return
     }
 
@@ -256,7 +256,7 @@ export function DocumentoUploadDialog({
                   const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
                   await documentoService.updateOrcamentoData(uploadedDoc.id, {
-                    seguradoraNome: dados.seguradoraNome || seguradoraNome || 'Nao identificada',
+                    seguradoraNome: dados.seguradoraNome || seguradoraNome || 'Não identificada',
                     valorPremio: dados.valorPremio || 0,
                     dataVigenciaInicio: dados.dataVigenciaInicio || today,
                     dataVigenciaFim: dados.dataVigenciaFim || nextYear,
@@ -415,7 +415,7 @@ export function DocumentoUploadDialog({
               Arraste e solte arquivos aqui ou clique para selecionar
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              PDF, JPEG, PNG, WEBP, DOC, DOCX (max 50MB cada, ate {MAX_FILES} arquivos)
+              PDF, JPEG, PNG, WEBP, DOC, DOCX (max 50MB cada, até {MAX_FILES} arquivos)
             </Typography>
           </Paper>
         )}
@@ -489,7 +489,7 @@ export function DocumentoUploadDialog({
                       )}
                       {entry.status === 'done' && entry.extractedCount !== undefined && entry.extractedCount > 0 && (
                         <Typography variant="caption" sx={{ color: '#22c55e' }}>
-                          {entry.extractedCount} coberturas extraidas
+                          {entry.extractedCount} coberturas extraídas
                         </Typography>
                       )}
                       {entry.status === 'error' && (
@@ -543,9 +543,9 @@ export function DocumentoUploadDialog({
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label="Condominio *"
+                    label="Condomínio *"
                     size="small"
-                    placeholder="Selecione o condominio"
+                    placeholder="Selecione o condomínio"
                   />
                 )}
                 renderOption={(props, option) => (
@@ -568,9 +568,9 @@ export function DocumentoUploadDialog({
                 label="Tipo de Documento *"
                 onChange={(e) => setTipo(e.target.value as TipoDocumento)}
               >
-                <MenuItem value="APOLICE">Apolice</MenuItem>
-                <MenuItem value="ORCAMENTO">Orcamento</MenuItem>
-                <MenuItem value="CONDICOES_GERAIS">Condicoes Gerais</MenuItem>
+                <MenuItem value="APOLICE">Apólice</MenuItem>
+                <MenuItem value="ORCAMENTO">Orçamento</MenuItem>
+                <MenuItem value="CONDICOES_GERAIS">Condições Gerais</MenuItem>
                 <MenuItem value="LAUDO_VISTORIA">Laudo de Vistoria</MenuItem>
                 <MenuItem value="SINISTRO">Sinistro</MenuItem>
                 <MenuItem value="OUTRO">Outro</MenuItem>
@@ -653,13 +653,13 @@ export function DocumentoUploadDialog({
             )}
 
             <TextField
-              label="Observacoes"
+              label="Observações"
               size="small"
               value={observacoes}
               onChange={(e) => setObservacoes(e.target.value)}
               multiline
               rows={2}
-              placeholder="Informacoes adicionais sobre os documentos..."
+              placeholder="Informações adicionais sobre os documentos..."
               disabled={uploading}
             />
           </Box>

@@ -146,8 +146,8 @@ export default function VistoriasPage() {
         sx={{ mb: 2, bgcolor: '#eff6ff', border: '1px solid #bfdbfe' }}
       >
         <Typography variant="body2">
-          <strong>Importante:</strong> As vistorias cadastradas aqui sao independentes e nao estao vinculadas diretamente a nenhuma seguradora.
-          Servem para controle interno e documentacao do condominio.
+          <strong>Importante:</strong> As vistorias cadastradas aqui são independentes e não estão vinculadas diretamente a nenhuma seguradora.
+          Servem para controle interno e documentação do condomínio.
         </Typography>
       </Alert>
 
@@ -165,7 +165,7 @@ export default function VistoriasPage() {
               <InputLabel>Condominio</InputLabel>
               <Select
                 value={filterCondominioId}
-                label="Condominio"
+                label="Condomínio"
                 onChange={(e) => setFilterCondominioId(e.target.value)}
               >
                 <MenuItem value="">Todos</MenuItem>
@@ -188,7 +188,7 @@ export default function VistoriasPage() {
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="AGENDADA">Agendada</MenuItem>
                 <MenuItem value="EM_ANDAMENTO">Em Andamento</MenuItem>
-                <MenuItem value="CONCLUIDA">Concluida</MenuItem>
+                <MenuItem value="CONCLUIDA">Concluída</MenuItem>
                 <MenuItem value="CANCELADA">Cancelada</MenuItem>
               </Select>
             </FormControl>
@@ -208,7 +208,7 @@ export default function VistoriasPage() {
             <TextField
               fullWidth
               size="small"
-              label="Ate"
+              label="Até"
               type="date"
               value={dataFim}
               onChange={(e) => { setDataFim(e.target.value); setPage(0) }}
@@ -232,14 +232,14 @@ export default function VistoriasPage() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Condominio</TableCell>
+                  <TableCell>Condomínio</TableCell>
                   <TableCell>Tipo</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Data Agendada</TableCell>
-                  <TableCell>Responsavel</TableCell>
+                  <TableCell>Responsável</TableCell>
                   <TableCell>Nota</TableCell>
-                  <TableCell>Pendencias</TableCell>
-                  <TableCell align="right">Acoes</TableCell>
+                  <TableCell>Pendências</TableCell>
+                  <TableCell align="right">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -285,7 +285,7 @@ export default function VistoriasPage() {
                 setRowsPerPage(parseInt(e.target.value, 10))
                 setPage(0)
               }}
-              labelRowsPerPage="Linhas por pagina"
+              labelRowsPerPage="Linhas por página"
             />
           </>
         )}
@@ -301,7 +301,7 @@ export default function VistoriasPage() {
                 <InputLabel>Condominio</InputLabel>
                 <Select
                   value={formData.condominioId}
-                  label="Condominio"
+                  label="Condomínio"
                   onChange={(e) => setFormData((prev) => ({ ...prev, condominioId: e.target.value }))}
                 >
                   {condominios.map((c) => (
@@ -323,9 +323,9 @@ export default function VistoriasPage() {
                   }
                 >
                   <MenuItem value="INICIAL">Inicial</MenuItem>
-                  <MenuItem value="PERIODICA">Periodica</MenuItem>
+                  <MenuItem value="PERIODICA">Periódica</MenuItem>
                   <MenuItem value="SINISTRO">Sinistro</MenuItem>
-                  <MenuItem value="RENOVACAO">Renovacao</MenuItem>
+                  <MenuItem value="RENOVACAO">Renovação</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

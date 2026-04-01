@@ -78,7 +78,7 @@ function OrcamentoCard({
         }}
       >
         <Typography variant="body2" color="text.secondary">
-          Valor do Premio
+          Valor do Prêmio
         </Typography>
         <Typography
           variant="h4"
@@ -95,7 +95,7 @@ function OrcamentoCard({
           <CalendarTodayIcon fontSize="small" color="action" />
           <Box>
             <Typography variant="caption" color="text.secondary">
-              Vigencia
+              Vigência
             </Typography>
             <Typography variant="body2">
               {formatDate(orcamento.dataVigenciaInicio)} a{' '}

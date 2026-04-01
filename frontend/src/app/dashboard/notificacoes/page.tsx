@@ -89,7 +89,7 @@ export default function NotificacoesPage() {
       setTotalElements(response.totalElements)
     } catch (err) {
       console.error('Error loading notificacoes:', err)
-      setError('Erro ao carregar notificacoes')
+      setError('Erro ao carregar notificações')
     } finally {
       setLoading(false)
     }
@@ -137,7 +137,7 @@ export default function NotificacoesPage() {
       setTotalElements((prev) => prev - 1)
     } catch (err) {
       console.error('Error deleting notification:', err)
-      setError('Erro ao excluir notificacao')
+      setError('Erro ao excluir notificação')
     } finally {
       setActionLoading(null)
     }
@@ -178,11 +178,11 @@ export default function NotificacoesPage() {
     const diffDays = Math.floor(diffMs / 86400000)
 
     if (diffMins < 60) {
-      return `${diffMins} min atras`
+      return `${diffMins} min atrás`
     } else if (diffHours < 24) {
-      return `${diffHours}h atras`
+      return `${diffHours}h atrás`
     } else if (diffDays < 7) {
-      return `${diffDays}d atras`
+      return `${diffDays}d atrás`
     }
     return date.toLocaleDateString('pt-BR')
   }
@@ -195,10 +195,10 @@ export default function NotificacoesPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold">
-            Notificacoes
+            Notificações
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {naoLidas > 0 ? `${naoLidas} nao lida(s)` : 'Todas as notificacoes foram lidas'}
+            {naoLidas > 0 ? `${naoLidas} não lida(s)` : 'Todas as notificações foram lidas'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -253,10 +253,10 @@ export default function NotificacoesPage() {
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <NotificationsIcon sx={{ fontSize: 64, color: '#e2e8f0', mb: 2 }} />
             <Typography variant="h6" color="text.secondary">
-              Nenhuma notificacao
+              Nenhuma notificação
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Voce sera notificado sobre vencimentos, vistorias e sinistros
+              Você será notificado sobre vencimentos, vistorias e sinistros
             </Typography>
           </Box>
         ) : (
@@ -381,7 +381,7 @@ export default function NotificacoesPage() {
                 setPage(0)
               }}
               rowsPerPageOptions={[10, 25, 50]}
-              labelRowsPerPage="Por pagina:"
+              labelRowsPerPage="Por página:"
               labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
             />
           </>

@@ -43,7 +43,7 @@ import {
 const STATUS_ITEM_CONFIG: Record<StatusItem, { label: string; color: string; icon: React.ReactNode }> = {
   PENDENTE: { label: 'Pendente', color: '#94a3b8', icon: <PendingIcon fontSize="small" /> },
   CONFORME: { label: 'Conforme', color: '#22c55e', icon: <CheckCircleIcon fontSize="small" /> },
-  NAO_CONFORME: { label: 'Nao Conforme', color: '#ef4444', icon: <CancelIcon fontSize="small" /> },
+  NAO_CONFORME: { label: 'Não Conforme', color: '#ef4444', icon: <CancelIcon fontSize="small" /> },
   NA: { label: 'N/A', color: '#a78bfa', icon: <HelpOutlineIcon fontSize="small" /> },
 }
 
@@ -71,7 +71,7 @@ export default function VistoriaExternaPage() {
       } catch (err: any) {
         console.error('Error loading external vistoria:', err)
         if (err?.response?.status === 404) {
-          setError('Vistoria nao encontrada ou link expirado.')
+          setError('Vistoria não encontrada ou link expirado.')
         } else {
           setError('Erro ao carregar vistoria. Tente novamente mais tarde.')
         }
@@ -97,10 +97,10 @@ export default function VistoriaExternaPage() {
         <Paper sx={{ p: 4, maxWidth: 500, textAlign: 'center' }}>
           <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>CondoCompare</Typography>
           <Alert severity="error" sx={{ mb: 2 }}>
-            {error || 'Vistoria nao encontrada'}
+            {error || 'Vistoria não encontrada'}
           </Alert>
           <Typography variant="body2" color="text.secondary">
-            O link pode ter sido revogado ou a vistoria nao existe mais.
+            O link pode ter sido revogado ou a vistoria não existe mais.
           </Typography>
         </Paper>
       </Box>
@@ -185,7 +185,7 @@ export default function VistoriaExternaPage() {
           <Grid item xs={6} md={3}>
             <Card sx={{ bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
               <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="caption" color="text.secondary">Nao Conformes</Typography>
+                <Typography variant="caption" color="text.secondary">Não Conformes</Typography>
                 <Typography variant="h4" fontWeight="bold" color="#dc2626">{naoConformes}</Typography>
               </CardContent>
             </Card>
@@ -246,7 +246,7 @@ export default function VistoriaExternaPage() {
             )}
             {vistoria.responsavelNome && (
               <Grid item xs={12} md={3}>
-                <Typography variant="caption" color="text.secondary">Responsavel</Typography>
+                <Typography variant="caption" color="text.secondary">Responsável</Typography>
                 <Typography variant="body2" fontWeight={500}>{vistoria.responsavelNome}</Typography>
               </Grid>
             )}
@@ -370,7 +370,7 @@ export default function VistoriaExternaPage() {
           <Paper sx={{ p: 3, mb: 3, bgcolor: '#fffbeb', border: '1px solid #fde68a' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
               <WarningIcon sx={{ color: '#f59e0b' }} />
-              <Typography variant="h6" fontWeight="bold" sx={{ color: '#92400e' }}>Observacoes</Typography>
+              <Typography variant="h6" fontWeight="bold" sx={{ color: '#92400e' }}>Observações</Typography>
             </Box>
             <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: '#78350f', lineHeight: 1.7 }}>
               {vistoria.observacoes}
@@ -450,7 +450,7 @@ export default function VistoriaExternaPage() {
         {/* Footer */}
         <Box sx={{ textAlign: 'center', py: 3, color: '#94a3b8' }}>
           <Typography variant="caption">
-            Gerado por CondoCompare - Gestao Inteligente de Seguro Condominio
+            Gerado por CondoCompare - Gestão Inteligente de Seguro Condomínio
           </Typography>
         </Box>
       </Box>

@@ -717,6 +717,7 @@ export interface ParceiroResponse {
   contatoNome?: string
   contatoCargo?: string
   observacoes?: string
+  beneficio?: string
   logoUrl?: string
   createdAt: string
   updatedAt?: string

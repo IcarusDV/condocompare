@@ -111,8 +111,8 @@ const getStatusGradient = (status: string) => {
 const getStatusLabel = (status: string) => {
   switch (status) {
     case 'adequado': return 'Cobertura Adequada'
-    case 'atencao': return 'Requer Atencao'
-    case 'critico': return 'Situacao Critica'
+    case 'atencao': return 'Requer Atenção'
+    case 'critico': return 'Situação Crítica'
     default: return 'Analisando...'
   }
 }
@@ -255,7 +255,7 @@ export default function DiagnosticoPage() {
       try {
         const response = await condominioService.list({}, { size: 100 })
         setCondominios(response.content)
-      } catch { setError('Erro ao carregar condominios') }
+      } catch { setError('Erro ao carregar condomínios') }
       finally { setLoadingCondominios(false) }
     }
     load()
@@ -341,7 +341,7 @@ export default function DiagnosticoPage() {
   // ─── Handlers ────────────────────────────────────────────────────
 
   const handleAnalyze = useCallback(async () => {
-    if (!selectedCondominio) { setError('Selecione um condominio'); return }
+    if (!selectedCondominio) { setError('Selecione um condomínio'); return }
     try {
       setLoadingDiagnostico(true)
       setError(null)
@@ -391,7 +391,7 @@ export default function DiagnosticoPage() {
       // Load checklist
       setCheckedRecs(loadChecklist(selectedCondominio))
     } catch {
-      setError('Erro ao gerar diagnostico. Verifique se o servico de IA esta rodando.')
+      setError('Erro ao gerar diagnóstico. Verifique se o serviço de IA está rodando.')
     } finally {
       setLoadingDiagnostico(false)
     }
@@ -420,7 +420,7 @@ export default function DiagnosticoPage() {
         } : {},
       })
       if (!reportData.success || !reportData.relatorio_markdown) {
-        setError('Erro ao gerar relatorio. Tente novamente.')
+        setError('Erro ao gerar relatório. Tente novamente.')
         return
       }
       const { jsPDF } = await import('jspdf')
@@ -439,7 +439,7 @@ export default function DiagnosticoPage() {
       doc.rect(0, 0, pageWidth, 12, 'F')
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(8)
-      doc.text('CondoCompare - Relatorio de Diagnostico', margin, 8)
+      doc.text('CondoCompare - Relatório de Diagnóstico', margin, 8)
       doc.text(new Date().toLocaleDateString('pt-BR'), pageWidth - margin, 8, { align: 'right' })
       y = 20
       doc.setTextColor(0, 0, 0)
@@ -482,26 +482,26 @@ export default function DiagnosticoPage() {
         doc.rect(0, pageHeight - 10, pageWidth, 10, 'F')
         doc.setFontSize(7); doc.setTextColor(150, 150, 150)
         doc.text(`Gerado por CondoCompare IA - ${new Date().toLocaleDateString('pt-BR')}`, margin, pageHeight - 4)
-        doc.text(`Pagina ${i} de ${pageCount}`, pageWidth - margin, pageHeight - 4, { align: 'right' })
+        doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin, pageHeight - 4, { align: 'right' })
       }
       const condName = diagnostico.condominio_nome || 'condominio'
       const date = new Date().toISOString().split('T')[0]
       doc.save(`diagnostico_${condName.replace(/\s+/g, '_')}_${date}.pdf`)
     } catch {
-      setError('Erro ao gerar relatorio PDF. Tente novamente.')
+      setError('Erro ao gerar relatório PDF. Tente novamente.')
     } finally { setLoadingReport(false) }
   }
 
   const handleCopyResumo = () => {
     if (!diagnostico) return
     const text = [
-      `DIAGNOSTICO - ${diagnostico.condominio_nome || 'Condominio'}`,
+      `DIAGNÓSTICO - ${diagnostico.condominio_nome || 'Condomínio'}`,
       `Score: ${Math.round(diagnostico.score)}/100 (${getStatusLabel(diagnostico.status)})`,
       `Coberturas Adequadas: ${diagnostico.coberturas_adequadas.length}`,
       `Coberturas Insuficientes: ${diagnostico.coberturas_insuficientes.length}`,
       `Coberturas Ausentes: ${diagnostico.coberturas_ausentes.length}`,
       '',
-      'Recomendacoes:',
+      'Recomendações:',
       ...diagnostico.recomendacoes.map((r, i) => `${i + 1}. [${r.tipo.toUpperCase()}] ${r.descricao}`),
       '',
       'Riscos:',
@@ -514,7 +514,7 @@ export default function DiagnosticoPage() {
     if (!diagnostico || !navigator.share) return
     try {
       await navigator.share({
-        title: `Diagnostico - ${diagnostico.condominio_nome}`,
+        title: `Diagnóstico - ${diagnostico.condominio_nome}`,
         text: `Score: ${Math.round(diagnostico.score)}/100. ${diagnostico.coberturas_adequadas.length} adequadas, ${diagnostico.coberturas_insuficientes.length} insuficientes, ${diagnostico.coberturas_ausentes.length} ausentes.`,
       })
     } catch { /* cancelled */ }
@@ -547,7 +547,7 @@ export default function DiagnosticoPage() {
   const handleClearHistory = () => {
     setDiagnosticoHistory([])
     saveHistory([])
-    setSnackbar('Historico limpo')
+    setSnackbar('Histórico limpo')
   }
 
   // ─── Derived data ────────────────────────────────────────────────
@@ -555,7 +555,7 @@ export default function DiagnosticoPage() {
   const amenidadesList = condominioDetails ? [
     { label: 'Piscina', active: condominioDetails.amenidades?.temPiscina },
     { label: 'Academia', active: condominioDetails.amenidades?.temAcademia },
-    { label: 'Salao', active: condominioDetails.amenidades?.temSalaoFestas },
+    { label: 'Salão', active: condominioDetails.amenidades?.temSalaoFestas },
     { label: 'Elevadores', active: (condominioDetails.caracteristicas?.numeroElevadores || 0) > 0 },
     { label: 'Portaria 24h', active: condominioDetails.amenidades?.temPortaria24h },
   ] : []
@@ -570,8 +570,8 @@ export default function DiagnosticoPage() {
     const categories = [
       { name: 'Incendio', keys: ['incendio', 'raio', 'explosao'] },
       { name: 'RC', keys: ['responsabilidade', 'civil'] },
-      { name: 'Eletricos', keys: ['eletric', 'energia'] },
-      { name: 'Agua', keys: ['agua', 'inunda', 'alagamento'] },
+      { name: 'Elétricos', keys: ['eletric', 'energia'] },
+      { name: 'Água', keys: ['agua', 'inunda', 'alagamento'] },
       { name: 'Vidros', keys: ['vidro', 'janela'] },
       { name: 'Roubo', keys: ['roubo', 'furto'] },
     ]
@@ -629,7 +629,7 @@ export default function DiagnosticoPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     {cob}
                     {obrigatoria && type === 'ausente' && (
-                      <Chip label="OBRIGATORIO" size="small" sx={{
+                      <Chip label="OBRIGATÓRIO" size="small" sx={{
                         height: 16, fontSize: '0.55rem', fontWeight: 800, bgcolor: '#ef4444', color: 'white', ml: 0.5,
                         animation: 'pulse 2s infinite',
                         '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } },
@@ -656,11 +656,11 @@ export default function DiagnosticoPage() {
                       {details.franquia && (
                         <Typography variant="caption" display="block"><strong>Franquia:</strong> {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(details.franquia)}</Typography>
                       )}
-                      <Typography variant="caption" display="block"><strong>Incluido:</strong> {details.incluido ? 'Sim' : 'Nao'}</Typography>
+                      <Typography variant="caption" display="block"><strong>Incluído:</strong> {details.incluido ? 'Sim' : 'Não'}</Typography>
                     </>
                   ) : (
                     <Typography variant="caption" color="text.secondary">
-                      {type === 'ausente' ? 'Cobertura nao encontrada nos orcamentos selecionados' : 'Detalhes nao disponiveis'}
+                      {type === 'ausente' ? 'Cobertura não encontrada nos orçamentos selecionados' : 'Detalhes não disponíveis'}
                     </Typography>
                   )}
                   <Button
@@ -707,10 +707,10 @@ export default function DiagnosticoPage() {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <ShieldIcon sx={{ fontSize: 32 }} />
-            <Typography variant="h4" fontWeight="bold">Diagnostico Inteligente</Typography>
+            <Typography variant="h4" fontWeight="bold">Diagnóstico Inteligente</Typography>
           </Box>
           <Typography variant="body1" sx={{ opacity: 0.9 }}>
-            Analise completa das coberturas do seu condominio com recomendacoes baseadas em IA
+            Análise completa das coberturas do seu condomínio com recomendações baseadas em IA
           </Typography>
         </Box>
         <Button variant="contained" startIcon={<AutoAwesomeIcon />}
@@ -725,29 +725,29 @@ export default function DiagnosticoPage() {
       {/* ─── Compliance Alert (15) ──────────────────────────────── */}
       {diagnostico && obrigatoriasAusentes.length > 0 && (
         <Alert severity="error" sx={{ mb: 3, border: '1px solid #fca5a5' }} icon={<ReportProblemIcon />}>
-          <strong>Coberturas obrigatorias ausentes:</strong> {obrigatoriasAusentes.join(', ')}.
-          Estas coberturas sao exigidas por lei e devem ser contratadas imediatamente.
+          <strong>Coberturas obrigatórias ausentes:</strong> {obrigatoriasAusentes.join(', ')}.
+          Estas coberturas são exigidas por lei e devem ser contratadas imediatamente.
         </Alert>
       )}
       {diagnostico && scoreDiff !== null && scoreDiff > 0 && (
         <Alert severity="success" sx={{ mb: 3 }} icon={<TrendingUpIcon />}>
-          Score melhorou <strong>{scoreDiff} pontos</strong> em relacao a ultima analise deste condominio.
+          Score melhorou <strong>{scoreDiff} pontos</strong> em relação à última análise deste condomínio.
         </Alert>
       )}
       {diagnostico && diagnostico.status === 'critico' && (
         <Alert severity="error" sx={{ mb: 3, fontWeight: 600 }}>
-          Situacao Critica — Acao imediata recomendada. O score esta abaixo de 40 pontos.
+          Situação Crítica — Ação imediata recomendada. O score está abaixo de 40 pontos.
         </Alert>
       )}
 
       {/* ─── Selection Panel ────────────────────────────────────── */}
       <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
-        <Typography variant="h6" fontWeight="600" gutterBottom>Selecionar Condominio</Typography>
+        <Typography variant="h6" fontWeight="600" gutterBottom>Selecionar Condomínio</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
             <FormControl fullWidth>
-              <InputLabel>Condominio</InputLabel>
-              <Select value={selectedCondominio} label="Condominio" onChange={(e) => setSelectedCondominio(e.target.value)} disabled={loadingCondominios}>
+              <InputLabel>Condomínio</InputLabel>
+              <Select value={selectedCondominio} label="Condomínio" onChange={(e) => setSelectedCondominio(e.target.value)} disabled={loadingCondominios}>
                 {condominios.map((c) => (
                   <MenuItem key={c.id} value={c.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -760,9 +760,9 @@ export default function DiagnosticoPage() {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={5}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Orcamentos para analise (ate 4)</Typography>
+            <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Orçamentos para análise (até 4)</Typography>
             {loadingOrcamentos ? <Skeleton variant="rounded" height={40} /> : orcamentos.length === 0 ? (
-              <Alert severity="info" sx={{ py: 0.5 }}>{selectedCondominio ? 'Nenhum orcamento preenchido encontrado' : 'Selecione um condominio'}</Alert>
+              <Alert severity="info" sx={{ py: 0.5 }}>{selectedCondominio ? 'Nenhum orçamento preenchido encontrado' : 'Selecione um condomínio'}</Alert>
             ) : (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {orcamentos.map((o) => {
@@ -783,7 +783,7 @@ export default function DiagnosticoPage() {
             )}
             {selectedOrcamentos.length > 0 && (
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                {selectedOrcamentos.length} orcamento(s) selecionado(s)
+                {selectedOrcamentos.length} orçamento(s) selecionado(s)
               </Typography>
             )}
           </Grid>
@@ -799,15 +799,15 @@ export default function DiagnosticoPage() {
 
         {selectedCondominio && selectedOrcamentos.length > 0 && totalCoberturas > 0 && (
           <Alert severity="success" sx={{ mt: 2 }} icon={<CheckCircleIcon />}>
-            <strong>{totalCoberturas} coberturas encontradas</strong> nos {selectedOrcamentos.length} orcamento(s) selecionado(s).
+            <strong>{totalCoberturas} coberturas encontradas</strong> nos {selectedOrcamentos.length} orçamento(s) selecionado(s).
           </Alert>
         )}
         {selectedCondominio && selectedOrcamentos.length > 0 && totalCoberturas === 0 && (
-          <Alert severity="warning" sx={{ mt: 2 }}>Orcamentos sem coberturas preenchidas. A analise sera feita apenas com as caracteristicas do condominio.</Alert>
+          <Alert severity="warning" sx={{ mt: 2 }}>Orçamentos sem coberturas preenchidas. A análise será feita apenas com as características do condomínio.</Alert>
         )}
         {selectedCondominio && selectedOrcamentos.length === 0 && (
           <Alert severity="info" sx={{ mt: 2 }} icon={<InfoOutlinedIcon />}>
-            <strong>Analise geral:</strong> Sem orcamento selecionado, a IA analisara apenas as caracteristicas do condominio.
+            <strong>Análise geral:</strong> Sem orçamento selecionado, a IA analisará apenas as características do condomínio.
           </Alert>
         )}
 
@@ -823,10 +823,10 @@ export default function DiagnosticoPage() {
             ) : condominioDetails && (
               <Grid container spacing={2}>
                 {[
-                  { label: 'Tipo', value: condominioDetails.caracteristicas?.tipoConstrucao || 'Nao informado' },
+                  { label: 'Tipo', value: condominioDetails.caracteristicas?.tipoConstrucao || 'Não informado' },
                   { label: 'Unidades', value: condominioDetails.caracteristicas?.numeroUnidades || '-' },
                   { label: 'Blocos', value: condominioDetails.caracteristicas?.numeroBlocos || '-' },
-                  { label: 'Area', value: condominioDetails.caracteristicas?.areaConstruida ? `${condominioDetails.caracteristicas.areaConstruida} m²` : '-' },
+                  { label: 'Área', value: condominioDetails.caracteristicas?.areaConstruida ? `${condominioDetails.caracteristicas.areaConstruida} m²` : '-' },
                 ].map((item, i) => (
                   <Grid item xs={6} md={i === 0 ? 3 : 2} key={item.label}>
                     <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
@@ -940,9 +940,9 @@ export default function DiagnosticoPage() {
                   )}
                 </Box>
                 <Typography variant="body1" sx={{ opacity: 0.9, mb: 2 }}>
-                  {diagnostico.status === 'adequado' ? 'O condominio possui uma boa cobertura de seguro. Continue monitorando.'
-                    : diagnostico.status === 'atencao' ? 'Algumas coberturas precisam de atencao. Revise as recomendacoes.'
-                    : 'Ha lacunas importantes na cobertura. Acao imediata recomendada.'}
+                  {diagnostico.status === 'adequado' ? 'O condomínio possui uma boa cobertura de seguro. Continue monitorando.'
+                    : diagnostico.status === 'atencao' ? 'Algumas coberturas precisam de atenção. Revise as recomendações.'
+                    : 'Há lacunas importantes na cobertura. Ação imediata recomendada.'}
                 </Typography>
                 {/* Horizontal bar (1) */}
                 <Box sx={{ width: '100%', maxWidth: 400 }}>
@@ -1021,7 +1021,7 @@ export default function DiagnosticoPage() {
               <Paper sx={{ p: 3, borderRadius: 3, height: '100%' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <HistoryIcon sx={{ color: '#6366f1', fontSize: 24 }} />
-                  <Typography variant="h6" fontWeight="bold">Historico de Analises</Typography>
+                  <Typography variant="h6" fontWeight="bold">Histórico de Análises</Typography>
                   {diagnosticoHistory.length > 0 && (
                     <Tooltip title="Limpar historico">
                       <IconButton size="small" onClick={handleClearHistory} sx={{ ml: 'auto' }}>
@@ -1102,7 +1102,7 @@ export default function DiagnosticoPage() {
             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
                 <TipsAndUpdatesIcon sx={{ color: '#6366f1', fontSize: 28 }} />
-                <Typography variant="h5" fontWeight="bold">Recomendacoes</Typography>
+                <Typography variant="h5" fontWeight="bold">Recomendações</Typography>
                 <Chip label={`${diagnostico.recomendacoes.length} itens`} size="small" sx={{ ml: 1 }} />
               </Box>
               <Grid container spacing={2}>
@@ -1157,7 +1157,7 @@ export default function DiagnosticoPage() {
             <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <PlaylistAddCheckIcon sx={{ color: '#6366f1', fontSize: 28 }} />
-                <Typography variant="h5" fontWeight="bold">Plano de Acao</Typography>
+                <Typography variant="h5" fontWeight="bold">Plano de Ação</Typography>
                 <Chip label={`${checkedCount}/${totalRecs}`} size="small" sx={{ ml: 1, fontWeight: 700 }} />
               </Box>
               <Box sx={{ mb: 2 }}>
@@ -1329,7 +1329,7 @@ export default function DiagnosticoPage() {
             <>
               <Typography variant="h5" fontWeight="600" gutterBottom>Pronto para analisar</Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, mx: 'auto', mb: 3 }}>
-                Selecione orcamentos para uma analise detalhada ou clique em Analisar para uma avaliacao geral do condominio.
+                Selecione orçamentos para uma análise detalhada ou clique em Analisar para uma avaliação geral do condomínio.
               </Typography>
               <Button variant="contained" startIcon={<AnalyticsIcon />} onClick={handleAnalyze}
                 disabled={loadingDiagnostico}
@@ -1339,9 +1339,9 @@ export default function DiagnosticoPage() {
             </>
           ) : (
             <>
-              <Typography variant="h5" fontWeight="600" gutterBottom>Selecione um condominio para comecar</Typography>
+              <Typography variant="h5" fontWeight="600" gutterBottom>Selecione um condomínio para começar</Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 500, mx: 'auto' }}>
-                O diagnostico inteligente analisa as caracteristicas do seu condominio e suas coberturas de seguro, identificando riscos e oportunidades de melhoria.
+                O diagnóstico inteligente analisa as características do seu condomínio e suas coberturas de seguro, identificando riscos e oportunidades de melhoria.
               </Typography>
             </>
           )}

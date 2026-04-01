@@ -74,7 +74,7 @@ export const getRoleLabel = (role: Role): string => {
     ADMIN: 'Administrador',
     CORRETORA: 'Corretora',
     ADMINISTRADORA: 'Administradora',
-    SINDICO: 'Sindico',
+    SINDICO: 'Síndico',
   }
   return labels[role] || role
 }

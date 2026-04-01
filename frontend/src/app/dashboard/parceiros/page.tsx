@@ -234,7 +234,6 @@ export default function ParceirosPage() {
   // ─── KPI data ──────────────────────────────────────────────────
 
   const totalParceiros = totalElements
-  const totalVerificados = parceiros.filter(p => p.verificado).length
   const avgRating = parceiros.length > 0
     ? parceiros.filter(p => p.avaliacao).reduce((sum, p) => sum + (p.avaliacao || 0), 0) / parceiros.filter(p => p.avaliacao).length
     : 0
@@ -258,7 +257,7 @@ export default function ParceirosPage() {
             <Typography variant="h4" fontWeight="bold">Parceiros</Typography>
           </Box>
           <Typography variant="body1" sx={{ opacity: 0.9 }}>
-            Prestadores de servico para condominios
+            Prestadores de serviço para condomínios
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -281,11 +280,10 @@ export default function ParceirosPage() {
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
           { icon: <PeopleIcon />, label: 'Total Parceiros', value: totalParceiros, color: '#6366f1' },
-          { icon: <CheckCircleIcon />, label: 'Verificados', value: totalVerificados, color: '#22c55e' },
           { icon: <CategoryIcon />, label: 'Categorias Ativas', value: activeCategorias, color: '#f59e0b' },
-          { icon: <StarIcon />, label: 'Avaliacao Media', value: avgRating > 0 ? avgRating.toFixed(1) : '-', color: '#ec4899' },
+          { icon: <StarIcon />, label: 'Avaliação Média', value: avgRating > 0 ? avgRating.toFixed(1) : '-', color: '#ec4899' },
         ].map((kpi) => (
-          <Grid item xs={6} md={3} key={kpi.label}>
+          <Grid item xs={12} md={4} key={kpi.label}>
             <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
               <Box sx={{
                 width: 44, height: 44, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -492,12 +490,12 @@ export default function ParceirosPage() {
             <>
               <Typography variant="h6" gutterBottom>Comece a construir sua rede de parceiros</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500, mx: 'auto', mb: 3 }}>
-                Cadastre prestadores de servico para facilitar a gestao do condominio. Com o matching inteligente, encontre o parceiro ideal baseado nas caracteristicas do seu condominio.
+                Cadastre prestadores de serviço para facilitar a gestão do condomínio. Com o matching inteligente, encontre o parceiro ideal baseado nas características do seu condomínio.
               </Typography>
               <Grid container spacing={2} sx={{ maxWidth: 600, mx: 'auto', mb: 3 }}>
                 {[
                   { icon: <TrendingUpIcon />, text: 'Matching inteligente' },
-                  { icon: <StarIcon />, text: 'Avaliacao e rating' },
+                  { icon: <StarIcon />, text: 'Avaliação e rating' },
                   { icon: <CheckCircleIcon />, text: 'Parceiros verificados' },
                 ].map((item, i) => (
                   <Grid item xs={4} key={i}>
@@ -655,7 +653,7 @@ export default function ParceirosPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  {['Parceiro', 'Categorias', 'Avaliacao', 'Cidade/UF', 'Contato', 'Acoes'].map(h => (
+                  {['Parceiro', 'Categorias', 'Avaliação', 'Cidade/UF', 'Contato', 'Ações'].map(h => (
                     <TableCell key={h} sx={{ fontWeight: 700, bgcolor: '#f8fafc', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                       {h}
                     </TableCell>

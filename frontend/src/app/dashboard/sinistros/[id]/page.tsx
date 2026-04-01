@@ -77,7 +77,7 @@ const statusConfig: Record<string, { color: string; bg: string }> = {
 
 const statusFlowConfig: Record<string, { next: StatusSinistro; label: string; icon: React.ReactNode; color: string }[]> = {
   ABERTO: [
-    { next: 'EM_ANALISE', label: 'Iniciar Analise', icon: <PlayArrowIcon />, color: '#3b82f6' },
+    { next: 'EM_ANALISE', label: 'Iniciar Análise', icon: <PlayArrowIcon />, color: '#3b82f6' },
     { next: 'CANCELADO', label: 'Cancelar', icon: <CancelIcon />, color: '#94a3b8' },
   ],
   EM_ANALISE: [
@@ -226,11 +226,11 @@ export default function SinistroDetailPage() {
       setAddingHistorico(true)
       await sinistroService.addHistorico(sinistroId, historicoText.trim())
       setHistoricoText('')
-      setSuccess('Historico adicionado')
+      setSuccess('Histórico adicionado')
       loadSinistro()
     } catch (err) {
       console.error('Error adding historico:', err)
-      setError('Erro ao adicionar historico')
+      setError('Erro ao adicionar histórico')
     } finally {
       setAddingHistorico(false)
     }
@@ -242,11 +242,11 @@ export default function SinistroDetailPage() {
       setAddingComm(true)
       await sinistroService.addHistorico(sinistroId, `[COMUNICACAO] ${commText.trim()}`)
       setCommText('')
-      setSuccess('Comunicacao registrada')
+      setSuccess('Comunicação registrada')
       loadSinistro()
     } catch (err) {
       console.error('Error adding communication:', err)
-      setError('Erro ao registrar comunicacao')
+      setError('Erro ao registrar comunicação')
     } finally {
       setAddingComm(false)
     }
@@ -257,7 +257,7 @@ export default function SinistroDetailPage() {
     try {
       setIaDraftLoading(true)
       const result = await iaService.chat({
-        message: `Gere um rascunho de comunicacao formal para a seguradora sobre o sinistro do tipo "${getTipoSinistroLabel(sinistro.tipo)}" ocorrido em ${formatDate(sinistro.dataOcorrencia)} no condominio "${sinistro.condominioNome}". Descricao: "${sinistro.descricao}". Status atual: ${getStatusSinistroLabel(sinistro.status)}. ${sinistro.seguradoraProtocolo ? `Protocolo: ${sinistro.seguradoraProtocolo}.` : ''} A comunicacao deve ser profissional, objetiva e solicitar atualizacao do status.`,
+        message: `Gere um rascunho de comunicação formal para a seguradora sobre o sinistro do tipo "${getTipoSinistroLabel(sinistro.tipo)}" ocorrido em ${formatDate(sinistro.dataOcorrencia)} no condomínio "${sinistro.condominioNome}". Descrição: "${sinistro.descricao}". Status atual: ${getStatusSinistroLabel(sinistro.status)}. ${sinistro.seguradoraProtocolo ? `Protocolo: ${sinistro.seguradoraProtocolo}.` : ''} A comunicação deve ser profissional, objetiva e solicitar atualização do status.`,
         history: [],
         context_type: 'sinistro',
       })
@@ -275,7 +275,7 @@ export default function SinistroDetailPage() {
   const handleCopyDraft = () => {
     if (iaDraft) {
       navigator.clipboard.writeText(iaDraft)
-      setSuccess('Rascunho copiado para a area de transferencia')
+      setSuccess('Rascunho copiado para a área de transferência')
     }
   }
 
@@ -289,7 +289,7 @@ export default function SinistroDetailPage() {
 
   const handleDelete = async () => {
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
+      title: 'Confirmar exclusão',
       message: 'Tem certeza que deseja excluir este sinistro?',
       severity: 'error',
       confirmText: 'Excluir',
@@ -338,7 +338,7 @@ export default function SinistroDetailPage() {
     return (
       <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/dashboard/sinistros')} sx={{ mb: 2 }}>Voltar</Button>
-        <Alert severity="error">Sinistro nao encontrado</Alert>
+        <Alert severity="error">Sinistro não encontrado</Alert>
       </Box>
     )
   }
@@ -418,20 +418,20 @@ export default function SinistroDetailPage() {
           {/* Info Card */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Informacoes do Sinistro
+              Informações do Sinistro
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <InfoRow icon={<BusinessIcon sx={{ color: '#6366f1' }} />} label="Condominio" value={sinistro.condominioNome} />
+                <InfoRow icon={<BusinessIcon sx={{ color: '#6366f1' }} />} label="Condomínio" value={sinistro.condominioNome} />
               </Grid>
               <Grid item xs={12} md={6}>
                 <InfoRow icon={<ReportProblemIcon sx={{ color: '#f59e0b' }} />} label="Tipo" value={getTipoSinistroLabel(sinistro.tipo)} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <InfoRow icon={<CalendarTodayIcon sx={{ color: '#3b82f6' }} />} label="Data da Ocorrencia" value={formatDateTime(sinistro.dataOcorrencia)} />
+                <InfoRow icon={<CalendarTodayIcon sx={{ color: '#3b82f6' }} />} label="Data da Ocorrência" value={formatDateTime(sinistro.dataOcorrencia)} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <InfoRow icon={<CalendarTodayIcon sx={{ color: '#10b981' }} />} label="Data da Comunicacao" value={formatDate(sinistro.dataComunicacao)} />
+                <InfoRow icon={<CalendarTodayIcon sx={{ color: '#10b981' }} />} label="Data da Comunicação" value={formatDate(sinistro.dataComunicacao)} />
               </Grid>
               {sinistro.localOcorrencia && (
                 <Grid item xs={12} md={6}>
@@ -445,13 +445,13 @@ export default function SinistroDetailPage() {
               )}
               {sinistro.numeroSinistro && (
                 <Grid item xs={12} md={6}>
-                  <InfoRow icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />} label="Numero do Sinistro" value={sinistro.numeroSinistro} mono />
+                  <InfoRow icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />} label="Número do Sinistro" value={sinistro.numeroSinistro} mono />
                 </Grid>
               )}
               <Grid item xs={12}>
                 <Divider sx={{ my: 1 }} />
                 <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                  Descricao
+                  Descrição
                 </Typography>
                 <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-wrap', lineHeight: 1.8, color: '#334155' }}>
                   {sinistro.descricao}
@@ -460,7 +460,7 @@ export default function SinistroDetailPage() {
               {sinistro.observacoes && (
                 <Grid item xs={12}>
                   <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                    Observacoes
+                    Observações
                   </Typography>
                   <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-wrap', color: '#64748b' }}>
                     {sinistro.observacoes}
@@ -472,13 +472,13 @@ export default function SinistroDetailPage() {
 
           {/* Financial Card */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Valores</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Resumo de Sinistros</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2, bgcolor: '#fef2f2', border: '1px solid #fecaca', boxShadow: 'none' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                     <WarningAmberIcon sx={{ color: '#ef4444', fontSize: 20 }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600}>PREJUIZO</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600}>PREJUÍZO</Typography>
                   </Box>
                   <Typography variant="h5" fontWeight="bold" sx={{ color: '#ef4444' }}>{formatCurrency(sinistro.valorPrejuizo)}</Typography>
                 </Paper>
@@ -501,22 +501,6 @@ export default function SinistroDetailPage() {
                   <Typography variant="h5" fontWeight="bold" sx={{ color: '#22c55e' }}>{formatCurrency(sinistro.valorIndenizado)}</Typography>
                 </Paper>
               </Grid>
-              {sinistro.valorPrejuizo && sinistro.valorIndenizado && (
-                <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Cobertura: {((sinistro.valorIndenizado / sinistro.valorPrejuizo) * 100).toFixed(1)}%
-                    </Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <LinearProgress
-                        variant="determinate"
-                        value={Math.min((sinistro.valorIndenizado / sinistro.valorPrejuizo) * 100, 100)}
-                        sx={{ height: 8, borderRadius: 4, bgcolor: '#fee2e2', '& .MuiLinearProgress-bar': { bgcolor: '#22c55e', borderRadius: 4 } }}
-                      />
-                    </Box>
-                  </Box>
-                </Grid>
-              )}
             </Grid>
           </Paper>
 
@@ -525,16 +509,16 @@ export default function SinistroDetailPage() {
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Protocolo da Seguradora</Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} md={6}>
-                <InfoRow icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />} label="Numero do Protocolo" value={sinistro.seguradoraProtocolo || 'Nao informado'} mono={!!sinistro.seguradoraProtocolo} muted={!sinistro.seguradoraProtocolo} />
+                <InfoRow icon={<ReceiptLongIcon sx={{ color: '#6366f1' }} />} label="Número do Protocolo" value={sinistro.seguradoraProtocolo || 'Não informado'} mono={!!sinistro.seguradoraProtocolo} muted={!sinistro.seguradoraProtocolo} />
               </Grid>
               <Grid item xs={12} md={6}>
-                <InfoRow icon={<PhoneIcon sx={{ color: '#3b82f6' }} />} label="Contato da Seguradora" value={sinistro.seguradoraContato || 'Nao informado'} muted={!sinistro.seguradoraContato} />
+                <InfoRow icon={<PhoneIcon sx={{ color: '#3b82f6' }} />} label="Contato da Seguradora" value={sinistro.seguradoraContato || 'Não informado'} muted={!sinistro.seguradoraContato} />
               </Grid>
             </Grid>
             {!sinistro.seguradoraProtocolo && canEdit && (
               <Box sx={{ mt: 2, p: 2, bgcolor: '#fef3c7', borderRadius: 1, border: '1px solid #fde68a' }}>
                 <Typography variant="body2" color="#92400e">
-                  Ainda nao foi informado o protocolo da seguradora. Clique em &quot;Editar&quot; para adicionar.
+                  Ainda não foi informado o protocolo da seguradora. Clique em &quot;Editar&quot; para adicionar.
                 </Typography>
               </Box>
             )}
@@ -552,8 +536,8 @@ export default function SinistroDetailPage() {
                 '& .MuiTabs-indicator': { bgcolor: '#6366f1' },
               }}
             >
-              <Tab icon={<TimelineIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Historico (${regularHistorico.length})`} />
-              <Tab icon={<ChatIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Comunicacao (${communications.length})`} />
+              <Tab icon={<TimelineIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Histórico (${regularHistorico.length})`} />
+              <Tab icon={<ChatIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Comunicação (${communications.length})`} />
               <Tab icon={<FolderIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`Documentos (${sinistro.documentosIds?.length || 0})`} />
               <Tab icon={<SmartToyIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="IA" />
             </Tabs>
@@ -566,7 +550,7 @@ export default function SinistroDetailPage() {
                     <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
                       <TextField
                         fullWidth size="small"
-                        placeholder="Adicionar atualizacao ao historico..."
+                        placeholder="Adicionar atualização ao histórico..."
                         value={historicoText}
                         onChange={(e) => setHistoricoText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddHistorico() } }}
@@ -584,7 +568,7 @@ export default function SinistroDetailPage() {
                   {regularHistorico.length === 0 ? (
                     <Box sx={{ textAlign: 'center', py: 4 }}>
                       <TimelineIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
-                      <Typography color="text.secondary">Nenhum registro no historico</Typography>
+                      <Typography color="text.secondary">Nenhum registro no histórico</Typography>
                     </Box>
                   ) : (
                     <Box>
@@ -628,12 +612,12 @@ export default function SinistroDetailPage() {
                   {canEdit && (
                     <Box sx={{ mb: 3 }}>
                       <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ mb: 1, display: 'block' }}>
-                        Registrar comunicacao com a seguradora
+                        Registrar comunicação com a seguradora
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <TextField
                           fullWidth size="small"
-                          placeholder="Descreva a comunicacao realizada..."
+                          placeholder="Descreva a comunicação realizada..."
                           value={commText}
                           onChange={(e) => setCommText(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddCommunication() } }}
@@ -652,8 +636,8 @@ export default function SinistroDetailPage() {
                   {communications.length === 0 ? (
                     <Box sx={{ textAlign: 'center', py: 4 }}>
                       <ChatIcon sx={{ fontSize: 48, color: 'grey.300', mb: 1 }} />
-                      <Typography color="text.secondary">Nenhuma comunicacao registrada</Typography>
-                      <Typography variant="caption" color="text.secondary">Registre as comunicacoes com a seguradora para manter o historico</Typography>
+                      <Typography color="text.secondary">Nenhuma comunicação registrada</Typography>
+                      <Typography variant="caption" color="text.secondary">Registre as comunicações com a seguradora para manter o histórico</Typography>
                     </Box>
                   ) : (
                     <Box>
@@ -698,7 +682,7 @@ export default function SinistroDetailPage() {
                   ) : (
                     <>
                       <Typography color="text.secondary">Nenhum documento vinculado</Typography>
-                      <Typography variant="caption" color="text.secondary">Vincule documentos ao sinistro pela tela de edicao</Typography>
+                      <Typography variant="caption" color="text.secondary">Vincule documentos ao sinistro pela tela de edição</Typography>
                     </>
                   )}
                   {sinistro.fotosUrls && sinistro.fotosUrls.length > 0 && (
@@ -719,11 +703,11 @@ export default function SinistroDetailPage() {
                   <Paper sx={{ p: 3, mb: 2, background: 'linear-gradient(135deg, #667eea08 0%, #764ba208 100%)', border: '1px solid #e2e8f0', boxShadow: 'none' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <SmartToyIcon sx={{ color: '#6366f1' }} />
-                      <Typography variant="subtitle1" fontWeight="bold">Rascunho de Comunicacao com IA</Typography>
+                      <Typography variant="subtitle1" fontWeight="bold">Rascunho de Comunicação com IA</Typography>
                       <Chip label="Beta" size="small" sx={{ bgcolor: '#6366f1', color: 'white', height: 20, fontSize: '0.7rem' }} />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                      A IA pode gerar um rascunho de comunicacao formal para enviar a seguradora sobre este sinistro.
+                      A IA pode gerar um rascunho de comunicação formal para enviar à seguradora sobre este sinistro.
                     </Typography>
                     <Button
                       variant="contained"
@@ -741,13 +725,13 @@ export default function SinistroDetailPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                         <Typography variant="subtitle2" fontWeight="bold" sx={{ color: '#6366f1' }}>Rascunho Gerado</Typography>
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Tooltip title="Copiar para area de transferencia">
+                          <Tooltip title="Copiar para área de transferência">
                             <IconButton size="small" onClick={handleCopyDraft} sx={{ color: '#6366f1' }}>
                               <ContentCopyIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                           <Button size="small" variant="outlined" onClick={handleUseDraftAsComm} sx={{ borderColor: '#6366f1', color: '#6366f1', textTransform: 'none' }}>
-                            Usar como comunicacao
+                            Usar como comunicação
                           </Button>
                         </Box>
                       </Box>
@@ -767,7 +751,7 @@ export default function SinistroDetailPage() {
           {/* Status Flow Actions */}
           {canEdit && flowActions.length > 0 && (
             <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Acoes</Typography>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>Ações</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {flowActions.map((action) => (
                   <Button
@@ -880,16 +864,16 @@ export default function SinistroDetailPage() {
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Numero do Sinistro" value={editData.numeroSinistro || ''} onChange={(e) => setEditData(p => ({ ...p, numeroSinistro: e.target.value }))} />
+              <TextField fullWidth size="small" label="Número do Sinistro" value={editData.numeroSinistro || ''} onChange={(e) => setEditData(p => ({ ...p, numeroSinistro: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>Tipo</InputLabel>
                 <Select value={editData.tipo || ''} label="Tipo" onChange={(e) => setEditData(p => ({ ...p, tipo: e.target.value as TipoSinistro }))}>
-                  <MenuItem value="INCENDIO">Incendio</MenuItem>
+                  <MenuItem value="INCENDIO">Incêndio</MenuItem>
                   <MenuItem value="ROUBO">Roubo</MenuItem>
-                  <MenuItem value="DANOS_AGUA">Danos por Agua</MenuItem>
-                  <MenuItem value="DANOS_ELETRICOS">Danos Eletricos</MenuItem>
+                  <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem>
+                  <MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
                   <MenuItem value="RESPONSABILIDADE_CIVIL">Responsabilidade Civil</MenuItem>
                   <MenuItem value="VENDAVAL">Vendaval</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
@@ -897,22 +881,22 @@ export default function SinistroDetailPage() {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Data da Ocorrencia" type="datetime-local" value={editData.dataOcorrencia || ''} onChange={(e) => setEditData(p => ({ ...p, dataOcorrencia: e.target.value }))} InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth size="small" label="Data da Ocorrência" type="datetime-local" value={editData.dataOcorrencia || ''} onChange={(e) => setEditData(p => ({ ...p, dataOcorrencia: e.target.value }))} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Data da Comunicacao" type="date" value={editData.dataComunicacao || ''} onChange={(e) => setEditData(p => ({ ...p, dataComunicacao: e.target.value }))} InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth size="small" label="Data da Comunicação" type="date" value={editData.dataComunicacao || ''} onChange={(e) => setEditData(p => ({ ...p, dataComunicacao: e.target.value }))} InputLabelProps={{ shrink: true }} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Local da Ocorrencia" value={editData.localOcorrencia || ''} onChange={(e) => setEditData(p => ({ ...p, localOcorrencia: e.target.value }))} />
+              <TextField fullWidth size="small" label="Local da Ocorrência" value={editData.localOcorrencia || ''} onChange={(e) => setEditData(p => ({ ...p, localOcorrencia: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth size="small" label="Cobertura Acionada" value={editData.coberturaAcionada || ''} onChange={(e) => setEditData(p => ({ ...p, coberturaAcionada: e.target.value }))} />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth size="small" label="Descricao" multiline rows={3} value={editData.descricao || ''} onChange={(e) => setEditData(p => ({ ...p, descricao: e.target.value }))} />
+              <TextField fullWidth size="small" label="Descrição" multiline rows={3} value={editData.descricao || ''} onChange={(e) => setEditData(p => ({ ...p, descricao: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth size="small" label="Valor do Prejuizo (R$)" type="number" value={editData.valorPrejuizo ?? ''} onChange={(e) => setEditData(p => ({ ...p, valorPrejuizo: e.target.value ? parseFloat(e.target.value) : undefined }))} />
+              <TextField fullWidth size="small" label="Valor do Prejuízo (R$)" type="number" value={editData.valorPrejuizo ?? ''} onChange={(e) => setEditData(p => ({ ...p, valorPrejuizo: e.target.value ? parseFloat(e.target.value) : undefined }))} />
             </Grid>
             <Grid item xs={12} md={4}>
               <TextField fullWidth size="small" label="Valor da Franquia (R$)" type="number" value={editData.valorFranquia ?? ''} onChange={(e) => setEditData(p => ({ ...p, valorFranquia: e.target.value ? parseFloat(e.target.value) : undefined }))} />
@@ -925,13 +909,13 @@ export default function SinistroDetailPage() {
               <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Protocolo da Seguradora</Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Numero do Protocolo" value={editData.seguradoraProtocolo || ''} onChange={(e) => setEditData(p => ({ ...p, seguradoraProtocolo: e.target.value }))} />
+              <TextField fullWidth size="small" label="Número do Protocolo" value={editData.seguradoraProtocolo || ''} onChange={(e) => setEditData(p => ({ ...p, seguradoraProtocolo: e.target.value }))} />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth size="small" label="Contato da Seguradora" value={editData.seguradoraContato || ''} onChange={(e) => setEditData(p => ({ ...p, seguradoraContato: e.target.value }))} placeholder="Telefone ou email" />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth size="small" label="Observacoes" multiline rows={2} value={editData.observacoes || ''} onChange={(e) => setEditData(p => ({ ...p, observacoes: e.target.value }))} />
+              <TextField fullWidth size="small" label="Observações" multiline rows={2} value={editData.observacoes || ''} onChange={(e) => setEditData(p => ({ ...p, observacoes: e.target.value }))} />
             </Grid>
           </Grid>
         </DialogContent>
@@ -960,7 +944,7 @@ export default function SinistroDetailPage() {
           />
           {sinistro.valorPrejuizo && (
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Valor do prejuizo: {formatCurrency(sinistro.valorPrejuizo)}
+              Valor do prejuízo: {formatCurrency(sinistro.valorPrejuizo)}
             </Typography>
           )}
         </DialogContent>

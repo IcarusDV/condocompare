@@ -164,7 +164,7 @@ export default function SegurosPage() {
       setData(response)
     } catch (err) {
       console.error('Error fetching apolices:', err)
-      setError('Erro ao carregar apolices. Tente novamente.')
+      setError('Erro ao carregar apólices. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -225,8 +225,8 @@ export default function SegurosPage() {
       return
     }
     const ok = await confirmDialog({
-      title: 'Confirmar renovacao',
-      message: 'Deseja iniciar o processo de renovacao desta apolice?',
+      title: 'Confirmar renovação',
+      message: 'Deseja iniciar o processo de renovação desta apólice?',
       severity: 'warning',
       confirmText: 'Renovar',
       cancelText: 'Cancelar',
@@ -234,11 +234,11 @@ export default function SegurosPage() {
     if (ok) {
       try {
         await apoliceService.renovar(selectedId)
-        setSnackbar({ open: true, message: 'Renovacao iniciada com sucesso.' })
+        setSnackbar({ open: true, message: 'Renovação iniciada com sucesso.' })
         fetchData()
       } catch (err) {
         console.error('Error renewing apolice:', err)
-        setError('Erro ao renovar apolice.')
+        setError('Erro ao renovar apólice.')
       }
     }
     handleMenuClose()
@@ -250,8 +250,8 @@ export default function SegurosPage() {
       return
     }
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
-      message: 'Tem certeza que deseja excluir esta apolice? Esta acao nao pode ser desfeita.',
+      title: 'Confirmar exclusão',
+      message: 'Tem certeza que deseja excluir esta apólice? Esta ação não pode ser desfeita.',
       severity: 'error',
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
@@ -259,11 +259,11 @@ export default function SegurosPage() {
     if (ok) {
       try {
         await apoliceService.delete(selectedId)
-        setSnackbar({ open: true, message: 'Apolice excluida com sucesso.' })
+        setSnackbar({ open: true, message: 'Apólice excluída com sucesso.' })
         fetchData()
       } catch (err) {
         console.error('Error deleting apolice:', err)
-        setError('Erro ao excluir apolice.')
+        setError('Erro ao excluir apólice.')
       }
     }
     handleMenuClose()
@@ -272,13 +272,13 @@ export default function SegurosPage() {
   const handleExportCSV = () => {
     if (!data?.content.length) return
     const columns = [
-      { key: 'numeroApolice', label: 'Numero Apolice' },
-      { key: 'condominio', label: 'Condominio' },
+      { key: 'numeroApolice', label: 'Número Apólice' },
+      { key: 'condominio', label: 'Condomínio' },
       { key: 'seguradora', label: 'Seguradora' },
       { key: 'status', label: 'Status' },
-      { key: 'dataInicio', label: 'Inicio Vigencia' },
-      { key: 'dataFim', label: 'Fim Vigencia' },
-      { key: 'premioTotal', label: 'Premio Total' },
+      { key: 'dataInicio', label: 'Início Vigência' },
+      { key: 'dataFim', label: 'Fim Vigência' },
+      { key: 'premioTotal', label: 'Prêmio Total' },
       { key: 'coberturas', label: 'Coberturas' },
     ]
     const csvData = data.content.map((a) => ({
@@ -325,10 +325,10 @@ export default function SegurosPage() {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold" color="text.primary">
-            Apolices de Seguro
+            Apólices de Seguro
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Gerencie as apolices de seguro dos condominios
+            Gerencie as apólices de seguro dos condomínios
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -353,7 +353,7 @@ export default function SegurosPage() {
               onClick={() => router.push('/dashboard/seguros/novo')}
               sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
             >
-              Nova Apolice
+              Nova Apólice
             </Button>
           )}
         </Box>
@@ -380,7 +380,7 @@ export default function SegurosPage() {
         ) : (
           <>
             <StatCard
-              title="Total Apolices"
+              title="Total Apólices"
               value={stats.total}
               icon={SecurityIcon}
               color="#3b82f6"
@@ -420,7 +420,7 @@ export default function SegurosPage() {
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
           <TextField
             size="small"
-            placeholder="Buscar por numero, condominio ou seguradora..."
+            placeholder="Buscar por número, condomínio ou seguradora..."
             value={search}
             onChange={handleSearchChange}
             sx={{ flex: 1, minWidth: 280 }}
@@ -475,8 +475,8 @@ export default function SegurosPage() {
           <Box sx={{ px: 2, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', bgcolor: '#fafafa' }}>
             <Typography variant="body2" color="text.secondary">
               {data.totalElements === 0
-                ? 'Nenhuma apolice encontrada'
-                : `${data.totalElements} apolice${data.totalElements !== 1 ? 's' : ''} encontrada${data.totalElements !== 1 ? 's' : ''}`}
+                ? 'Nenhuma apólice encontrada'
+                : `${data.totalElements} apólice${data.totalElements !== 1 ? 's' : ''} encontrada${data.totalElements !== 1 ? 's' : ''}`}
               {(statusFilter || search) && (
                 <>
                   {' '}&bull;{' '}
@@ -501,14 +501,14 @@ export default function SegurosPage() {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={thSx}>Numero Apolice</TableCell>
-                <TableCell sx={thSx}>Condominio</TableCell>
+                <TableCell sx={thSx}>Número Apólice</TableCell>
+                <TableCell sx={thSx}>Condomínio</TableCell>
                 <TableCell sx={thSx}>Seguradora</TableCell>
                 <TableCell sx={thSx}>Status</TableCell>
-                <TableCell sx={thSx}>Vigencia</TableCell>
-                <TableCell sx={thSx} align="right">Premio Total</TableCell>
+                <TableCell sx={thSx}>Vigência</TableCell>
+                <TableCell sx={thSx} align="right">Prêmio Total</TableCell>
                 <TableCell sx={thSx} align="center">Coberturas</TableCell>
-                <TableCell sx={thSx} align="right">Acoes</TableCell>
+                <TableCell sx={thSx} align="right">Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -527,12 +527,12 @@ export default function SegurosPage() {
                   <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
                     <SecurityIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                     <Typography color="text.secondary" fontWeight={500}>
-                      Nenhuma apolice encontrada
+                      Nenhuma apólice encontrada
                     </Typography>
                     <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>
                       {search || statusFilter
                         ? 'Tente ajustar os filtros de busca'
-                        : 'Cadastre a primeira apolice para comecar'}
+                        : 'Cadastre a primeira apólice para começar'}
                     </Typography>
                     {canCreate && !search && !statusFilter && (
                       <Button
@@ -542,7 +542,7 @@ export default function SegurosPage() {
                         sx={{ mt: 2 }}
                         onClick={() => router.push('/dashboard/seguros/novo')}
                       >
-                        Nova Apolice
+                        Nova Apólice
                       </Button>
                     )}
                   </TableCell>
@@ -668,7 +668,7 @@ export default function SegurosPage() {
               setRowsPerPage(parseInt(e.target.value, 10))
               setPage(0)
             }}
-            labelRowsPerPage="Linhas por pagina:"
+            labelRowsPerPage="Linhas por página:"
             labelDisplayedRows={({ from, to, count }) =>
               `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
             }

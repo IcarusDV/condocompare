@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'CondoCompare - Gestao Inteligente de Seguro Condominio'
+export const alt = 'CondoCompare - Gestão Inteligente de Seguro Condomínio'
 export const size = {
   width: 1200,
   height: 630,
@@ -71,7 +71,7 @@ export default function OpenGraphImage() {
             lineHeight: 1.4,
           }}
         >
-          Gestao Inteligente de Seguro Condominio
+          Gestão Inteligente de Seguro Condomínio
         </span>
 
         {/* Accent line */}

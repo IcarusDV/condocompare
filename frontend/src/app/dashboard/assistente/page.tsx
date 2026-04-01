@@ -59,55 +59,55 @@ interface EnrichedMessage extends ChatMessage {
 
 const contextOptions: { value: ContextType; label: string; icon: React.ReactNode; color: string; description: string }[] = [
   { value: 'geral', label: 'Geral', icon: <QuestionAnswerIcon />, color: '#6366f1', description: 'Perguntas gerais sobre seguros' },
-  { value: 'cobertura', label: 'Coberturas', icon: <SecurityIcon />, color: '#3b82f6', description: 'Tipos de cobertura e protecao' },
+  { value: 'cobertura', label: 'Coberturas', icon: <SecurityIcon />, color: '#3b82f6', description: 'Tipos de cobertura e proteção' },
   { value: 'franquia', label: 'Franquias', icon: <GavelIcon />, color: '#8b5cf6', description: 'Valores e regras de franquias' },
   { value: 'sinistro', label: 'Sinistros', icon: <ReportProblemIcon />, color: '#ef4444', description: 'Abertura e acompanhamento' },
-  { value: 'comparacao', label: 'Comparacao', icon: <CompareArrowsIcon />, color: '#10b981', description: 'Comparar orcamentos e propostas' },
-  { value: 'diagnostico', label: 'Diagnostico', icon: <AssessmentIcon />, color: '#f59e0b', description: 'Analise de cobertura e riscos' },
-  { value: 'condominio', label: 'Condominio', icon: <ApartmentIcon />, color: '#06b6d4', description: 'Dados que afetam o seguro' },
+  { value: 'comparacao', label: 'Comparação', icon: <CompareArrowsIcon />, color: '#10b981', description: 'Comparar orçamentos e propostas' },
+  { value: 'diagnostico', label: 'Diagnóstico', icon: <AssessmentIcon />, color: '#f59e0b', description: 'Análise de cobertura e riscos' },
+  { value: 'condominio', label: 'Condomínio', icon: <ApartmentIcon />, color: '#06b6d4', description: 'Dados que afetam o seguro' },
 ]
 
 const suggestedQuestionsByContext: Record<ContextType, string[]> = {
   geral: [
-    'O que e a cobertura de Responsabilidade Civil do Condominio?',
-    'Quais coberturas sao obrigatorias por lei?',
-    'Qual a diferenca entre seguro do condominio e seguro do apartamento?',
-    'Como funciona o processo de renovacao do seguro?',
+    'O que é a cobertura de Responsabilidade Civil do Condomínio?',
+    'Quais coberturas são obrigatórias por lei?',
+    'Qual a diferença entre seguro do condomínio e seguro do apartamento?',
+    'Como funciona o processo de renovação do seguro?',
   ],
   cobertura: [
-    'O que cobre a cobertura de Danos Eletricos?',
+    'O que cobre a cobertura de Danos Elétricos?',
     'Como funciona a cobertura de Vendaval?',
-    'O que e cobertura de Responsabilidade Civil do Sindico?',
-    'Quais coberturas protegem areas comuns?',
+    'O que é cobertura de Responsabilidade Civil do Síndico?',
+    'Quais coberturas protegem áreas comuns?',
   ],
   franquia: [
     'Como funciona a franquia em caso de sinistro?',
-    'O que e franquia simples e franquia dedutivel?',
+    'O que é franquia simples e franquia dedutível?',
     'Posso negociar o valor da franquia?',
-    'Franquia mais alta reduz o premio?',
+    'Franquia mais alta reduz o prêmio?',
   ],
   sinistro: [
-    'Como abrir um sinistro de danos eletricos?',
+    'Como abrir um sinistro de danos elétricos?',
     'Quais documentos preciso para abrir um sinistro?',
     'Qual o prazo para a seguradora responder um sinistro?',
-    'O que fazer imediatamente apos um sinistro?',
+    'O que fazer imediatamente após um sinistro?',
   ],
   comparacao: [
-    'Qual o criterio mais importante ao comparar orcamentos?',
-    'Devo escolher sempre o orcamento mais barato?',
-    'Como avaliar se as coberturas estao adequadas?',
-    'Quais clausulas devo prestar atencao?',
+    'Qual o critério mais importante ao comparar orçamentos?',
+    'Devo escolher sempre o orçamento mais barato?',
+    'Como avaliar se as coberturas estão adequadas?',
+    'Quais cláusulas devo prestar atenção?',
   ],
   diagnostico: [
     'O que significa score de cobertura?',
-    'Como melhorar a pontuacao do meu condominio?',
-    'Quais coberturas sao essenciais para um condominio?',
-    'O que sao riscos criticos de cobertura?',
+    'Como melhorar a pontuação do meu condomínio?',
+    'Quais coberturas são essenciais para um condomínio?',
+    'O que são riscos críticos de cobertura?',
   ],
   condominio: [
-    'Que informacoes do condominio afetam o seguro?',
-    'Condominios antigos pagam mais caro?',
-    'Amenidades como piscina aumentam o premio?',
+    'Que informações do condomínio afetam o seguro?',
+    'Condomínios antigos pagam mais caro?',
+    'Amenidades como piscina aumentam o prêmio?',
     'Elevadores influenciam no valor do seguro?',
   ],
 }
@@ -337,7 +337,7 @@ export default function AssistentePage() {
       }
     } catch (err) {
       console.error('Error sending message:', err)
-      setError('Erro ao enviar mensagem. Verifique se o servico de IA esta rodando.')
+      setError('Erro ao enviar mensagem. Verifique se o serviço de IA está rodando.')
     } finally {
       setLoading(false)
       setTimeout(() => inputRef.current?.focus(), 100)
@@ -422,7 +422,7 @@ export default function AssistentePage() {
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Typography variant="h4" fontWeight="bold">Assistente IA</Typography>
-            <Tooltip title={iaStatus === 'online' ? 'Servico de IA online' : iaStatus === 'offline' ? 'Servico de IA offline' : 'Verificando conexao...'}>
+            <Tooltip title={iaStatus === 'online' ? 'Serviço de IA online' : iaStatus === 'offline' ? 'Serviço de IA offline' : 'Verificando conexão...'}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.5, borderRadius: 10, bgcolor: iaStatus === 'online' ? '#dcfce7' : iaStatus === 'offline' ? '#fee2e2' : '#f1f5f9', border: `1px solid ${iaStatus === 'online' ? '#bbf7d0' : iaStatus === 'offline' ? '#fecaca' : '#e2e8f0'}` }}>
                 {iaStatus === 'checking' ? (
                   <CircularProgress size={10} sx={{ color: '#94a3b8' }} />
@@ -438,11 +438,11 @@ export default function AssistentePage() {
             </Tooltip>
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Tire suas duvidas sobre seguros de condominio com nosso assistente inteligente
+            Tire suas dúvidas sobre seguros de condomínio com nosso assistente inteligente
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title={showSidebar ? 'Ocultar historico' : 'Mostrar historico'}>
+          <Tooltip title={showSidebar ? 'Ocultar histórico' : 'Mostrar histórico'}>
             <IconButton onClick={() => setShowSidebar(!showSidebar)} size="small" sx={{ borderRadius: 2, border: '1px solid #e2e8f0' }}>
               <HistoryIcon sx={{ fontSize: 20, color: '#64748b' }} />
             </IconButton>
@@ -490,7 +490,7 @@ export default function AssistentePage() {
 
           <Box sx={{ minWidth: 280 }}>
             <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Condominio (opcional)
+              Condomínio (opcional)
             </Typography>
             <Autocomplete
               size="small"
@@ -500,7 +500,7 @@ export default function AssistentePage() {
               onChange={(_, value) => setSelectedCondominio(value)}
               loading={loadingCondominios}
               renderInput={(params) => (
-                <TextField {...params} placeholder="Selecionar condominio..." sx={{ mt: 1 }} />
+                <TextField {...params} placeholder="Selecionar condomínio..." sx={{ mt: 1 }} />
               )}
               renderOption={(props, option) => (
                 <li {...props} key={option.id}>
@@ -515,7 +515,7 @@ export default function AssistentePage() {
                   </Box>
                 </li>
               )}
-              noOptionsText="Nenhum condominio encontrado"
+              noOptionsText="Nenhum condomínio encontrado"
             />
           </Box>
         </Box>
@@ -528,7 +528,7 @@ export default function AssistentePage() {
           <Paper sx={{ width: 280, flexShrink: 0, border: '1px solid #e2e8f0', boxShadow: 'none', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Box sx={{ p: 2, borderBottom: '1px solid #e2e8f0' }}>
               <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#334155' }}>
-                Historico de Conversas
+                Histórico de Conversas
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {conversations.length} conversa{conversations.length !== 1 ? 's' : ''}
@@ -601,7 +601,7 @@ export default function AssistentePage() {
                       CondoCompare IA
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1, textAlign: 'center', maxWidth: 400 }}>
-                      Especialista em seguros de condominio. Pergunte sobre coberturas, franquias, sinistros e muito mais.
+                      Especialista em seguros de condomínio. Pergunte sobre coberturas, franquias, sinistros e muito mais.
                     </Typography>
                     {selectedCondominio && (
                       <Chip
@@ -733,7 +733,7 @@ export default function AssistentePage() {
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
                   <TextField
                     fullWidth multiline maxRows={4}
-                    placeholder={iaStatus === 'offline' ? 'Servico de IA indisponivel...' : `Pergunte sobre ${currentCtx.label.toLowerCase()}...`}
+                    placeholder={iaStatus === 'offline' ? 'Serviço de IA indisponível...' : `Pergunte sobre ${currentCtx.label.toLowerCase()}...`}
                     value={input} onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown} disabled={loading || iaStatus === 'offline'}
                     inputRef={inputRef} size="small"
@@ -762,7 +762,7 @@ export default function AssistentePage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <InfoIcon sx={{ fontSize: 13, color: '#94a3b8' }} />
                     <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                      As respostas sao geradas por IA. Consulte um corretor especializado para decisoes finais.
+                      As respostas são geradas por IA. Consulte um corretor especializado para decisões finais.
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>

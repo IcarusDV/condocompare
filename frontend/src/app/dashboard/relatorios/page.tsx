@@ -65,14 +65,14 @@ interface ReportConfig {
 
 const reportConfigs: Record<ReportType, ReportConfig> = {
   condominios: {
-    title: 'Condominios',
+    title: 'Condomínios',
     subtitle: 'Lista completa cadastrada',
     icon: <ApartmentIcon />,
     color: '#3b82f6',
   },
   sinistros: {
     title: 'Sinistros',
-    subtitle: 'Historico de ocorrencias',
+    subtitle: 'Histórico de ocorrências',
     icon: <ReportProblemIcon />,
     color: '#ef4444',
   },
@@ -84,13 +84,13 @@ const reportConfigs: Record<ReportType, ReportConfig> = {
   },
   documentos: {
     title: 'Documentos',
-    subtitle: 'Apolices, orcamentos e laudos',
+    subtitle: 'Apólices, orçamentos e laudos',
     icon: <DescriptionIcon />,
     color: '#f59e0b',
   },
   resumo: {
     title: 'Resumo Geral',
-    subtitle: 'Indicadores e metricas',
+    subtitle: 'Indicadores e métricas',
     icon: <TrendingUpIcon />,
     color: '#8b5cf6',
   },
@@ -103,26 +103,26 @@ const condominioColumns: ExportColumn[] = [
   { header: 'Estado', key: 'estado', width: 8 },
   { header: 'Unidades', key: 'numeroUnidades', width: 10 },
   { header: 'Seguradora', key: 'seguradoraAtual', width: 15 },
-  { header: 'Status Apolice', key: 'statusApolice', width: 12 },
+  { header: 'Status Apólice', key: 'statusApolice', width: 12 },
 ]
 
 const sinistroColumns: ExportColumn[] = [
-  { header: 'Numero', key: 'numeroSinistro', width: 15 },
-  { header: 'Condominio', key: 'condominioNome', width: 25 },
+  { header: 'Número', key: 'numeroSinistro', width: 15 },
+  { header: 'Condomínio', key: 'condominioNome', width: 25 },
   { header: 'Tipo', key: 'tipo', width: 15 },
   { header: 'Status', key: 'status', width: 12 },
-  { header: 'Data Ocorrencia', key: 'dataOcorrencia', width: 15 },
-  { header: 'Valor Prejuizo', key: 'valorPrejuizo', width: 15 },
+  { header: 'Data Ocorrência', key: 'dataOcorrencia', width: 15 },
+  { header: 'Valor Prejuízo', key: 'valorPrejuizo', width: 15 },
   { header: 'Valor Indenizado', key: 'valorIndenizado', width: 15 },
 ]
 
 const vistoriaColumns: ExportColumn[] = [
-  { header: 'Condominio', key: 'condominioNome', width: 25 },
+  { header: 'Condomínio', key: 'condominioNome', width: 25 },
   { header: 'Tipo', key: 'tipo', width: 12 },
   { header: 'Status', key: 'status', width: 12 },
   { header: 'Data Agendada', key: 'dataAgendada', width: 15 },
   { header: 'Data Realizada', key: 'dataRealizada', width: 15 },
-  { header: 'Responsavel', key: 'responsavelNome', width: 20 },
+  { header: 'Responsável', key: 'responsavelNome', width: 20 },
   { header: 'Nota', key: 'notaGeral', width: 8 },
 ]
 
@@ -131,7 +131,7 @@ const documentoColumns: ExportColumn[] = [
   { header: 'Tipo', key: 'tipo', width: 12 },
   { header: 'Status', key: 'status', width: 12 },
   { header: 'Seguradora', key: 'seguradoraNome', width: 18 },
-  { header: 'Valor Premio', key: 'valorPremio', width: 15 },
+  { header: 'Valor Prêmio', key: 'valorPremio', width: 15 },
   { header: 'Vencimento', key: 'dataVigenciaFim', width: 15 },
   { header: 'Data Upload', key: 'createdAt', width: 15 },
 ]
@@ -234,7 +234,7 @@ export default function RelatoriosPage() {
       }
     } catch (err) {
       console.error('Error loading data:', err)
-      setError('Erro ao carregar dados do relatorio')
+      setError('Erro ao carregar dados do relatório')
     } finally {
       setLoading(false)
     }
@@ -249,23 +249,23 @@ export default function RelatoriosPage() {
 
     if (selectedReport === 'resumo' && metrics) {
       const resumoData = [
-        { metrica: 'Total de Condominios', valor: metrics.totalCondominios },
+        { metrica: 'Total de Condomínios', valor: metrics.totalCondominios },
         { metrica: 'Total de Documentos', valor: metrics.totalDocumentos },
         { metrica: 'Total de Vistorias', valor: metrics.totalVistorias },
         { metrica: 'Total de Sinistros', valor: metrics.totalSinistros },
-        { metrica: 'Apolices Vigentes', valor: metrics.totalApolices },
-        { metrica: 'Orcamentos Cadastrados', valor: metrics.totalOrcamentos },
-        { metrica: 'Apolices Vencendo (30 dias)', valor: metrics.apolicesVencendo30dias },
+        { metrica: 'Apólices Vigentes', valor: metrics.totalApolices },
+        { metrica: 'Orçamentos Cadastrados', valor: metrics.totalOrcamentos },
+        { metrica: 'Apólices Vencendo (30 dias)', valor: metrics.apolicesVencendo30dias },
         { metrica: 'Vistorias Agendadas', valor: metrics.vistoriasAgendadas },
-        { metrica: 'Vistorias Concluidas', valor: metrics.vistoriasConcluidas },
+        { metrica: 'Vistorias Concluídas', valor: metrics.vistoriasConcluidas },
         { metrica: 'Sinistros Abertos', valor: metrics.sinistrosAbertos },
-        { metrica: 'Sinistros em Analise', valor: metrics.sinistrosEmAnalise },
-        { metrica: 'Valor Total Prejuizos', valor: formatCurrency(metrics.valorTotalPrejuizos) },
+        { metrica: 'Sinistros em Análise', valor: metrics.sinistrosEmAnalise },
+        { metrica: 'Valor Total Prejuízos', valor: formatCurrency(metrics.valorTotalPrejuizos) },
         { metrica: 'Valor Total Indenizado', valor: formatCurrency(metrics.valorTotalIndenizado) },
       ]
 
       const columns: ExportColumn[] = [
-        { header: 'Metrica', key: 'metrica', width: 30 },
+        { header: 'Métrica', key: 'metrica', width: 30 },
         { header: 'Valor', key: 'valor', width: 20 },
       ]
 
@@ -359,19 +359,19 @@ export default function RelatoriosPage() {
     // Tipo fields
     if (key === 'tipo') {
       const labels: Record<string, string> = {
-        APOLICE: 'Apolice',
-        ORCAMENTO: 'Orcamento',
+        APOLICE: 'Apólice',
+        ORCAMENTO: 'Orçamento',
         CONDICOES_GERAIS: 'Cond. Gerais',
         LAUDO_VISTORIA: 'Laudo',
         SINISTRO: 'Sinistro',
         OUTRO: 'Outro',
-        BASICA: 'Basica',
-        INTERMEDIARIA: 'Intermediaria',
+        BASICA: 'Básica',
+        INTERMEDIARIA: 'Intermediária',
         COMPLETA: 'Completa',
-        INCENDIO: 'Incendio',
+        INCENDIO: 'Incêndio',
         ALAGAMENTO: 'Alagamento',
         ROUBO: 'Roubo',
-        DANO_ELETRICO: 'Dano Eletrico',
+        DANO_ELETRICO: 'Dano Elétrico',
         RESPONSABILIDADE_CIVIL: 'Resp. Civil',
         VENDAVAL: 'Vendaval',
       }
@@ -405,10 +405,10 @@ export default function RelatoriosPage() {
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Box>
           <Typography variant="h4" fontWeight="bold">
-            Relatorios
+            Relatórios
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Gere e exporte relatorios do sistema
+            Gere e exporte relatórios do sistema
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -528,7 +528,7 @@ export default function RelatoriosPage() {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    placeholder="Filtrar por condominio..."
+                    placeholder="Filtrar por condomínio..."
                     InputProps={{
                       ...params.InputProps,
                       startAdornment: <FilterListIcon sx={{ color: 'grey.400', mr: 0.5, fontSize: 20 }} />,
@@ -592,7 +592,7 @@ export default function RelatoriosPage() {
             {/* Main Metrics */}
             <Grid container spacing={2} sx={{ mb: 3 }}>
               {[
-                { label: 'Condominios', value: metrics.totalCondominios, color: '#3b82f6', icon: <ApartmentIcon /> },
+                { label: 'Condomínios', value: metrics.totalCondominios, color: '#3b82f6', icon: <ApartmentIcon /> },
                 { label: 'Documentos', value: metrics.totalDocumentos, color: '#f59e0b', icon: <DescriptionIcon /> },
                 { label: 'Vistorias', value: metrics.totalVistorias, color: '#10b981', icon: <AssignmentIcon /> },
                 { label: 'Sinistros', value: metrics.totalSinistros, color: '#ef4444', icon: <ReportProblemIcon /> },
@@ -640,7 +640,7 @@ export default function RelatoriosPage() {
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none', height: '100%' }}>
                   <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                    Apolices
+                    Apólices
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mt: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -662,7 +662,7 @@ export default function RelatoriosPage() {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <DescriptionIcon sx={{ fontSize: 18, color: '#3b82f6' }} />
-                        <Typography variant="body2">Orcamentos</Typography>
+                        <Typography variant="body2">Orçamentos</Typography>
                       </Box>
                       <Typography variant="body2" fontWeight={700}>{metrics.totalOrcamentos}</Typography>
                     </Box>
@@ -686,7 +686,7 @@ export default function RelatoriosPage() {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CheckCircleIcon sx={{ fontSize: 18, color: '#22c55e' }} />
-                        <Typography variant="body2">Concluidas</Typography>
+                        <Typography variant="body2">Concluídas</Typography>
                       </Box>
                       <Typography variant="body2" fontWeight={700}>{metrics.vistoriasConcluidas}</Typography>
                     </Box>
@@ -733,10 +733,10 @@ export default function RelatoriosPage() {
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2">Notificacoes</Typography>
+                        <Typography variant="body2">Notificações</Typography>
                       </Box>
                       <Badge badgeContent={metrics.notificacoesNaoLidas} color="error" max={99}>
-                        <Typography variant="body2" fontWeight={700}>nao lidas</Typography>
+                        <Typography variant="body2" fontWeight={700}>não lidas</Typography>
                       </Badge>
                     </Box>
                   </Box>
@@ -861,7 +861,7 @@ export default function RelatoriosPage() {
                 rowsPerPage={rowsPerPage}
                 onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
                 rowsPerPageOptions={[10, 15, 25, 50]}
-                labelRowsPerPage="Linhas por pagina:"
+                labelRowsPerPage="Linhas por página:"
                 labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
                 sx={{ borderTop: '1px solid #e2e8f0' }}
               />

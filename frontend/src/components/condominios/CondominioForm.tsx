@@ -127,18 +127,18 @@ const initialFormData: FormData = {
 }
 
 const STEPS = [
-  { label: 'Dados Basicos', icon: ApartmentIcon },
-  { label: 'Endereco', icon: LocationOnIcon },
-  { label: 'Caracteristicas', icon: HomeWorkIcon },
-  { label: 'Amenidades', icon: PoolIcon },
-  { label: 'Sindico & Seguro', icon: ShieldIcon },
+  { label: 'Dados Básicos', icon: ApartmentIcon },
+  { label: 'Endereço', icon: LocationOnIcon },
+  { label: 'Características & Amenidades', icon: HomeWorkIcon },
+  { label: 'Síndico', icon: PersonIcon },
+  { label: 'Seguro', icon: ShieldIcon },
 ]
 
 const amenidades = [
   { key: 'temPortaria24h' as const, label: 'Portaria 24h', icon: SecurityIcon, color: '#3b82f6' },
   { key: 'temPiscina' as const, label: 'Piscina', icon: PoolIcon, color: '#06b6d4' },
   { key: 'temAcademia' as const, label: 'Academia', icon: FitnessCenterIcon, color: '#8b5cf6' },
-  { key: 'temSalaoFestas' as const, label: 'Salao de Festas', icon: CelebrationIcon, color: '#f59e0b' },
+  { key: 'temSalaoFestas' as const, label: 'Salão de Festas', icon: CelebrationIcon, color: '#f59e0b' },
   { key: 'temPlayground' as const, label: 'Playground', icon: ChildCareIcon, color: '#10b981' },
   { key: 'temChurrasqueira' as const, label: 'Churrasqueira', icon: OutdoorGrillIcon, color: '#ef4444' },
   { key: 'temQuadra' as const, label: 'Quadra', icon: SportsSoccerIcon, color: '#22c55e' },
@@ -202,9 +202,9 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
           estado: data.uf || prev.estado,
           complemento: data.complemento || prev.complemento,
         }))
-        setSnackbar({ open: true, message: 'Endereco preenchido pelo CEP.', severity: 'success' })
+        setSnackbar({ open: true, message: 'Endereço preenchido pelo CEP.', severity: 'success' })
       } else {
-        setSnackbar({ open: true, message: 'CEP nao encontrado.', severity: 'error' })
+        setSnackbar({ open: true, message: 'CEP não encontrado.', severity: 'error' })
       }
     } catch {
       setSnackbar({ open: true, message: 'Erro ao buscar CEP.', severity: 'error' })
@@ -217,10 +217,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
     const errors: Record<string, string> = {}
 
     if (step === 0) {
-      if (!formData.nome.trim()) errors.nome = 'Nome e obrigatorio'
+      if (!formData.nome.trim()) errors.nome = 'Nome é obrigatório'
     }
     if (step === 1) {
-      if (!formData.endereco.trim()) errors.endereco = 'Endereco e obrigatorio'
+      if (!formData.endereco.trim()) errors.endereco = 'Endereço é obrigatório'
     }
 
     setValidationErrors(errors)
@@ -300,7 +300,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
         setExtractionSuccess(true)
       } else {
-        setExtractionError(result.message || 'Nao foi possivel extrair os dados do documento.')
+        setExtractionError(result.message || 'Não foi possível extrair os dados do documento.')
       }
     } catch (err) {
       console.error('Error extracting data:', err)
@@ -338,7 +338,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
       router.push('/dashboard/condominios')
     } catch (err) {
       console.error('Error saving condominio:', err)
-      setError('Erro ao salvar condominio. Verifique os dados e tente novamente.')
+      setError('Erro ao salvar condomínio. Verifique os dados e tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -384,7 +384,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                   <>
                     <CloudUploadIcon sx={{ fontSize: 40, color: '#a5b4fc', mb: 1 }} />
                     <Typography variant="body2" fontWeight={500} color="text.secondary">
-                      Arraste uma apolice/orcamento para preencher automaticamente
+                      Arraste uma apólice/orçamento para preencher automaticamente
                     </Typography>
                   </>
                 ) : (
@@ -396,7 +396,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                     </Box>
                     {extracting && <LinearProgress sx={{ borderRadius: 1, mb: 1 }} />}
                     {extractionError && <Alert severity="warning" sx={{ mb: 1, textAlign: 'left' }}>{extractionError}</Alert>}
-                    {extractionSuccess && <Alert severity="success" sx={{ mb: 1, textAlign: 'left' }}>Dados extraidos! Verifique abaixo.</Alert>}
+                    {extractionSuccess && <Alert severity="success" sx={{ mb: 1, textAlign: 'left' }}>Dados extraídos! Verifique abaixo.</Alert>}
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                       {!extractionSuccess && (
                         <Button
@@ -429,7 +429,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               <TextField
                 fullWidth
                 required
-                label="Nome do Condominio"
+                label="Nome do Condomínio"
                 value={formData.nome}
                 onChange={(e) => handleChange('nome', e.target.value)}
                 error={!!validationErrors.nome}
@@ -461,10 +461,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               fullWidth
               multiline
               rows={2}
-              label="Observacoes"
+              label="Observações"
               value={formData.observacoes || ''}
               onChange={(e) => handleChange('observacoes', e.target.value)}
-              placeholder="Informacoes adicionais..."
+              placeholder="Informações adicionais..."
             />
           </Box>
         )
@@ -508,7 +508,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               <TextField
                 fullWidth
                 required
-                label="Endereco"
+                label="Endereço"
                 value={formData.endereco}
                 onChange={(e) => handleChange('endereco', e.target.value)}
                 error={!!validationErrors.endereco}
@@ -516,7 +516,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               />
               <TextField
                 fullWidth
-                label="Numero"
+                label="Número"
                 value={formData.numero || ''}
                 onChange={(e) => handleChange('numero', e.target.value)}
               />
@@ -559,189 +559,171 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
       case 2:
         return (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Area Construida (m2)"
-              value={formData.areaConstruida || ''}
-              onChange={(e) => handleChange('areaConstruida', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Area Total (m2)"
-              value={formData.areaTotal || ''}
-              onChange={(e) => handleChange('areaTotal', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Unidades"
-              value={formData.numeroUnidades || ''}
-              onChange={(e) => handleChange('numeroUnidades', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Blocos"
-              value={formData.numeroBlocos || ''}
-              onChange={(e) => handleChange('numeroBlocos', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Elevadores"
-              value={formData.numeroElevadores || ''}
-              onChange={(e) => handleChange('numeroElevadores', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Andares"
-              value={formData.numeroAndares || ''}
-              onChange={(e) => handleChange('numeroAndares', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Funcionarios"
-              value={formData.numeroFuncionarios || ''}
-              onChange={(e) => handleChange('numeroFuncionarios', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Ano Construcao"
-              value={formData.anoConstrucao || ''}
-              onChange={(e) => handleChange('anoConstrucao', e.target.value)}
-            />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Características */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Área Construída (m²)"
+                value={formData.areaConstruida || ''}
+                onChange={(e) => handleChange('areaConstruida', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Unidades"
+                value={formData.numeroUnidades || ''}
+                onChange={(e) => handleChange('numeroUnidades', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Blocos"
+                value={formData.numeroBlocos || ''}
+                onChange={(e) => handleChange('numeroBlocos', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Elevadores"
+                value={formData.numeroElevadores || ''}
+                onChange={(e) => handleChange('numeroElevadores', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Andares"
+                value={formData.numeroAndares || ''}
+                onChange={(e) => handleChange('numeroAndares', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Funcionários"
+                value={formData.numeroFuncionarios || ''}
+                onChange={(e) => handleChange('numeroFuncionarios', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Ano Construção"
+                value={formData.anoConstrucao || ''}
+                onChange={(e) => handleChange('anoConstrucao', e.target.value)}
+              />
+            </Box>
+
+            {/* Amenidades */}
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Amenidades</Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
+              {amenidades.map((amenidade) => {
+                const Icon = amenidade.icon
+                const isActive = !!formData[amenidade.key]
+                return (
+                  <Paper
+                    key={amenidade.key}
+                    onClick={() => handleChange(amenidade.key, !formData[amenidade.key])}
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      border: '2px solid',
+                      borderColor: isActive ? amenidade.color : 'divider',
+                      bgcolor: isActive ? `${amenidade.color}10` : 'transparent',
+                      borderRadius: 3,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        borderColor: amenidade.color,
+                        transform: 'translateY(-2px)',
+                        boxShadow: 2,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: isActive ? `${amenidade.color}20` : '#f3f4f6',
+                        mx: 'auto',
+                        mb: 1,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 24, color: isActive ? amenidade.color : '#9ca3af' }} />
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={isActive ? 600 : 400}
+                      color={isActive ? 'text.primary' : 'text.secondary'}
+                    >
+                      {amenidade.label}
+                    </Typography>
+                    {isActive && (
+                      <Chip
+                        label="Ativo"
+                        size="small"
+                        sx={{
+                          mt: 0.5,
+                          height: 20,
+                          fontSize: '0.65rem',
+                          bgcolor: amenidade.color,
+                          color: 'white',
+                        }}
+                      />
+                    )}
+                  </Paper>
+                )
+              })}
+            </Box>
           </Box>
         )
 
       case 3:
         return (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
-            {amenidades.map((amenidade) => {
-              const Icon = amenidade.icon
-              const isActive = !!formData[amenidade.key]
-              return (
-                <Paper
-                  key={amenidade.key}
-                  onClick={() => handleChange(amenidade.key, !formData[amenidade.key])}
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    border: '2px solid',
-                    borderColor: isActive ? amenidade.color : 'divider',
-                    bgcolor: isActive ? `${amenidade.color}10` : 'transparent',
-                    borderRadius: 3,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: amenidade.color,
-                      transform: 'translateY(-2px)',
-                      boxShadow: 2,
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      bgcolor: isActive ? `${amenidade.color}20` : '#f3f4f6',
-                      mx: 'auto',
-                      mb: 1,
-                    }}
-                  >
-                    <Icon sx={{ fontSize: 24, color: isActive ? amenidade.color : '#9ca3af' }} />
-                  </Box>
-                  <Typography
-                    variant="body2"
-                    fontWeight={isActive ? 600 : 400}
-                    color={isActive ? 'text.primary' : 'text.secondary'}
-                  >
-                    {amenidade.label}
-                  </Typography>
-                  {isActive && (
-                    <Chip
-                      label="Ativo"
-                      size="small"
-                      sx={{
-                        mt: 0.5,
-                        height: 20,
-                        fontSize: '0.65rem',
-                        bgcolor: amenidade.color,
-                        color: 'white',
-                      }}
-                    />
-                  )}
-                </Paper>
-              )
-            })}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Nome do Síndico"
+              value={formData.sindicoNome || ''}
+              onChange={(e) => handleChange('sindicoNome', e.target.value)}
+            />
+            <TextField
+              fullWidth
+              type="email"
+              label="E-mail"
+              value={formData.sindicoEmail || ''}
+              onChange={(e) => handleChange('sindicoEmail', e.target.value)}
+            />
+            <TextField
+              fullWidth
+              label="Telefone"
+              value={formData.sindicoTelefone || ''}
+              onChange={(e) => handleChange('sindicoTelefone', e.target.value)}
+            />
           </Box>
         )
 
       case 4:
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Sindico */}
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <PersonIcon sx={{ color: '#3b82f6' }} />
-                <Typography variant="subtitle1" fontWeight={600}>Sindico</Typography>
-              </Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Nome do Sindico"
-                  value={formData.sindicoNome || ''}
-                  onChange={(e) => handleChange('sindicoNome', e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  type="email"
-                  label="E-mail"
-                  value={formData.sindicoEmail || ''}
-                  onChange={(e) => handleChange('sindicoEmail', e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  label="Telefone"
-                  value={formData.sindicoTelefone || ''}
-                  onChange={(e) => handleChange('sindicoTelefone', e.target.value)}
-                />
-              </Box>
-            </Box>
-
-            {/* Seguro */}
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <ShieldIcon sx={{ color: '#16a34a' }} />
-                <Typography variant="subtitle1" fontWeight={600}>Seguro Atual</Typography>
-              </Box>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Seguradora Atual"
-                  value={formData.seguradoraAtual || ''}
-                  onChange={(e) => handleChange('seguradoraAtual', e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Vencimento da Apolice"
-                  value={formData.vencimentoApolice || ''}
-                  onChange={(e) => handleChange('vencimentoApolice', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Box>
-            </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Seguradora Atual"
+              value={formData.seguradoraAtual || ''}
+              onChange={(e) => handleChange('seguradoraAtual', e.target.value)}
+            />
+            <TextField
+              fullWidth
+              type="date"
+              label="Vencimento da Apólice"
+              value={formData.vencimentoApolice || ''}
+              onChange={(e) => handleChange('vencimentoApolice', e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
           </Box>
         )
 
@@ -756,10 +738,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
           <Typography variant="h4" fontWeight="bold">
-            {isEditing ? 'Editar Condominio' : 'Novo Condominio'}
+            {isEditing ? 'Editar Condomínio' : 'Novo Condomínio'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {isEditing ? 'Atualize as informacoes do condominio' : 'Preencha as informacoes do novo condominio'}
+            {isEditing ? 'Atualize as informações do condomínio' : 'Preencha as informações do novo condomínio'}
           </Typography>
         </Box>
         <Button
@@ -861,7 +843,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                         size="small"
                         sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
                       >
-                        Proximo
+                        Próximo
                       </Button>
                     ) : (
                       <Button
@@ -872,7 +854,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                         size="small"
                         sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
                       >
-                        {loading ? 'Salvando...' : isEditing ? 'Salvar Alteracoes' : 'Cadastrar Condominio'}
+                        {loading ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Cadastrar Condomínio'}
                       </Button>
                     )}
                   </Box>

@@ -62,15 +62,15 @@ import {
 const STATUS_ITEM_CONFIG: Record<StatusItem, { label: string; color: string; icon: React.ReactNode }> = {
   PENDENTE: { label: 'Pendente', color: '#94a3b8', icon: <PendingIcon fontSize="small" /> },
   CONFORME: { label: 'Conforme', color: '#22c55e', icon: <CheckCircleIcon fontSize="small" /> },
-  NAO_CONFORME: { label: 'Nao Conforme', color: '#ef4444', icon: <CancelIcon fontSize="small" /> },
+  NAO_CONFORME: { label: 'Não Conforme', color: '#ef4444', icon: <CancelIcon fontSize="small" /> },
   NA: { label: 'N/A', color: '#a78bfa', icon: <HelpOutlineIcon fontSize="small" /> },
 }
 
 const SEVERIDADE_CONFIG: Record<SeveridadeItem, { label: string; color: string }> = {
   BAIXA: { label: 'Baixa', color: '#3b82f6' },
-  MEDIA: { label: 'Media', color: '#f59e0b' },
+  MEDIA: { label: 'Média', color: '#f59e0b' },
   ALTA: { label: 'Alta', color: '#f97316' },
-  CRITICA: { label: 'Critica', color: '#ef4444' },
+  CRITICA: { label: 'Crítica', color: '#ef4444' },
 }
 
 export default function VistoriaDetalhePage() {
@@ -132,7 +132,7 @@ export default function VistoriaDetalhePage() {
       setVistoria(v)
     } catch (err) {
       console.error('Error loading checklist:', err)
-      setError('Erro ao carregar checklist padrao')
+      setError('Erro ao carregar checklist padrão')
     } finally {
       setSaving(false)
     }
@@ -299,7 +299,7 @@ export default function VistoriaDetalhePage() {
   if (!vistoria) {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-        <Alert severity="error">Vistoria nao encontrada</Alert>
+        <Alert severity="error">Vistoria não encontrada</Alert>
       </Box>
     )
   }
@@ -406,7 +406,7 @@ export default function VistoriaDetalhePage() {
         <Grid item xs={6} md={3}>
           <Card sx={{ bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Typography variant="caption" color="text.secondary">Nao Conformes</Typography>
+              <Typography variant="caption" color="text.secondary">Não Conformes</Typography>
               <Typography variant="h4" fontWeight="bold" color="#dc2626">{naoConformes}</Typography>
             </CardContent>
           </Card>
@@ -466,7 +466,7 @@ export default function VistoriaDetalhePage() {
             </Grid>
           )}
           <Grid item xs={12} md={3}>
-            <Typography variant="caption" color="text.secondary">Responsavel</Typography>
+            <Typography variant="caption" color="text.secondary">Responsável</Typography>
             <Typography variant="body2" fontWeight={500}>{vistoria.responsavelNome || '-'}</Typography>
           </Grid>
           {vistoria.responsavelEmail && (
@@ -502,7 +502,7 @@ export default function VistoriaDetalhePage() {
               disabled={saving}
               sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
             >
-              {saving ? 'Carregando...' : 'Carregar Checklist Padrao (25 itens)'}
+              {saving ? 'Carregando...' : 'Carregar Checklist Padrão (25 itens)'}
             </Button>
           ) : (
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -530,7 +530,7 @@ export default function VistoriaDetalhePage() {
               Nenhum item de checklist
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Carregue o checklist padrao com 25 itens para comecar a vistoria
+              Carregue o checklist padrão com 25 itens para começar a vistoria
             </Typography>
           </Box>
         ) : (
@@ -649,7 +649,7 @@ export default function VistoriaDetalhePage() {
         <Paper sx={{ p: 3, mb: 3, bgcolor: '#fffbeb', border: '1px solid #fde68a' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <WarningIcon sx={{ color: '#f59e0b' }} />
-            <Typography variant="h6" fontWeight="bold" sx={{ color: '#92400e' }}>Observacoes</Typography>
+            <Typography variant="h6" fontWeight="bold" sx={{ color: '#92400e' }}>Observações</Typography>
           </Box>
           <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: '#78350f', lineHeight: 1.7 }}>
             {vistoria.observacoes}
@@ -782,7 +782,7 @@ export default function VistoriaDetalhePage() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <DescriptionIcon sx={{ color: '#3b82f6' }} />
-            <Typography variant="h6" fontWeight="bold">Laudo Tecnico</Typography>
+            <Typography variant="h6" fontWeight="bold">Laudo Técnico</Typography>
           </Box>
           <Button
             variant="contained"

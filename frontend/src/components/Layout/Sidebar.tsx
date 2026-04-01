@@ -33,12 +33,8 @@ import GroupsIcon from '@mui/icons-material/Groups'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import SummarizeIcon from '@mui/icons-material/Summarize'
 import BusinessIcon from '@mui/icons-material/Business'
-import SecurityIcon from '@mui/icons-material/Security'
 import PeopleIcon from '@mui/icons-material/People'
 import NotificationsIcon from '@mui/icons-material/Notifications'
-import PersonIcon from '@mui/icons-material/Person'
-import DarkModeIcon from '@mui/icons-material/DarkMode'
-import LightModeIcon from '@mui/icons-material/LightMode'
 import { useAuth } from '@/contexts/AuthContext'
 import { useThemeMode } from '@/contexts/ThemeContext'
 import { useNotificationCount } from '@/hooks/useNotificationCount'
@@ -48,26 +44,24 @@ const DRAWER_WIDTH_COLLAPSED = 72
 
 const menuItems = [
   { title: 'Dashboard', icon: DashboardIcon, href: '/dashboard' },
-  { title: 'Condominios', icon: ApartmentIcon, href: '/dashboard/condominios' },
-  { title: 'Comparar Orcamentos', icon: CompareIcon, href: '/dashboard/comparar' },
+  { title: 'Condomínios', icon: ApartmentIcon, href: '/dashboard/condominios' },
+  { title: 'Comparar Orçamentos', icon: CompareIcon, href: '/dashboard/comparar' },
   { title: 'Vistorias', icon: AssignmentIcon, href: '/dashboard/vistorias' },
   { title: 'Sinistros', icon: ReportProblemIcon, href: '/dashboard/sinistros' },
   { title: 'Documentos', icon: DescriptionIcon, href: '/dashboard/documentos' },
-  { title: 'Diagnostico', icon: AnalyticsIcon, href: '/dashboard/diagnostico' },
+  { title: 'Diagnóstico', icon: AnalyticsIcon, href: '/dashboard/diagnostico' },
   { title: 'Parceiros', icon: GroupsIcon, href: '/dashboard/parceiros' },
-  { title: 'Relatorios', icon: SummarizeIcon, href: '/dashboard/relatorios' },
+  { title: 'Relatórios', icon: SummarizeIcon, href: '/dashboard/relatorios' },
   { title: 'Assistente IA', icon: SmartToyIcon, href: '/dashboard/assistente' },
-  { title: 'Apolices', icon: SecurityIcon, href: '/dashboard/seguros' },
   { title: 'Seguradoras', icon: BusinessIcon, href: '/dashboard/seguradoras' },
-  { title: 'Notificacoes', icon: NotificationsIcon, href: '/dashboard/notificacoes' },
-  { title: 'Usuarios', icon: PeopleIcon, href: '/dashboard/usuarios', adminOnly: true },
+  { title: 'Usuários', icon: PeopleIcon, href: '/dashboard/usuarios', adminOnly: true },
 ]
 
 const roleLabels: Record<string, { label: string; color: 'primary' | 'secondary' | 'success' | 'warning' }> = {
   ADMIN: { label: 'Admin', color: 'primary' },
   CORRETORA: { label: 'Corretora', color: 'secondary' },
   ADMINISTRADORA: { label: 'Adm', color: 'success' },
-  SINDICO: { label: 'Sindico', color: 'warning' },
+  SINDICO: { label: 'Síndico', color: 'warning' },
 }
 
 export function Sidebar() {
@@ -128,7 +122,7 @@ export function Sidebar() {
           </Typography>
         )}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Tooltip title="Notificacoes" arrow>
+          <Tooltip title="Notificações" arrow>
             <IconButton
               onClick={() => router.push('/dashboard/notificacoes')}
               sx={{ color: iconMuted, '&:hover': { color: 'white' } }}
@@ -253,14 +247,7 @@ export function Sidebar() {
                       color: isActive ? '#60a5fa' : textDimmed,
                     }}
                   >
-                    {item.title === 'Notificacoes' && notificationCount > 0 ? (
-                      <Badge badgeContent={notificationCount} color="error" max={99}
-                        sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', height: 16, minWidth: 16 } }}>
-                        <item.icon fontSize="small" />
-                      </Badge>
-                    ) : (
-                      <item.icon fontSize="small" />
-                    )}
+                    <item.icon fontSize="small" />
                   </ListItemIcon>
                   {!collapsed && (
                     <ListItemText
@@ -283,73 +270,8 @@ export function Sidebar() {
 
       {/* Bottom Actions */}
       <List sx={{ px: 1, py: 1 }}>
-        {/* Dark Mode Toggle */}
-        <Tooltip title={collapsed ? (isDark ? 'Modo Claro' : 'Modo Escuro') : ''} placement="right" arrow>
-          <ListItem disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={toggleTheme}
-              sx={{
-                borderRadius: 2,
-                minHeight: 44,
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                px: collapsed ? 1.5 : 2,
-                '&:hover': { bgcolor: sidebarHoverBg },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: collapsed ? 0 : 40, color: isDark ? '#fbbf24' : textDimmed }}>
-                {isDark ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
-              </ListItemIcon>
-              {!collapsed && (
-                <ListItemText
-                  primary={isDark ? 'Modo Claro' : 'Modo Escuro'}
-                  primaryTypographyProps={{ fontSize: '0.875rem', color: textMuted }}
-                />
-              )}
-            </ListItemButton>
-          </ListItem>
-        </Tooltip>
-
-        {/* Meu Perfil */}
-        <Tooltip title={collapsed ? 'Meu Perfil' : ''} placement="right" arrow>
-          <ListItem disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={() => router.push('/dashboard/perfil')}
-              sx={{
-                borderRadius: 2,
-                minHeight: 44,
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                px: collapsed ? 1.5 : 2,
-                bgcolor: pathname === '/dashboard/perfil' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                borderLeft: pathname === '/dashboard/perfil' ? '3px solid #3b82f6' : '3px solid transparent',
-                '&:hover': {
-                  bgcolor: pathname === '/dashboard/perfil' ? 'rgba(59, 130, 246, 0.3)' : sidebarHoverBg,
-                },
-              }}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: collapsed ? 0 : 40,
-                  color: pathname === '/dashboard/perfil' ? '#60a5fa' : textDimmed,
-                }}
-              >
-                <PersonIcon fontSize="small" />
-              </ListItemIcon>
-              {!collapsed && (
-                <ListItemText
-                  primary="Meu Perfil"
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: pathname === '/dashboard/perfil' ? 600 : 400,
-                    color: pathname === '/dashboard/perfil' ? 'white' : textMuted,
-                  }}
-                />
-              )}
-            </ListItemButton>
-          </ListItem>
-        </Tooltip>
-
-        {/* Configuracoes */}
-        <Tooltip title={collapsed ? 'Configuracoes' : ''} placement="right" arrow>
+        {/* Configurações */}
+        <Tooltip title={collapsed ? 'Configurações' : ''} placement="right" arrow>
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => router.push('/dashboard/configuracoes')}
@@ -370,7 +292,7 @@ export function Sidebar() {
               </ListItemIcon>
               {!collapsed && (
                 <ListItemText
-                  primary="Configuracoes"
+                  primary="Configurações"
                   primaryTypographyProps={{
                     fontSize: '0.875rem',
                     fontWeight: pathname === '/dashboard/configuracoes' ? 600 : 400,

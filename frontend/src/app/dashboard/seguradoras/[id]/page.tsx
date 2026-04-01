@@ -209,16 +209,16 @@ export default function SeguradoraDetailPage() {
       {stats && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={6} md={3}>
-            <StatsCard icon={<PolicyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Total Apolices" value={stats.totalApolices} color="#3b82f6" />
+            <StatsCard icon={<PolicyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Total Apólices" value={stats.totalApolices} color="#3b82f6" />
           </Grid>
           <Grid item xs={6} md={3}>
-            <StatsCard icon={<ShieldIcon sx={{ color: 'white', fontSize: 24 }} />} label="Apolices Vigentes" value={stats.apolicesVigentes} color="#10b981" />
+            <StatsCard icon={<ShieldIcon sx={{ color: 'white', fontSize: 24 }} />} label="Apólices Vigentes" value={stats.apolicesVigentes} color="#10b981" />
           </Grid>
           <Grid item xs={6} md={3}>
-            <StatsCard icon={<AttachMoneyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Premio Medio" value={formatCurrency(stats.premioTotalMedio)} color="#f59e0b" />
+            <StatsCard icon={<AttachMoneyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Prêmio Médio" value={formatCurrency(stats.premioTotalMedio)} color="#f59e0b" />
           </Grid>
           <Grid item xs={6} md={3}>
-            <StatsCard icon={<PeopleIcon sx={{ color: 'white', fontSize: 24 }} />} label="Condominios" value={stats.totalCondominios} color="#6366f1" />
+            <StatsCard icon={<PeopleIcon sx={{ color: 'white', fontSize: 24 }} />} label="Condomínios" value={stats.totalCondominios} color="#6366f1" />
           </Grid>
         </Grid>
       )}
@@ -228,7 +228,7 @@ export default function SeguradoraDetailPage() {
         <Grid item xs={12} md={5}>
           {/* Contact Info */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Informacoes de Contato</Typography>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Informações de Contato</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {seguradora.telefone && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -319,14 +319,14 @@ export default function SeguradoraDetailPage() {
         <Grid item xs={12} md={7}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-              Apolices Vinculadas
+              Apólices Vinculadas
               {!loadingApolices && <Chip label={apolices.length} size="small" sx={{ ml: 1 }} />}
             </Typography>
 
             {loadingApolices ? (
               <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
             ) : apolices.length === 0 ? (
-              <Alert severity="info">Nenhuma apolice vinculada a esta seguradora.</Alert>
+              <Alert severity="info">Nenhuma apólice vinculada a esta seguradora.</Alert>
             ) : (
               <TableContainer>
                 <Table size="small">
@@ -335,7 +335,7 @@ export default function SeguradoraDetailPage() {
                       <TableCell sx={{ fontWeight: 600 }}>Numero</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Condominio</TableCell>
                       <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 600 }}>Vigencia</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>Vigência</TableCell>
                       <TableCell align="right" sx={{ fontWeight: 600 }}>Premio</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 600 }}>Coberturas</TableCell>
                     </TableRow>
@@ -386,7 +386,7 @@ export default function SeguradoraDetailPage() {
           {/* Observacoes */}
           {seguradora.observacoes && (
             <Paper sx={{ p: 3, mt: 3 }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>Observacoes</Typography>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>Observações</Typography>
               <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{seguradora.observacoes}</Typography>
             </Paper>
           )}

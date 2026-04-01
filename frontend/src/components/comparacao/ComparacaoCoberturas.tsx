@@ -77,7 +77,7 @@ export function ComparacaoCoberturas({
     return (
       <Paper sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="text.secondary">
-          Nenhuma cobertura cadastrada nos orcamentos selecionados.
+          Nenhuma cobertura cadastrada nos orçamentos selecionados.
         </Typography>
       </Paper>
     )
@@ -116,7 +116,7 @@ export function ComparacaoCoberturas({
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2">{nomeCobertura}</Typography>
                     {isComum && (
-                      <Tooltip title="Cobertura presente em todos os orcamentos">
+                      <Tooltip title="Cobertura presente em todos os orçamentos">
                         <Chip
                           label="Comum"
                           size="small"

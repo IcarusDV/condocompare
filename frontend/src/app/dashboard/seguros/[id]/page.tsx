@@ -110,7 +110,7 @@ export default function ApoliceDetailPage() {
         <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/dashboard/seguros')} sx={{ mb: 2 }}>
           Voltar
         </Button>
-        <Alert severity="error">{error || 'Apolice nao encontrada'}</Alert>
+        <Alert severity="error">{error || 'Apólice não encontrada'}</Alert>
       </Box>
     )
   }
@@ -130,7 +130,7 @@ export default function ApoliceDetailPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <SecurityIcon sx={{ color: '#3b82f6', fontSize: 28 }} />
               <Typography variant="h5" fontWeight="bold">
-                {apolice.numeroApolice || 'Apolice sem numero'}
+                {apolice.numeroApolice || 'Apólice sem número'}
               </Typography>
               <Chip
                 label={getStatusApoliceLabel(apolice.status)}
@@ -140,7 +140,7 @@ export default function ApoliceDetailPage() {
               />
             </Box>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, ml: 5.5 }}>
-              {apolice.condominioNome || 'Condominio'} &bull; {apolice.seguradoraNome || 'Seguradora'}
+              {apolice.condominioNome || 'Condomínio'} &bull; {apolice.seguradoraNome || 'Seguradora'}
             </Typography>
           </Box>
         </Box>
@@ -162,14 +162,14 @@ export default function ApoliceDetailPage() {
       {/* Vigencia Alert */}
       {diasRestantes !== null && diasRestantes <= 30 && diasRestantes > 0 && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          Esta apolice vence em <strong>{diasRestantes} dias</strong> ({formatDate(apolice.dataFim)}).
-          Considere iniciar o processo de renovacao.
+          Esta apólice vence em <strong>{diasRestantes} dias</strong> ({formatDate(apolice.dataFim)}).
+          Considere iniciar o processo de renovação.
         </Alert>
       )}
       {diasRestantes !== null && diasRestantes <= 0 && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          Esta apolice esta <strong>vencida</strong> desde {formatDate(apolice.dataFim)}.
-          Renovacao urgente necessaria.
+          Esta apólice está <strong>vencida</strong> desde {formatDate(apolice.dataFim)}.
+          Renovação urgente necessária.
         </Alert>
       )}
 
@@ -183,14 +183,14 @@ export default function ApoliceDetailPage() {
               <Typography variant="h6" fontWeight="bold">
                 {formatCurrency(apolice.premioTotal)}
               </Typography>
-              <Typography variant="caption" color="text.secondary">Premio Total</Typography>
+              <Typography variant="caption" color="text.secondary">Prêmio Total</Typography>
             </Paper>
             <Paper sx={{ p: 2, textAlign: 'center', border: '1px solid', borderColor: 'divider' }}>
               <ShieldIcon sx={{ color: '#16a34a', mb: 0.5 }} />
               <Typography variant="h6" fontWeight="bold">
                 {formatCurrency(apolice.importanciaSeguradaTotal)}
               </Typography>
-              <Typography variant="caption" color="text.secondary">Importancia Segurada</Typography>
+              <Typography variant="caption" color="text.secondary">Importância Segurada</Typography>
             </Paper>
             <Paper sx={{ p: 2, textAlign: 'center', border: '1px solid', borderColor: 'divider' }}>
               <SecurityIcon sx={{ color: '#7c3aed', mb: 0.5 }} />
@@ -253,7 +253,7 @@ export default function ApoliceDetailPage() {
                         </TableCell>
                         <TableCell>
                           {cob.carenciaDias ? (
-                            <Chip label={`${cob.carenciaDias}d carencia`} size="small" variant="outlined" />
+                            <Chip label={`${cob.carenciaDias}d carência`} size="small" variant="outlined" />
                           ) : (
                             <Typography variant="body2" color="text.secondary">-</Typography>
                           )}
@@ -277,13 +277,13 @@ export default function ApoliceDetailPage() {
           {/* Dados da Apolice */}
           <Paper sx={{ p: 2.5, mb: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-              Dados da Apolice
+              Dados da Apólice
             </Typography>
-            <InfoRow label="Numero" value={apolice.numeroApolice} />
+            <InfoRow label="Número" value={apolice.numeroApolice} />
             <InfoRow label="Status" value={
               <Chip label={getStatusApoliceLabel(apolice.status)} color={statusColor} size="small" />
             } />
-            <InfoRow label="Vigencia" value={`${formatDate(apolice.dataInicio)} a ${formatDate(apolice.dataFim)}`} />
+            <InfoRow label="Vigência" value={`${formatDate(apolice.dataInicio)} a ${formatDate(apolice.dataFim)}`} />
             {diasRestantes !== null && diasRestantes > 0 && (
               <InfoRow label="Dias restantes" value={
                 <Chip label={`${diasRestantes} dias`} size="small" color={diasRestantes <= 30 ? 'warning' : 'default'} variant="outlined" />
@@ -300,8 +300,8 @@ export default function ApoliceDetailPage() {
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
               Valores
             </Typography>
-            <InfoRow label="Premio Total" value={formatCurrency(apolice.premioTotal)} />
-            <InfoRow label="Premio Liquido" value={formatCurrency(apolice.premioLiquido)} />
+            <InfoRow label="Prêmio Total" value={formatCurrency(apolice.premioTotal)} />
+            <InfoRow label="Prêmio Líquido" value={formatCurrency(apolice.premioLiquido)} />
             <InfoRow label="IOF" value={formatCurrency(apolice.iof)} />
             <InfoRow label="IS Total" value={formatCurrency(apolice.importanciaSeguradaTotal)} />
           </Paper>
@@ -309,9 +309,9 @@ export default function ApoliceDetailPage() {
           {/* Condominio e Seguradora */}
           <Paper sx={{ p: 2.5, mb: 3, border: '1px solid', borderColor: 'divider' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-              Condominio & Seguradora
+              Condomínio & Seguradora
             </Typography>
-            <InfoRow label="Condominio" value={
+            <InfoRow label="Condomínio" value={
               <Button size="small" sx={{ textTransform: 'none', p: 0 }}
                 onClick={() => router.push(`/dashboard/condominios/${apolice.condominioId}`)}>
                 {apolice.condominioNome || apolice.condominioId}
@@ -344,7 +344,7 @@ export default function ApoliceDetailPage() {
           {(apolice.observacoes || apolice.clausulasEspeciais) && (
             <Paper sx={{ p: 2.5, border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                Observacoes
+                Observações
               </Typography>
               {apolice.observacoes && (
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
@@ -355,7 +355,7 @@ export default function ApoliceDetailPage() {
                 <>
                   <Divider sx={{ my: 1 }} />
                   <Typography variant="caption" fontWeight={600} color="text.secondary">
-                    Clausulas Especiais
+                    Cláusulas Especiais
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, whiteSpace: 'pre-wrap' }}>
                     {apolice.clausulasEspeciais}

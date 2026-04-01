@@ -58,7 +58,6 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import TableChartIcon from '@mui/icons-material/TableChart'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
-import TrendingUpIcon from '@mui/icons-material/TrendingUp'
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt'
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt'
 import SpeedIcon from '@mui/icons-material/Speed'
@@ -249,7 +248,7 @@ export default function SinistrosPage() {
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
+      title: 'Confirmar exclusão',
       message: 'Tem certeza que deseja excluir este sinistro?',
       severity: 'error',
       confirmText: 'Excluir',
@@ -265,16 +264,16 @@ export default function SinistrosPage() {
 
   const handleExport = (format: 'pdf' | 'excel') => {
     const columns = [
-      { header: 'Condominio', key: 'condominioNome', width: 25 },
+      { header: 'Condomínio', key: 'condominioNome', width: 25 },
       { header: 'N Sinistro', key: 'numeroSinistro', width: 15 },
       { header: 'Tipo', key: 'tipo', width: 15 },
       { header: 'Status', key: 'status', width: 12 },
-      { header: 'Data Ocorrencia', key: 'dataOcorrencia', width: 15 },
-      { header: 'Valor Prejuizo', key: 'valorPrejuizo', width: 15 },
+      { header: 'Data Ocorrência', key: 'dataOcorrencia', width: 15 },
+      { header: 'Valor Prejuízo', key: 'valorPrejuizo', width: 15 },
       { header: 'Valor Indenizado', key: 'valorIndenizado', width: 15 },
     ]
     const options = {
-      title: 'Relatorio de Sinistros - CondoCompare',
+      title: 'Relatório de Sinistros - CondoCompare',
       subtitle: `${sinistros.length} registros | ${new Date().toLocaleDateString('pt-BR')}`,
       columns,
       data: sinistros as unknown as Record<string, unknown>[],
@@ -288,11 +287,11 @@ export default function SinistrosPage() {
     if (!sinistros.length) return
     const columns = [
       { key: 'protocolo', label: 'Protocolo' },
-      { key: 'condominio', label: 'Condominio' },
+      { key: 'condominio', label: 'Condomínio' },
       { key: 'tipo', label: 'Tipo' },
       { key: 'status', label: 'Status' },
-      { key: 'valor', label: 'Valor Prejuizo' },
-      { key: 'data', label: 'Data Ocorrencia' },
+      { key: 'valor', label: 'Valor Prejuízo' },
+      { key: 'data', label: 'Data Ocorrência' },
     ]
     const csvData = sinistros.map(s => ({
       protocolo: s.numeroSinistro || '',
@@ -323,7 +322,7 @@ export default function SinistrosPage() {
         <Box>
           <Typography variant="h4" fontWeight="bold">Sinistros</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Acompanhe e gerencie os sinistros dos condominios
+            Acompanhe e gerencie sinistros
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -344,7 +343,7 @@ export default function SinistrosPage() {
         {[
           { label: 'Total', value: String(stats?.total ?? 0), icon: <ReportProblemIcon />, color: '#6366f1' },
           { label: 'Abertos', value: String(stats?.abertos ?? 0), icon: <AccessTimeIcon />, color: '#f59e0b' },
-          { label: 'Em Analise', value: String(stats?.emAnalise ?? 0), icon: <GavelIcon />, color: '#3b82f6' },
+          { label: 'Em Análise', value: String(stats?.emAnalise ?? 0), icon: <GavelIcon />, color: '#3b82f6' },
           { label: 'Aprovados', value: String(stats?.aprovados ?? 0), icon: <ThumbUpAltIcon />, color: '#22c55e' },
           { label: 'Negados', value: String(stats?.negados ?? 0), icon: <ThumbDownAltIcon />, color: '#ef4444' },
           { label: 'Pagos', value: String(stats?.pagos ?? 0), icon: <PaidIcon />, color: '#10b981' },
@@ -377,27 +376,7 @@ export default function SinistrosPage() {
                 <Typography variant="h5" fontWeight="bold" lineHeight={1.2}>
                   {stats?.tempoMedioResolucaoDias ? `${stats.tempoMedioResolucaoDias}d` : '-'}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">Tempo Medio Resolucao</Typography>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={3}>
-          <Paper sx={{ p: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: '#22c55e12', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#22c55e' }}>
-                <TrendingUpIcon />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                  <Typography variant="h5" fontWeight="bold" lineHeight={1.2} sx={{ color: '#22c55e' }}>
-                    {stats?.taxaAprovacao != null ? `${stats.taxaAprovacao}%` : '-'}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#ef4444' }}>
-                    / {stats?.taxaNegacao != null ? `${stats.taxaNegacao}%` : '-'}
-                  </Typography>
-                </Box>
-                <Typography variant="caption" color="text.secondary">Aprovacao / Negacao</Typography>
+                <Typography variant="caption" color="text.secondary">Tempo Médio Resolução</Typography>
               </Box>
             </Box>
           </Paper>
@@ -412,7 +391,7 @@ export default function SinistrosPage() {
                 <Typography variant="h6" fontWeight="bold" lineHeight={1.2} sx={{ color: '#ef4444' }}>
                   {formatCurrency(stats?.totalPrejuizo)}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">Total Prejuizo</Typography>
+                <Typography variant="caption" color="text.secondary">Total Prejuízo</Typography>
               </Box>
             </Box>
           </Paper>
@@ -440,7 +419,7 @@ export default function SinistrosPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: showChart ? 2 : 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <BarChartIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-              <Typography variant="subtitle2" fontWeight="bold">Sinistros por Mes</Typography>
+              <Typography variant="subtitle2" fontWeight="bold">Sinistros por Mês</Typography>
               <Chip label={`${stats.sinistrosPorMes.length} meses`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#ede9fe', color: '#6366f1' }} />
             </Box>
             <Button size="small" onClick={() => setShowChart(!showChart)} sx={{ color: '#6366f1', textTransform: 'none', fontSize: '0.75rem' }}>
@@ -483,8 +462,8 @@ export default function SinistrosPage() {
           </Grid>
           <Grid item xs={12} md={2}>
             <FormControl fullWidth size="small">
-              <InputLabel>Condominio</InputLabel>
-              <Select value={filterCondominioId} label="Condominio" onChange={(e) => { setFilterCondominioId(e.target.value); setPage(0) }}>
+              <InputLabel>Condomínio</InputLabel>
+              <Select value={filterCondominioId} label="Condomínio" onChange={(e) => { setFilterCondominioId(e.target.value); setPage(0) }}>
                 <MenuItem value="">Todos</MenuItem>
                 {condominios.map((c) => (<MenuItem key={c.id} value={c.id}>{c.nome}</MenuItem>))}
               </Select>
@@ -495,10 +474,10 @@ export default function SinistrosPage() {
               <InputLabel>Tipo</InputLabel>
               <Select value={filterTipo} label="Tipo" onChange={(e) => { setFilterTipo(e.target.value as TipoSinistro | ''); setPage(0) }}>
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="INCENDIO">Incendio</MenuItem>
+                <MenuItem value="INCENDIO">Incêndio</MenuItem>
                 <MenuItem value="ROUBO">Roubo</MenuItem>
-                <MenuItem value="DANOS_AGUA">Danos por Agua</MenuItem>
-                <MenuItem value="DANOS_ELETRICOS">Danos Eletricos</MenuItem>
+                <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem>
+                <MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
                 <MenuItem value="RESPONSABILIDADE_CIVIL">Resp. Civil</MenuItem>
                 <MenuItem value="VENDAVAL">Vendaval</MenuItem>
                 <MenuItem value="OUTROS">Outros</MenuItem>
@@ -511,7 +490,7 @@ export default function SinistrosPage() {
               <Select value={filterStatus} label="Status" onChange={(e) => { setFilterStatus(e.target.value as StatusSinistro | ''); setPage(0) }}>
                 <MenuItem value="">Todos</MenuItem>
                 <MenuItem value="ABERTO">Aberto</MenuItem>
-                <MenuItem value="EM_ANALISE">Em Analise</MenuItem>
+                <MenuItem value="EM_ANALISE">Em Análise</MenuItem>
                 <MenuItem value="APROVADO">Aprovado</MenuItem>
                 <MenuItem value="NEGADO">Negado</MenuItem>
                 <MenuItem value="PAGO">Pago</MenuItem>
@@ -525,7 +504,7 @@ export default function SinistrosPage() {
               InputLabelProps={{ shrink: true }} />
           </Grid>
           <Grid item xs={6} md={1.5}>
-            <TextField fullWidth size="small" label="Ate" type="date" value={dataFim}
+            <TextField fullWidth size="small" label="Até" type="date" value={dataFim}
               onChange={(e) => { setDataFim(e.target.value); setPage(0) }}
               InputLabelProps={{ shrink: true }} />
           </Grid>
@@ -547,7 +526,7 @@ export default function SinistrosPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  {['Condominio', 'N Sinistro', 'Tipo', 'Status', 'Progresso', 'Data', 'Dias', 'Prejuizo', 'Indenizado', 'Acoes'].map((h) => (
+                  {['Condomínio', 'N Sinistro', 'Tipo', 'Status', 'Progresso', 'Data', 'Dias', 'Prejuízo', 'Indenizado', 'Ações'].map((h) => (
                     <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: 0.5, color: '#64748b', bgcolor: '#f8fafc', borderBottom: '2px solid #e2e8f0', whiteSpace: 'nowrap' }}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -616,7 +595,7 @@ export default function SinistrosPage() {
                         </TableCell>
                         <TableCell>
                           {isOpen ? (
-                            <Tooltip title={`${dias} dias desde a ocorrencia${dias > 90 ? ' - CRITICO!' : dias > 60 ? ' - Atencao' : ''}`}>
+                            <Tooltip title={`${dias} dias desde a ocorrência${dias > 90 ? ' - CRÍTICO!' : dias > 60 ? ' - Atenção' : ''}`}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 {dias > 90 && <LocalFireDepartmentIcon sx={{ fontSize: 14, color: '#ef4444' }} />}
                                 <Chip
@@ -672,7 +651,7 @@ export default function SinistrosPage() {
         <TablePagination component="div" count={totalElements} page={page}
           onPageChange={(_, p) => setPage(p)} rowsPerPage={rowsPerPage}
           onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0) }}
-          rowsPerPageOptions={[10, 15, 25]} labelRowsPerPage="Linhas por pagina:"
+          rowsPerPageOptions={[10, 15, 25]} labelRowsPerPage="Linhas por página:"
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
           sx={{ borderTop: '1px solid #e2e8f0' }} />
       </Paper>
@@ -683,8 +662,8 @@ export default function SinistrosPage() {
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth size="small" required><InputLabel>Condominio</InputLabel>
-                <Select value={formData.condominioId} label="Condominio" onChange={(e) => setFormData(p => ({ ...p, condominioId: e.target.value }))}>
+              <FormControl fullWidth size="small" required><InputLabel>Condomínio</InputLabel>
+                <Select value={formData.condominioId} label="Condomínio" onChange={(e) => setFormData(p => ({ ...p, condominioId: e.target.value }))}>
                   {condominios.map((c) => (<MenuItem key={c.id} value={c.id}>{c.nome}</MenuItem>))}
                 </Select>
               </FormControl>
@@ -692,30 +671,30 @@ export default function SinistrosPage() {
             <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small" required><InputLabel>Tipo</InputLabel>
                 <Select value={formData.tipo} label="Tipo" onChange={(e) => setFormData(p => ({ ...p, tipo: e.target.value as TipoSinistro }))}>
-                  <MenuItem value="INCENDIO">Incendio</MenuItem><MenuItem value="ROUBO">Roubo</MenuItem>
-                  <MenuItem value="DANOS_AGUA">Danos por Agua</MenuItem><MenuItem value="DANOS_ELETRICOS">Danos Eletricos</MenuItem>
+                  <MenuItem value="INCENDIO">Incêndio</MenuItem><MenuItem value="ROUBO">Roubo</MenuItem>
+                  <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem><MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
                   <MenuItem value="RESPONSABILIDADE_CIVIL">Responsabilidade Civil</MenuItem><MenuItem value="VENDAVAL">Vendaval</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Data da Ocorrencia" type="datetime-local" value={formData.dataOcorrencia} onChange={(e) => setFormData(p => ({ ...p, dataOcorrencia: e.target.value }))} InputLabelProps={{ shrink: true }} required />
+              <TextField fullWidth size="small" label="Data da Ocorrência" type="datetime-local" value={formData.dataOcorrencia} onChange={(e) => setFormData(p => ({ ...p, dataOcorrencia: e.target.value }))} InputLabelProps={{ shrink: true }} required />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Local da Ocorrencia" value={formData.localOcorrencia} onChange={(e) => setFormData(p => ({ ...p, localOcorrencia: e.target.value }))} />
+              <TextField fullWidth size="small" label="Local da Ocorrência" value={formData.localOcorrencia} onChange={(e) => setFormData(p => ({ ...p, localOcorrencia: e.target.value }))} />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth size="small" label="Descricao" multiline rows={3} value={formData.descricao} onChange={(e) => setFormData(p => ({ ...p, descricao: e.target.value }))} required />
+              <TextField fullWidth size="small" label="Descrição" multiline rows={3} value={formData.descricao} onChange={(e) => setFormData(p => ({ ...p, descricao: e.target.value }))} required />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Valor Estimado do Prejuizo (R$)" type="number" value={formData.valorPrejuizo || ''} onChange={(e) => setFormData(p => ({ ...p, valorPrejuizo: e.target.value ? parseFloat(e.target.value) : undefined }))} />
+              <TextField fullWidth size="small" label="Valor Estimado do Prejuízo (R$)" type="number" value={formData.valorPrejuizo || ''} onChange={(e) => setFormData(p => ({ ...p, valorPrejuizo: e.target.value ? parseFloat(e.target.value) : undefined }))} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Cobertura Acionada" value={formData.coberturaAcionada} onChange={(e) => setFormData(p => ({ ...p, coberturaAcionada: e.target.value }))} placeholder="Ex: Incendio, Raio e Explosao" />
+              <TextField fullWidth size="small" label="Cobertura Acionada" value={formData.coberturaAcionada} onChange={(e) => setFormData(p => ({ ...p, coberturaAcionada: e.target.value }))} placeholder="Ex: Incêndio, Raio e Explosão" />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth size="small" label="Observacoes" multiline rows={2} value={formData.observacoes} onChange={(e) => setFormData(p => ({ ...p, observacoes: e.target.value }))} />
+              <TextField fullWidth size="small" label="Observações" multiline rows={2} value={formData.observacoes} onChange={(e) => setFormData(p => ({ ...p, observacoes: e.target.value }))} />
             </Grid>
 
             {/* IA Help */}
@@ -724,21 +703,21 @@ export default function SinistrosPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <SmartToyIcon sx={{ color: '#6366f1' }} />
-                    <Typography variant="subtitle2" fontWeight="bold">Orientacoes da IA</Typography>
+                    <Typography variant="subtitle2" fontWeight="bold">Orientações da IA</Typography>
                     <Chip label="Beta" size="small" sx={{ bgcolor: '#6366f1', color: 'white', height: 20, fontSize: '0.7rem' }} />
                   </Box>
                   <Button size="small" variant="contained" startIcon={iaHelpLoading ? <CircularProgress size={14} color="inherit" /> : <TipsAndUpdatesIcon />} onClick={handleGetIaHelp} disabled={iaHelpLoading || formData.tipo === 'OUTROS'} sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}>
-                    {iaHelpLoading ? 'Analisando...' : 'Gerar Orientacoes'}
+                    {iaHelpLoading ? 'Analisando...' : 'Gerar Orientações'}
                   </Button>
                 </Box>
-                <Typography variant="caption" color="text.secondary">Selecione o tipo do sinistro para receber orientacoes personalizadas da IA</Typography>
+                <Typography variant="caption" color="text.secondary">Selecione o tipo do sinistro para receber orientações personalizadas da IA</Typography>
                 {iaHelpLoading && <LinearProgress sx={{ mt: 2 }} />}
                 {iaHelp && showIaHelp && (
                   <Box sx={{ mt: 2 }}>
                     <Accordion defaultExpanded><AccordionSummary expandIcon={<ExpandMoreIcon />}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><CheckCircleOutlineIcon sx={{ color: '#22c55e' }} fontSize="small" /><Typography variant="subtitle2" fontWeight="bold">Passos Imediatos</Typography></Box></AccordionSummary>
                       <AccordionDetails><List dense disablePadding>{iaHelp.passos_imediatos.map((p, i) => (<ListItem key={i} disablePadding><ListItemIcon sx={{ minWidth: 28 }}><Typography variant="body2" fontWeight="bold" color="primary">{i + 1}.</Typography></ListItemIcon><ListItemText primary={p} primaryTypographyProps={{ variant: 'body2' }} /></ListItem>))}</List></AccordionDetails>
                     </Accordion>
-                    <Accordion><AccordionSummary expandIcon={<ExpandMoreIcon />}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DescriptionIcon sx={{ color: '#3b82f6' }} fontSize="small" /><Typography variant="subtitle2" fontWeight="bold">Documentos Necessarios</Typography></Box></AccordionSummary>
+                    <Accordion><AccordionSummary expandIcon={<ExpandMoreIcon />}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><DescriptionIcon sx={{ color: '#3b82f6' }} fontSize="small" /><Typography variant="subtitle2" fontWeight="bold">Documentos Necessários</Typography></Box></AccordionSummary>
                       <AccordionDetails><List dense disablePadding>{iaHelp.documentos_necessarios.map((d, i) => (<ListItem key={i} disablePadding><ListItemIcon sx={{ minWidth: 28 }}><CheckCircleOutlineIcon fontSize="small" color="action" /></ListItemIcon><ListItemText primary={d} primaryTypographyProps={{ variant: 'body2' }} /></ListItem>))}</List></AccordionDetails>
                     </Accordion>
                     <Accordion><AccordionSummary expandIcon={<ExpandMoreIcon />}><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><TipsAndUpdatesIcon sx={{ color: '#f59e0b' }} fontSize="small" /><Typography variant="subtitle2" fontWeight="bold">Dicas</Typography></Box></AccordionSummary>

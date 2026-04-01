@@ -84,7 +84,7 @@ export default function NotFound() {
             fontWeight={700}
             sx={{ mb: 1.5, color: '#0f172a' }}
           >
-            Pagina nao encontrada
+            Página não encontrada
           </Typography>
 
           <Typography
@@ -92,8 +92,8 @@ export default function NotFound() {
             color="text.secondary"
             sx={{ mb: 4, lineHeight: 1.7 }}
           >
-            A pagina que voce esta procurando nao existe ou foi movida para outro
-            endereco.
+            A página que você está procurando não existe ou foi movida para outro
+            endereço.
           </Typography>
 
           <Box

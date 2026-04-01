@@ -22,7 +22,7 @@ export default function EditarCondominioPage() {
         setCondominio(data)
       } catch (err) {
         console.error('Error fetching condominio:', err)
-        setError('Erro ao carregar dados do condominio.')
+        setError('Erro ao carregar dados do condomínio.')
       } finally {
         setLoading(false)
       }
@@ -49,7 +49,7 @@ export default function EditarCondominioPage() {
   if (!condominio) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Condominio nao encontrado.</Typography>
+        <Typography>Condomínio não encontrado.</Typography>
       </Box>
     )
   }

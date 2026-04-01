@@ -169,7 +169,7 @@ export default function DocumentoDetalhePage() {
 
   const handleDelete = async () => {
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
+      title: 'Confirmar exclusão',
       message: 'Tem certeza que deseja excluir este documento?',
       severity: 'error',
       confirmText: 'Excluir',
@@ -208,7 +208,7 @@ export default function DocumentoDetalhePage() {
       setEditOpen(false)
       setSuccess('Documento atualizado com sucesso')
     } catch {
-      setError('Erro ao salvar alteracoes')
+      setError('Erro ao salvar alterações')
     } finally {
       setSaving(false)
     }
@@ -255,7 +255,7 @@ export default function DocumentoDetalhePage() {
         date: doc?.status !== 'PENDENTE' ? doc?.updatedAt : undefined,
       },
       {
-        label: 'Concluido',
+        label: 'Concluído',
         status: doc?.status === 'CONCLUIDO' ? 'done' : doc?.status === 'ERRO' ? 'error' : 'pending',
         date: doc?.status === 'CONCLUIDO' ? doc?.updatedAt : undefined,
       },
@@ -275,7 +275,7 @@ export default function DocumentoDetalhePage() {
     return (
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/dashboard/documentos')} sx={{ mb: 2 }}>Voltar</Button>
-        <Alert severity="error">Documento nao encontrado</Alert>
+        <Alert severity="error">Documento não encontrado</Alert>
       </Box>
     )
   }
@@ -387,7 +387,7 @@ export default function DocumentoDetalhePage() {
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', bgcolor: '#f8fafc' }}>
                   <InsertDriveFileIcon sx={{ fontSize: 80, color: '#cbd5e1', mb: 2 }} />
                   <Typography variant="body1" color="text.secondary" fontWeight={500}>
-                    Preview nao disponivel
+                    Preview não disponível
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     {doc.mimeType || 'Tipo de arquivo desconhecido'}
@@ -455,7 +455,7 @@ export default function DocumentoDetalhePage() {
 
           {/* Quick Actions */}
           <Paper sx={{ p: 2, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Acoes Rapidas</Typography>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Ações Rápidas</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Button
                 size="small"
@@ -474,7 +474,7 @@ export default function DocumentoDetalhePage() {
                 onClick={() => router.push(`/dashboard/condominios/${doc.condominioId}`)}
                 sx={{ textTransform: 'none', fontSize: '0.75rem' }}
               >
-                Ver Condominio
+                Ver Condomínio
               </Button>
               {(doc.tipo === 'APOLICE' || doc.tipo === 'ORCAMENTO') && (
                 <Button
@@ -492,13 +492,13 @@ export default function DocumentoDetalhePage() {
 
           {/* File Metadata */}
           <Paper sx={{ p: 2, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Informacoes do Arquivo</Typography>
+            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Informações do Arquivo</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <MetaRow icon={<DescriptionIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Arquivo" value={doc.nomeArquivo} />
               <MetaRow icon={<StorageIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Tamanho" value={formatFileSize(doc.tamanhoBytes)} />
               <MetaRow icon={<InsertDriveFileIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Tipo MIME" value={doc.mimeType || '-'} />
               <MetaRow icon={<CalendarTodayIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Upload" value={formatDate(doc.createdAt)} />
-              <MetaRow icon={<BusinessIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Condominio" value={condominioNome} />
+              <MetaRow icon={<BusinessIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Condomínio" value={condominioNome} />
               {doc.createdBy && (
                 <MetaRow icon={<PersonIcon sx={{ fontSize: 16, color: '#64748b' }} />} label="Enviado por" value={doc.createdBy} />
               )}
@@ -509,7 +509,7 @@ export default function DocumentoDetalhePage() {
           <Paper sx={{ p: 2, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
               <LabelIcon sx={{ color: '#6366f1', fontSize: 18 }} />
-              <Typography variant="subtitle2" fontWeight="bold">Classificacao</Typography>
+              <Typography variant="subtitle2" fontWeight="bold">Classificação</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
               <Chip label={getTipoDocumentoLabel(doc.tipo)} size="small" sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontWeight: 600 }} />
@@ -526,7 +526,7 @@ export default function DocumentoDetalhePage() {
                 }}
               />
               {doc.dadosExtraidos && Object.keys(doc.dadosExtraidos).length > 0 && (
-                <Chip icon={<SmartToyIcon sx={{ fontSize: 14 }} />} label="Dados extraidos" size="small" sx={{ bgcolor: '#f0fdf4', color: '#22c55e', fontWeight: 600, '& .MuiChip-icon': { color: '#22c55e' } }} />
+                <Chip icon={<SmartToyIcon sx={{ fontSize: 14 }} />} label="Dados extraídos" size="small" sx={{ bgcolor: '#f0fdf4', color: '#22c55e', fontWeight: 600, '& .MuiChip-icon': { color: '#22c55e' } }} />
               )}
             </Box>
           </Paper>
@@ -545,7 +545,7 @@ export default function DocumentoDetalhePage() {
                       <Typography sx={{ fontSize: 14, color: '#22c55e', fontWeight: 700 }}>R$</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" color="text.secondary">Valor Premio</Typography>
+                      <Typography variant="caption" color="text.secondary">Valor Prêmio</Typography>
                       <Typography variant="body2" fontWeight="bold" sx={{ color: '#22c55e' }}>
                         R$ {Number(doc.valorPremio).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </Typography>
@@ -555,7 +555,7 @@ export default function DocumentoDetalhePage() {
                 {doc.dataVigenciaInicio && (
                   <MetaRow
                     icon={<CalendarTodayIcon sx={{ fontSize: 16, color: isVencido() ? '#ef4444' : isVencendo() ? '#f59e0b' : '#64748b' }} />}
-                    label="Vigencia"
+                    label="Vigência"
                     value={`${formatDateShort(doc.dataVigenciaInicio)}${doc.dataVigenciaFim ? ` - ${formatDateShort(doc.dataVigenciaFim)}` : ''}`}
                   />
                 )}
@@ -569,7 +569,7 @@ export default function DocumentoDetalhePage() {
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <DataObjectIcon sx={{ color: '#6366f1', fontSize: 18 }} />
-                  <Typography variant="subtitle2" fontWeight="bold">Dados Extraidos pela IA</Typography>
+                  <Typography variant="subtitle2" fontWeight="bold">Dados Extraídos pela IA</Typography>
                   <Chip label={`${Object.keys(doc.dadosExtraidos).length} campos`} size="small" sx={{ height: 20, fontSize: '0.6rem', bgcolor: '#ede9fe', color: '#6366f1' }} />
                 </Box>
                 <Button size="small" onClick={() => setShowRawData(!showRawData)} sx={{ textTransform: 'none', fontSize: '0.7rem', color: '#6366f1' }}>
@@ -651,7 +651,7 @@ export default function DocumentoDetalhePage() {
           {/* Observacoes */}
           {doc.observacoes && (
             <Paper sx={{ p: 2, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Observacoes</Typography>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Observações</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{doc.observacoes}</Typography>
             </Paper>
           )}
@@ -682,9 +682,9 @@ export default function DocumentoDetalhePage() {
                 <InputLabel>Tipo</InputLabel>
                 <Select value={editForm.tipo} label="Tipo"
                   onChange={(e) => setEditForm(p => ({ ...p, tipo: e.target.value as TipoDocumento }))}>
-                  <MenuItem value="APOLICE">Apolice</MenuItem>
-                  <MenuItem value="ORCAMENTO">Orcamento</MenuItem>
-                  <MenuItem value="CONDICOES_GERAIS">Condicoes Gerais</MenuItem>
+                  <MenuItem value="APOLICE">Apólice</MenuItem>
+                  <MenuItem value="ORCAMENTO">Orçamento</MenuItem>
+                  <MenuItem value="CONDICOES_GERAIS">Condições Gerais</MenuItem>
                   <MenuItem value="LAUDO_VISTORIA">Laudo de Vistoria</MenuItem>
                   <MenuItem value="SINISTRO">Sinistro</MenuItem>
                   <MenuItem value="OUTRO">Outro</MenuItem>
@@ -696,7 +696,7 @@ export default function DocumentoDetalhePage() {
                 onChange={(e) => setEditForm(p => ({ ...p, seguradoraNome: e.target.value }))} />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth size="small" label="Observacoes" multiline rows={3} value={editForm.observacoes}
+              <TextField fullWidth size="small" label="Observações" multiline rows={3} value={editForm.observacoes}
                 onChange={(e) => setEditForm(p => ({ ...p, observacoes: e.target.value }))} />
             </Grid>
           </Grid>

@@ -95,20 +95,20 @@ const formatDate = (dateStr?: string) => {
 }
 
 const STEPS = [
-  'Selecione o Condominio',
-  'Escolha os Orcamentos',
+  'Selecione o Condomínio',
+  'Escolha os Orçamentos',
   'Compare e Analise',
 ]
 
-const RADAR_COLORS = ['#6366f1', '#f43f5e', '#06b6d4', '#f59e0b']
+const RADAR_COLORS = ['#6366f1', '#f43f5e', '#06b6d4', '#f59e0b', '#10b981']
 
 // Coverage categories for radar chart
 const COVERAGE_CATEGORIES: Record<string, string[]> = {
-  'Incendio/Basicas': ['Incendio, Raio e Explosao', 'Queda de Aeronaves', 'Fumaca'],
-  'Fenomenos Naturais': ['Vendaval, Furacao, Ciclone, Tornado e Granizo', 'Alagamento e Inundacao', 'Desmoronamento'],
-  'Responsabilidade Civil': ['Responsabilidade Civil do Condominio', 'Responsabilidade Civil do Sindico', 'Responsabilidade Civil Guarda de Veiculos'],
-  'Danos Materiais': ['Danos Eletricos', 'Quebra de Vidros', 'Equipamentos Eletronicos', 'Impacto de Veiculos Terrestres'],
-  'Patrimonial': ['Roubo de Bens do Condominio', 'Tumultos e Greves'],
+  'Incêndio/Básicas': ['Incêndio, Raio e Explosão', 'Queda de Aeronaves', 'Fumaça'],
+  'Fenômenos Naturais': ['Vendaval, Furacão, Ciclone, Tornado e Granizo', 'Alagamento e Inundação', 'Desmoronamento'],
+  'Responsabilidade Civil': ['Responsabilidade Civil do Condomínio', 'Responsabilidade Civil do Síndico', 'Responsabilidade Civil Guarda de Veículos'],
+  'Danos Materiais': ['Danos Elétricos', 'Quebra de Vidros', 'Equipamentos Eletrônicos', 'Impacto de Veículos Terrestres'],
+  'Patrimonial': ['Roubo de Bens do Condomínio', 'Tumultos e Greves'],
   'Financeiro': ['Despesas Fixas', 'Perda de Aluguel'],
 }
 
@@ -162,7 +162,7 @@ export default function CompararPage() {
         setCondominios(response.content)
       } catch (err) {
         console.error('Error loading condominios:', err)
-        setError('Erro ao carregar condominios')
+        setError('Erro ao carregar condomínios')
       } finally {
         setLoadingCondominios(false)
       }
@@ -191,7 +191,7 @@ export default function CompararPage() {
         setComparacao(null)
       } catch (err) {
         console.error('Error loading orcamentos:', err)
-        setError('Erro ao carregar orcamentos')
+        setError('Erro ao carregar orçamentos')
       } finally {
         setLoadingOrcamentos(false)
       }
@@ -202,14 +202,14 @@ export default function CompararPage() {
   const handleToggleOrcamento = (id: string) => {
     setSelectedOrcamentos((prev) => {
       if (prev.includes(id)) return prev.filter((i) => i !== id)
-      if (prev.length >= 4) return prev
+      if (prev.length >= 5) return prev
       return [...prev, id]
     })
   }
 
   const handleComparar = async () => {
     if (selectedOrcamentos.length < 2) {
-      setError('Selecione pelo menos 2 orcamentos para comparar')
+      setError('Selecione pelo menos 2 orçamentos para comparar')
       return
     }
     try {
@@ -220,9 +220,9 @@ export default function CompararPage() {
       setComparacao(result)
     } catch (err: unknown) {
       console.error('Error comparing:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao comparar orcamentos'
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao comparar orçamentos'
       if (errorMessage.includes('não foi preenchido')) {
-        setError('Um ou mais orcamentos nao tem dados preenchidos. Preencha os dados antes de comparar.')
+        setError('Um ou mais orçamentos não tem dados preenchidos. Preencha os dados antes de comparar.')
       } else {
         setError(errorMessage)
       }
@@ -252,7 +252,7 @@ export default function CompararPage() {
       setIaAnalise(result.analise)
     } catch (err) {
       console.error('Error generating IA analysis:', err)
-      setError('Erro ao gerar analise da IA')
+      setError('Erro ao gerar análise da IA')
     } finally {
       setIaLoading(false)
     }
@@ -272,22 +272,22 @@ export default function CompararPage() {
       // Title
       doc.setFontSize(18)
       doc.setTextColor(99, 102, 241)
-      doc.text('CondoCompare - Comparacao de Orcamentos', 14, 20)
+      doc.text('CondoCompare - Comparação de Orçamentos', 14, 20)
       doc.setFontSize(12)
       doc.setTextColor(100)
-      doc.text(`Condominio: ${condNome}`, 14, 28)
+      doc.text(`Condomínio: ${condNome}`, 14, 28)
       doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 34)
 
       // Summary table
       doc.setFontSize(14)
       doc.setTextColor(0)
-      doc.text('Resumo dos Orcamentos', 14, 44)
+      doc.text('Resumo dos Orçamentos', 14, 44)
 
-      const summaryHeaders = ['Metrica', ...comparacao.orcamentos.map(o => o.seguradoraNome)]
+      const summaryHeaders = ['Métrica', ...comparacao.orcamentos.map(o => o.seguradoraNome)]
       const allCob = getAllCoberturas(comparacao.orcamentos)
       const summaryBody = [
-        ['Premio Anual', ...comparacao.orcamentos.map(o => formatCurrency(o.valorPremio))],
-        ['Vigencia', ...comparacao.orcamentos.map(o => `${o.vigenciaDias} dias`)],
+        ['Prêmio Anual', ...comparacao.orcamentos.map(o => formatCurrency(o.valorPremio))],
+        ['Vigência', ...comparacao.orcamentos.map(o => `${o.vigenciaDias} dias`)],
         ['Pagamento', ...comparacao.orcamentos.map(o => o.formaPagamento || '-')],
         ['Coberturas', ...comparacao.orcamentos.map(o => `${o.coberturas.filter(c => c.incluido).length}/${allCob.length}`)],
         ['Total Franquias', ...comparacao.orcamentos.map(o => {
@@ -317,7 +317,7 @@ export default function CompararPage() {
         return [cobNome, ...comparacao.orcamentos.map(orc => {
           const c = orc.coberturas.find(co => co.nome === cobNome)
           if (!c?.incluido) return 'Ausente'
-          let text = 'Incluido'
+          let text = 'Incluído'
           if (c.valorLimite) text = formatCurrency(c.valorLimite)
           if (c.franquia) text += ` (Fr: ${formatCurrency(c.franquia)})`
           return text
@@ -342,10 +342,10 @@ export default function CompararPage() {
         if (recY > 170) doc.addPage()
         const startY = recY > 170 ? 20 : recY + 10
         doc.setFontSize(14)
-        doc.text('Recomendacoes', 14, startY)
+        doc.text('Recomendações', 14, startY)
         let yPos = startY + 8
         comparacao.resumo.recomendacoes.forEach((rec) => {
-          const label = rec.tipo === 'MENOR_PRECO' ? 'Menor Preco' : rec.tipo === 'MAIOR_COBERTURA' ? 'Maior Cobertura' : 'Melhor Custo-Beneficio'
+          const label = rec.tipo === 'MENOR_PRECO' ? 'Menor Preço' : rec.tipo === 'MAIOR_COBERTURA' ? 'Maior Cobertura' : 'Melhor Custo-Benefício'
           doc.setFontSize(10)
           doc.setTextColor(0)
           doc.text(`${label}: ${rec.seguradora}`, 14, yPos)
@@ -361,7 +361,7 @@ export default function CompararPage() {
         doc.addPage()
         doc.setFontSize(14)
         doc.setTextColor(0)
-        doc.text('Analise Inteligente (IA)', 14, 20)
+        doc.text('Análise Inteligente (IA)', 14, 20)
         doc.setFontSize(9)
         doc.setTextColor(60)
         const lines = doc.splitTextToSize(iaAnalise, 260)
@@ -374,7 +374,7 @@ export default function CompararPage() {
         doc.setPage(i)
         doc.setFontSize(8)
         doc.setTextColor(150)
-        doc.text(`CondoCompare - Gerado em ${new Date().toLocaleString('pt-BR')} - Pagina ${i}/${pageCount}`, 14, doc.internal.pageSize.height - 10)
+        doc.text(`CondoCompare - Gerado em ${new Date().toLocaleString('pt-BR')} - Página ${i}/${pageCount}`, 14, doc.internal.pageSize.height - 10)
       }
 
       doc.save(`comparacao-${condNome.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -404,7 +404,7 @@ export default function CompararPage() {
     localStorage.setItem('saved_comparisons', JSON.stringify(updated))
     setSaveDialogOpen(false)
     setSaveName('')
-    setSnackbar({ open: true, message: 'Comparacao salva com sucesso!', severity: 'success' })
+    setSnackbar({ open: true, message: 'Comparação salva com sucesso!', severity: 'success' })
   }
 
   const handleLoadComparison = (saved: SavedComparison) => {
@@ -422,7 +422,7 @@ export default function CompararPage() {
     localStorage.setItem('saved_comparisons', JSON.stringify(updated))
   }
 
-  const getRecomendacaoIcon = (tipo: string) => {
+  const getRecomendaçãoIcon = (tipo: string) => {
     switch (tipo) {
       case 'MENOR_PRECO': return <TrendingDownIcon sx={{ color: '#4caf50' }} />
       case 'MAIOR_COBERTURA': return <SecurityIcon sx={{ color: '#2196f3' }} />
@@ -431,7 +431,7 @@ export default function CompararPage() {
     }
   }
 
-  const getRecomendacaoColor = (tipo: string) => {
+  const getRecomendaçãoColor = (tipo: string) => {
     switch (tipo) {
       case 'MENOR_PRECO': return { bg: '#dcfce7', border: '#bbf7d0', text: '#166534' }
       case 'MAIOR_COBERTURA': return { bg: '#dbeafe', border: '#bfdbfe', text: '#1e40af' }
@@ -440,11 +440,11 @@ export default function CompararPage() {
     }
   }
 
-  const getRecomendacaoLabel = (tipo: string) => {
+  const getRecomendaçãoLabel = (tipo: string) => {
     switch (tipo) {
-      case 'MENOR_PRECO': return 'Menor Preco'
+      case 'MENOR_PRECO': return 'Menor Preço'
       case 'MAIOR_COBERTURA': return 'Maior Cobertura'
-      case 'MELHOR_CUSTO_BENEFICIO': return 'Melhor Custo-Beneficio'
+      case 'MELHOR_CUSTO_BENEFICIO': return 'Melhor Custo-Benefício'
       default: return tipo
     }
   }
@@ -485,9 +485,9 @@ export default function CompararPage() {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h4" fontWeight="bold">Comparar Orcamentos</Typography>
+          <Typography variant="h4" fontWeight="bold">Comparar Orçamentos</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Compare ate 4 orcamentos de seguro lado a lado
+            Compare até 5 orçamentos de seguro lado a lado
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
@@ -498,7 +498,7 @@ export default function CompararPage() {
               onClick={() => setHistoryDialogOpen(true)}
               size="small"
             >
-              Historico ({savedComparisons.length})
+              Histórico ({savedComparisons.length})
             </Button>
           )}
           <Button
@@ -541,7 +541,7 @@ export default function CompararPage() {
           <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: selectedCondominio ? '#22c55e' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {selectedCondominio ? <CheckCircleIcon sx={{ color: 'white', fontSize: 20 }} /> : <LooksOneIcon sx={{ color: 'white', fontSize: 20 }} />}
           </Box>
-          <Typography variant="h6" fontWeight="600">Selecione o Condominio</Typography>
+          <Typography variant="h6" fontWeight="600">Selecione o Condomínio</Typography>
           {selectedCondominioData && (
             <Chip
               label={`${selectedCondominioData.nome} - ${selectedCondominioData.cidade}/${selectedCondominioData.estado}`}
@@ -560,18 +560,18 @@ export default function CompararPage() {
         ) : condominios.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4, px: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
             <ApartmentIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 1 }} />
-            <Typography variant="h6" color="text.secondary" gutterBottom>Nenhum condominio cadastrado</Typography>
+            <Typography variant="h6" color="text.secondary" gutterBottom>Nenhum condomínio cadastrado</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Para comparar orcamentos, primeiro cadastre um condominio e faca upload dos PDFs de orcamento.
+              Para comparar orcamentos, primeiro cadastre um condomínio e faça upload dos PDFs de orçamento.
             </Typography>
             <Button variant="contained" startIcon={<ApartmentIcon />} onClick={() => router.push('/dashboard/condominios/novo')} sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}>
-              Cadastrar Condominio
+              Cadastrar Condomínio
             </Button>
           </Box>
         ) : (
           <FormControl fullWidth size="small">
-            <InputLabel>Selecione o Condominio</InputLabel>
-            <Select value={selectedCondominio} label="Selecione o Condominio" onChange={(e) => setSelectedCondominio(e.target.value)}>
+            <InputLabel>Selecione o Condomínio</InputLabel>
+            <Select value={selectedCondominio} label="Selecione o Condomínio" onChange={(e) => setSelectedCondominio(e.target.value)}>
               {condominios.map((c) => (
                 <MenuItem key={c.id} value={c.id}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -596,7 +596,7 @@ export default function CompararPage() {
               <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: comparacao ? '#22c55e' : '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {comparacao ? <CheckCircleIcon sx={{ color: 'white', fontSize: 20 }} /> : <LooksTwoIcon sx={{ color: 'white', fontSize: 20 }} />}
               </Box>
-              <Typography variant="h6" fontWeight="600">Orcamentos Disponiveis</Typography>
+              <Typography variant="h6" fontWeight="600">Orçamentos Disponíveis</Typography>
               {orcamentos.length > 0 && (
                 <Chip label={`${orcamentos.length} encontrado${orcamentos.length > 1 ? 's' : ''}`} size="small" variant="outlined" />
               )}
@@ -612,7 +612,7 @@ export default function CompararPage() {
                 disabled={selectedOrcamentos.length < 2 || loadingComparacao}
                 sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
               >
-                {loadingComparacao ? 'Comparando...' : `Comparar (${selectedOrcamentos.length}/4)`}
+                {loadingComparacao ? 'Comparando...' : `Comparar (${selectedOrcamentos.length}/5)`}
               </Button>
             </Box>
           </Box>
@@ -620,14 +620,14 @@ export default function CompararPage() {
           {loadingOrcamentos ? (
             <Box sx={{ py: 3 }}>
               <LinearProgress sx={{ mb: 2, borderRadius: 1 }} />
-              <Typography variant="body2" color="text.secondary" textAlign="center">Carregando orcamentos...</Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center">Carregando orçamentos...</Typography>
             </Box>
           ) : orcamentos.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 5, px: 2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px dashed #cbd5e1' }}>
               <DescriptionIcon sx={{ fontSize: 48, color: '#94a3b8', mb: 1 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>Nenhum orcamento encontrado</Typography>
+              <Typography variant="h6" color="text.secondary" gutterBottom>Nenhum orçamento encontrado</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2, maxWidth: 480, mx: 'auto' }}>
-                Faca upload dos PDFs de orcamento na pagina de Documentos para habilitar a comparacao.
+                Faça upload dos PDFs de orçamento na página de Documentos para habilitar a comparação.
               </Typography>
               <Button variant="contained" startIcon={<UploadFileIcon />} onClick={() => router.push('/dashboard/documentos')} sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}>
                 Ir para Documentos
@@ -637,7 +637,7 @@ export default function CompararPage() {
             <>
               {selectedOrcamentos.length < 2 && (
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  Selecione entre <strong>2 e 4 orcamentos</strong> com dados preenchidos para comparar.
+                  Selecione entre <strong>2 e 5 orçamentos</strong> com dados preenchidos para comparar.
                 </Alert>
               )}
               <Grid container spacing={2}>
@@ -665,13 +665,13 @@ export default function CompararPage() {
                                 {orc.nome}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
-                                {orc.seguradoraNome || 'Seguradora nao informada'}
+                                {orc.seguradoraNome || 'Seguradora não informada'}
                               </Typography>
                             </Box>
                             {isPreenchido && (
                               <Checkbox
                                 checked={isSelected}
-                                disabled={!isSelected && selectedOrcamentos.length >= 4}
+                                disabled={!isSelected && selectedOrcamentos.length >= 5}
                                 size="small"
                                 sx={{ p: 0.5, color: '#94a3b8', '&.Mui-checked': { color: '#3b82f6' } }}
                               />
@@ -699,12 +699,12 @@ export default function CompararPage() {
       {!selectedCondominio && condominios.length > 0 && !loadingCondominios && (
         <Paper sx={{ p: 5, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
           <CompareArrowsIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
-          <Typography variant="h5" fontWeight="600" color="text.secondary" gutterBottom>Como funciona a comparacao?</Typography>
+          <Typography variant="h5" fontWeight="600" color="text.secondary" gutterBottom>Como funciona a comparação?</Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mt: 3, flexWrap: 'wrap' }}>
             {[
-              { icon: <LooksOneIcon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Selecione o Condominio', desc: 'Escolha o condominio que deseja comparar' },
-              { icon: <LooksTwoIcon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Escolha os Orcamentos', desc: 'Selecione de 2 a 4 orcamentos ja cadastrados' },
-              { icon: <Looks3Icon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Veja a Comparacao', desc: 'Analise lado a lado com recomendacoes e IA' },
+              { icon: <LooksOneIcon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Selecione o Condomínio', desc: 'Escolha o condomínio que deseja comparar' },
+              { icon: <LooksTwoIcon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Escolha os Orçamentos', desc: 'Selecione de 2 a 5 orçamentos já cadastrados' },
+              { icon: <Looks3Icon sx={{ fontSize: 28, color: '#3b82f6' }} />, title: 'Veja a Comparação', desc: 'Análise lado a lado com recomendações e IA' },
             ].map((step, i) => (
               <Box key={i} sx={{ maxWidth: 200, textAlign: 'center' }}>
                 <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 1.5 }}>
@@ -716,7 +716,7 @@ export default function CompararPage() {
             ))}
           </Box>
           <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center' }}>
-            <Typography variant="body2" color="text.secondary">Comece selecionando um condominio no campo acima</Typography>
+            <Typography variant="body2" color="text.secondary">Comece selecionando um condomínio no campo acima</Typography>
             <ArrowForwardIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
           </Box>
         </Paper>
@@ -750,6 +750,7 @@ export default function CompararPage() {
           'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
           'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
           'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+          'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
         ]
         const hasCoberturas = allCoberturas.length > 0
 
@@ -790,8 +791,8 @@ export default function CompararPage() {
               <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Looks3Icon sx={{ color: 'white', fontSize: 20 }} />
               </Box>
-              <Typography variant="h6" fontWeight="600">Resultado da Comparacao</Typography>
-              <Chip label={`${comparacao.orcamentos.length} orcamentos comparados`} color="primary" size="small" variant="outlined" />
+              <Typography variant="h6" fontWeight="600">Resultado da Comparação</Typography>
+              <Chip label={`${comparacao.orcamentos.length} orçamentos comparados`} color="primary" size="small" variant="outlined" />
             </Box>
 
             <Grid container spacing={2}>
@@ -810,7 +811,7 @@ export default function CompararPage() {
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, px: 2, pt: 1.5 }}>
                         {isMenorPreco && <Chip icon={<TrendingDownIcon />} label="Menor Preco" size="small" sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 600, '& .MuiChip-icon': { color: '#16a34a' } }} />}
                         {isMaiorCob && <Chip icon={<SecurityIcon />} label="Maior Cobertura" size="small" sx={{ bgcolor: '#dbeafe', color: '#1e40af', fontWeight: 600, '& .MuiChip-icon': { color: '#2563eb' } }} />}
-                        {isMelhorCB && <Chip icon={<BalanceIcon />} label="Melhor Custo-Beneficio" size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600, '& .MuiChip-icon': { color: '#d97706' } }} />}
+                        {isMelhorCB && <Chip icon={<BalanceIcon />} label="Melhor Custo-Benefício" size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600, '& .MuiChip-icon': { color: '#d97706' } }} />}
                       </Box>
                       <CardContent sx={{ p: 2 }}>
                         <Box sx={{ mb: 1.5 }}>
@@ -824,7 +825,7 @@ export default function CompararPage() {
                         </Box>
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
                           <Box sx={{ p: 1, borderRadius: 1, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                            <Typography variant="caption" color="text.secondary" display="block">Vigencia</Typography>
+                            <Typography variant="caption" color="text.secondary" display="block">Vigência</Typography>
                             <Typography variant="body2" fontWeight={700}>{orc.vigenciaDias} dias</Typography>
                           </Box>
                           <Box sx={{ p: 1, borderRadius: 1, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
@@ -834,12 +835,12 @@ export default function CompararPage() {
                         </Box>
                         <Box sx={{ mt: 1.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                           {orc.condicoesEspeciais && orc.condicoesEspeciais.length > 0 && (
-                            <Chip label={`${orc.condicoesEspeciais.length} condicao(oes)`} size="small" variant="outlined" color="info" sx={{ height: 22 }} />
+                            <Chip label={`${orc.condicoesEspeciais.length} condição(ões)`} size="small" variant="outlined" color="info" sx={{ height: 22 }} />
                           )}
                         </Box>
                         {hasCoberturas && orc.coberturas.length > 0 && (
                           <Box sx={{ mt: 1.5 }}>
-                            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Coberturas incluidas:</Typography>
+                            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Coberturas incluídas:</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3 }}>
                               {orc.coberturas.filter((c) => c.incluido).map((c) => (
                                 <Chip key={c.nome} label={c.nome} size="small" sx={{ height: 20, fontSize: '0.6rem', bgcolor: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#dcfce7' : '#e0f2fe', color: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#166534' : '#0c4a6e' }} />
@@ -860,17 +861,17 @@ export default function CompararPage() {
             <Paper sx={{ p: 3, mb: 3, border: '2px solid #FFD700', bgcolor: '#fffbeb' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <EmojiEventsIcon sx={{ color: '#ca8a04', fontSize: 28 }} />
-                <Typography variant="h6" fontWeight="700">Recomendacao</Typography>
+                <Typography variant="h6" fontWeight="700">Recomendação</Typography>
               </Box>
               <Grid container spacing={2}>
                 {comparacao.resumo.recomendacoes.map((rec, idx) => {
-                  const colors = getRecomendacaoColor(rec.tipo)
+                  const colors = getRecomendaçãoColor(rec.tipo)
                   return (
                     <Grid item xs={12} md={comparacao.resumo.recomendacoes.length === 1 ? 12 : comparacao.resumo.recomendacoes.length === 2 ? 6 : 4} key={idx}>
                       <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.bg, border: `1px solid ${colors.border}`, height: '100%' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                          {getRecomendacaoIcon(rec.tipo)}
-                          <Typography variant="subtitle2" fontWeight="700" sx={{ color: colors.text }}>{getRecomendacaoLabel(rec.tipo)}</Typography>
+                          {getRecomendaçãoIcon(rec.tipo)}
+                          <Typography variant="subtitle2" fontWeight="700" sx={{ color: colors.text }}>{getRecomendaçãoLabel(rec.tipo)}</Typography>
                         </Box>
                         <Typography variant="h6" fontWeight="800" sx={{ color: colors.text, mb: 0.5 }}>{rec.seguradora}</Typography>
                         <Typography variant="body2" sx={{ color: colors.text, opacity: 0.85 }}>{rec.justificativa}</Typography>
@@ -885,14 +886,14 @@ export default function CompararPage() {
           {/* === ANALISE DE COBERTURAS === */}
           {hasCoberturas && (
             <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Analise de Coberturas</Typography>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>Análise de Coberturas</Typography>
               {comparacao.resumo.coberturasComuns.length > 0 && (
                 <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <CheckCircleIcon sx={{ color: '#16a34a' }} />
                     <Typography variant="subtitle1" fontWeight={700} color="#166534">Coberturas em Comum ({comparacao.resumo.coberturasComuns.length})</Typography>
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes em todos os orcamentos comparados</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes em todos os orçamentos comparados</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {comparacao.resumo.coberturasComuns.map((cob) => (
                       <Chip key={cob} label={cob} size="small" sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 500 }} />
@@ -904,9 +905,9 @@ export default function CompararPage() {
                 <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <CancelIcon sx={{ color: '#ef4444' }} />
-                    <Typography variant="subtitle1" fontWeight={700} color="#991b1b">Coberturas Ausentes por Orcamento</Typography>
+                    <Typography variant="subtitle1" fontWeight={700} color="#991b1b">Coberturas Ausentes por Orçamento</Typography>
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Coberturas que existem em outros orcamentos mas nao neste</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Coberturas que existem em outros orçamentos mas não neste</Typography>
                   {Object.entries(coberturasAusentes).map(([orcId, cobs]) => {
                     if (cobs.length === 0) return null
                     const orc = comparacao.orcamentos.find((o) => o.id === orcId)
@@ -925,9 +926,9 @@ export default function CompararPage() {
                 <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fefce8', border: '1px solid #fde68a' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                     <StarIcon sx={{ color: '#ca8a04' }} />
-                    <Typography variant="subtitle1" fontWeight={700} color="#854d0e">Coberturas Unicas</Typography>
+                    <Typography variant="subtitle1" fontWeight={700} color="#854d0e">Coberturas Únicas</Typography>
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes apenas em um orcamento especifico</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes apenas em um orçamento específico</Typography>
                   {Object.entries(comparacao.resumo.coberturasExclusivas || {}).map(([orcId, cobs]) => {
                     const orc = comparacao.orcamentos.find((o) => o.id === orcId)
                     return (
@@ -947,7 +948,7 @@ export default function CompararPage() {
           {/* === RADAR CHART === */}
           {radarData.length > 0 && (
             <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Comparacao Visual de Coberturas</Typography>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Visual de Coberturas</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Percentual de coberturas contratadas por categoria</Typography>
               <Box sx={{ width: '100%', height: 380 }}>
                 <ResponsiveContainer>
@@ -967,7 +968,7 @@ export default function CompararPage() {
 
           {/* === COMPARACAO DE PRECOS === */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparacao de Precos</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação de Preços</Typography>
             <Box sx={{ mt: 2 }}>
               {enriched.sort((a, b) => (a.valorPremio || 0) - (b.valorPremio || 0)).map((orc, idx) => {
                 const isBest = orc.id === comparacao.resumo.menorPrecoId
@@ -994,25 +995,25 @@ export default function CompararPage() {
 
           {/* === TABELA DETALHADA (with franchise totals) === */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparacao Detalhada</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Detalhada</Typography>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#0f172a' }}>
-                    <TableCell sx={{ fontWeight: 600, color: 'white', width: 200 }}>Metrica</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: 'white', width: 200 }}>Métrica</TableCell>
                     {enriched.map((orc) => <TableCell key={orc.id} align="center" sx={{ fontWeight: 600, color: 'white' }}>{orc.seguradoraNome}</TableCell>)}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>Valor do Premio (anual)</TableCell>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>Valor do Prêmio (anual)</TableCell>
                     {enriched.map((orc) => {
                       const best = orc.id === comparacao.resumo.menorPrecoId
                       return <TableCell key={orc.id} align="center" sx={{ bgcolor: best ? '#dcfce7' : undefined, fontWeight: best ? 700 : 400 }}>{formatCurrency(orc.valorPremio)}{best && <Chip size="small" label="Menor" color="success" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}</TableCell>
                     })}
                   </TableRow>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Vigencia</TableCell>
+                    <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Vigência</TableCell>
                     {enriched.map((orc) => <TableCell key={orc.id} align="center">{formatDate(orc.dataVigenciaInicio)} a {formatDate(orc.dataVigenciaFim)}<Typography variant="caption" display="block" color="text.secondary">({orc.vigenciaDias} dias)</Typography></TableCell>)}
                   </TableRow>
                   <TableRow>
@@ -1059,7 +1060,7 @@ export default function CompararPage() {
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Box>
                   <Typography variant="h6" fontWeight="bold">Matriz de Coberturas</Typography>
-                  <Typography variant="body2" color="text.secondary">Comparacao detalhada de cada cobertura com limites e franquias</Typography>
+                  <Typography variant="body2" color="text.secondary">Comparação detalhada de cada cobertura com limites e franquias</Typography>
                 </Box>
                 <TextField size="small" placeholder="Buscar cobertura..." value={matrixSearch} onChange={(e) => setMatrixSearch(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }} sx={{ width: 240, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
               </Box>
@@ -1139,7 +1140,7 @@ export default function CompararPage() {
           {/* === CONDICOES ESPECIAIS === */}
           {comparacao.orcamentos.some((o) => (o.condicoesEspeciais?.length || 0) > 0 || o.observacoes) && (
             <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Condicoes Especiais e Observacoes</Typography>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>Condições Especiais e Observações</Typography>
               <Grid container spacing={2}>
                 {comparacao.orcamentos.map((orc) => (
                   ((orc.condicoesEspeciais?.length || 0) > 0 || orc.observacoes) && (
@@ -1148,13 +1149,13 @@ export default function CompararPage() {
                         <Typography variant="subtitle2" fontWeight={700} gutterBottom>{orc.seguradoraNome}</Typography>
                         {(orc.condicoesEspeciais?.length || 0) > 0 && (
                           <Box sx={{ mb: 1 }}>
-                            <Typography variant="caption" fontWeight={600} color="text.secondary">Condicoes Especiais:</Typography>
+                            <Typography variant="caption" fontWeight={600} color="text.secondary">Condições Especiais:</Typography>
                             {orc.condicoesEspeciais?.map((cond, i) => <Typography key={i} variant="body2" sx={{ ml: 1 }}>- {cond}</Typography>)}
                           </Box>
                         )}
                         {orc.observacoes && (
                           <Box>
-                            <Typography variant="caption" fontWeight={600} color="text.secondary">Observacoes:</Typography>
+                            <Typography variant="caption" fontWeight={600} color="text.secondary">Observações:</Typography>
                             <Typography variant="body2" sx={{ ml: 1 }}>{orc.observacoes}</Typography>
                           </Box>
                         )}
@@ -1171,12 +1172,12 @@ export default function CompararPage() {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <SmartToyIcon sx={{ color: '#6366f1' }} />
-                <Typography variant="h6" fontWeight="600">Analise Inteligente</Typography>
+                <Typography variant="h6" fontWeight="600">Análise Inteligente</Typography>
                 <Chip label="IA" size="small" sx={{ bgcolor: '#6366f1', color: 'white', height: 20, fontSize: '0.7rem' }} />
               </Box>
               {!iaAnalise && (
                 <Button variant="contained" startIcon={iaLoading ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />} onClick={handleGenerarAnaliseIA} disabled={iaLoading} sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}>
-                  {iaLoading ? 'Analisando...' : 'Gerar Analise com IA'}
+                  {iaLoading ? 'Analisando...' : 'Gerar Análise com IA'}
                 </Button>
               )}
             </Box>
@@ -1193,14 +1194,14 @@ export default function CompararPage() {
               <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, border: '1px solid #e2e8f0' }}>
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, color: '#374151' }}>{iaAnalise}</Typography>
                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button size="small" startIcon={<AutoAwesomeIcon />} onClick={handleGenerarAnaliseIA} disabled={iaLoading} sx={{ color: '#6366f1' }}>Gerar Nova Analise</Button>
+                  <Button size="small" startIcon={<AutoAwesomeIcon />} onClick={handleGenerarAnaliseIA} disabled={iaLoading} sx={{ color: '#6366f1' }}>Gerar Nova Análise</Button>
                 </Box>
               </Box>
             )}
             {!iaLoading && !iaAnalise && (
               <Box sx={{ textAlign: 'center', py: 3 }}>
                 <AutoAwesomeIcon sx={{ fontSize: 40, color: '#cbd5e1', mb: 1 }} />
-                <Typography variant="body2" color="text.secondary">Clique no botao acima para gerar uma analise detalhada dos orcamentos usando inteligencia artificial.</Typography>
+                <Typography variant="body2" color="text.secondary">Clique no botão acima para gerar uma análise detalhada dos orçamentos usando inteligência artificial.</Typography>
               </Box>
             )}
           </Paper>
@@ -1210,10 +1211,10 @@ export default function CompararPage() {
 
       {/* Save Dialog */}
       <Dialog open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Salvar Comparacao</DialogTitle>
+        <DialogTitle>Salvar Comparação</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Salve esta comparacao para consultar depois sem precisar refazer.</Typography>
-          <TextField fullWidth label="Nome da comparacao" value={saveName} onChange={(e) => setSaveName(e.target.value)} autoFocus size="small" />
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Salve esta comparação para consultar depois sem precisar refazer.</Typography>
+          <TextField fullWidth label="Nome da comparação" value={saveName} onChange={(e) => setSaveName(e.target.value)} autoFocus size="small" />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setSaveDialogOpen(false)}>Cancelar</Button>
@@ -1223,10 +1224,10 @@ export default function CompararPage() {
 
       {/* History Dialog */}
       <Dialog open={historyDialogOpen} onClose={() => setHistoryDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HistoryIcon />Comparacoes Salvas</Box></DialogTitle>
+        <DialogTitle><Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><HistoryIcon />Comparações Salvas</Box></DialogTitle>
         <DialogContent>
           {savedComparisons.length === 0 ? (
-            <Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhuma comparacao salva</Typography>
+            <Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhuma comparação salva</Typography>
           ) : (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {savedComparisons.map((saved) => (

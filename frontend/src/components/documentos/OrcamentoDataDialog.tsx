@@ -217,7 +217,7 @@ export function OrcamentoDataDialog({
       onSuccess()
     } catch (err) {
       console.error('Error saving orcamento data:', err)
-      setError('Erro ao salvar dados do orcamento. Tente novamente.')
+      setError('Erro ao salvar dados do orçamento. Tente novamente.')
     } finally {
       setSaving(false)
     }
@@ -284,7 +284,7 @@ export function OrcamentoDataDialog({
       >
         <Box>
           <Typography variant="h6" fontWeight="bold">
-            Preencher Dados do Orcamento
+            Preencher Dados do Orçamento
           </Typography>
           {documento && (
             <Typography variant="body2" color="text.secondary">
@@ -351,7 +351,7 @@ export function OrcamentoDataDialog({
             </Box>
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            Envie o PDF do orcamento para preencher automaticamente os campos
+            Envie o PDF do orçamento para preencher automaticamente os campos
           </Typography>
           {extracting && <LinearProgress sx={{ mt: 1 }} />}
         </Paper>
@@ -359,7 +359,7 @@ export function OrcamentoDataDialog({
         {/* Dados Basicos */}
         <Paper sx={{ p: 2, mb: 3 }}>
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Dados Basicos
+            Dados Básicos
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
@@ -607,10 +607,10 @@ export function OrcamentoDataDialog({
         {/* Condicoes Especiais */}
         <Paper sx={{ p: 2, mb: 3 }}>
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Condicoes Especiais
+            Condições Especiais
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
-            Clausulas, restricoes ou condicoes particulares deste orcamento
+            Cláusulas, restrições ou condições particulares deste orçamento
           </Typography>
           {formData.condicoesEspeciais.map((cond, index) => (
             <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1 }}>
@@ -650,14 +650,14 @@ export function OrcamentoDataDialog({
               }))
             }
           >
-            Adicionar Condicao
+            Adicionar Condição
           </Button>
         </Paper>
 
         {/* Observacoes */}
         <Paper sx={{ p: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Observacoes
+            Observações
           </Typography>
           <TextField
             fullWidth
@@ -668,7 +668,7 @@ export function OrcamentoDataDialog({
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, observacoes: e.target.value }))
             }
-            placeholder="Informacoes adicionais sobre o orcamento..."
+            placeholder="Informações adicionais sobre o orçamento..."
           />
         </Paper>
 

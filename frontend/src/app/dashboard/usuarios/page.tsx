@@ -353,8 +353,8 @@ export default function UsuariosPage() {
     if (!selectedUser) { handleMenuClose(); return }
 
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
-      message: `Tem certeza que deseja excluir o usuario "${selectedUser.name}"? Esta acao nao pode ser desfeita.`,
+      title: 'Confirmar exclusão',
+      message: `Tem certeza que deseja excluir o usuário "${selectedUser.name}"? Esta ação não pode ser desfeita.`,
       severity: 'error',
       confirmText: 'Excluir',
       cancelText: 'Cancelar',
@@ -450,7 +450,7 @@ export default function UsuariosPage() {
               onClick={() => { setFilterRole('ADMINISTRADORA'); setPage(0) }}
             />
             <StatCard
-              title="Sindico"
+              title="Síndico"
               value={stats.sindico}
               icon={PersonIcon}
               color="#d97706"
@@ -569,7 +569,7 @@ export default function UsuariosPage() {
                     <Typography variant="body2" color="text.disabled" sx={{ mt: 0.5 }}>
                       {search || filterRole || filterActive
                         ? 'Tente ajustar os filtros de busca'
-                        : 'Cadastre o primeiro usuario para comecar'
+                        : 'Cadastre o primeiro usuário para começar'
                       }
                     </Typography>
                     {!search && !filterRole && !filterActive && (
@@ -678,7 +678,7 @@ export default function UsuariosPage() {
               setRowsPerPage(parseInt(e.target.value, 10))
               setPage(0)
             }}
-            labelRowsPerPage="Linhas por pagina:"
+            labelRowsPerPage="Linhas por página:"
             labelDisplayedRows={({ from, to, count }) =>
               `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
             }
@@ -782,7 +782,7 @@ export default function UsuariosPage() {
               value={formData.organizationName}
               onChange={(e) => handleFormChange('organizationName', e.target.value)}
               size="small"
-              helperText="Nome da corretora, administradora ou condominio"
+              helperText="Nome da corretora, administradora ou condomínio"
             />
             <TextField
               fullWidth

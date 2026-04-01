@@ -24,16 +24,9 @@ import { motion } from 'framer-motion'
 import ApartmentIcon from '@mui/icons-material/Apartment'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import ReportProblemIcon from '@mui/icons-material/ReportProblem'
-import SmartToyIcon from '@mui/icons-material/SmartToy'
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import AddBusinessIcon from '@mui/icons-material/AddBusiness'
 import AssignmentIcon from '@mui/icons-material/Assignment'
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
-import FolderIcon from '@mui/icons-material/Folder'
-import RequestQuoteIcon from '@mui/icons-material/RequestQuote'
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -43,10 +36,8 @@ import ShieldIcon from '@mui/icons-material/Shield'
 import TimelineIcon from '@mui/icons-material/Timeline'
 import AnimatedCounter from '@/components/animations/AnimatedCounter'
 import MotionCard from '@/components/animations/MotionCard'
-import ActivityFeed from '@/components/dashboard/ActivityFeed'
 
 const SinistrosDonutChart = dynamic(() => import('@/components/dashboard/SinistrosDonutChart'), { ssr: false })
-const DocumentosByTypeChart = dynamic(() => import('@/components/dashboard/DocumentosByTypeChart'), { ssr: false })
 const VistoriasTimelineChart = dynamic(() => import('@/components/dashboard/VistoriasTimelineChart'), { ssr: false })
 const SeguradorasBarChart = dynamic(() => import('@/components/dashboard/SeguradorasBarChart'), { ssr: false })
 
@@ -70,7 +61,7 @@ export default function DashboardPage() {
   const { data: metrics, isLoading: loading, error: metricsError } = useDashboardMetrics()
   const { data: chartData, isLoading: chartsLoading } = useDashboardCharts()
 
-  const error = metricsError ? 'Erro ao carregar metricas' : null
+  const error = metricsError ? 'Erro ao carregar métricas' : null
 
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
@@ -80,19 +71,19 @@ export default function DashboardPage() {
     if (!metrics) return []
     const insights: AIInsight[] = []
     if (metrics.apolicesVencendo30dias > 0) {
-      insights.push({ type: 'warning', message: `${metrics.apolicesVencendo30dias} apolice(s) vencendo nos proximos 30 dias. Solicite novos orcamentos.` })
+      insights.push({ type: 'warning', message: `${metrics.apolicesVencendo30dias} apólice(s) vencendo nos próximos 30 dias. Solicite novos orçamentos.` })
     }
     if (metrics.sinistrosAbertos > 0) {
-      insights.push({ type: 'error', message: `${metrics.sinistrosAbertos} sinistro(s) aberto(s) aguardando acao. Acompanhe os prazos.` })
+      insights.push({ type: 'error', message: `${metrics.sinistrosAbertos} sinistro(s) aberto(s) aguardando ação. Acompanhe os prazos.` })
     }
     if (metrics.sinistrosEmAnalise > 0) {
-      insights.push({ type: 'info', message: `${metrics.sinistrosEmAnalise} sinistro(s) em analise pelas seguradoras.` })
+      insights.push({ type: 'info', message: `${metrics.sinistrosEmAnalise} sinistro(s) em análise pelas seguradoras.` })
     }
     if (metrics.notificacoesNaoLidas > 0) {
-      insights.push({ type: 'info', message: `Voce tem ${metrics.notificacoesNaoLidas} notificacao(oes) nao lida(s).` })
+      insights.push({ type: 'info', message: `Você tem ${metrics.notificacoesNaoLidas} notificação(ões) não lida(s).` })
     }
     if (insights.length === 0) {
-      insights.push({ type: 'success', message: 'Tudo em ordem! Condominios com coberturas adequadas e documentacao em dia.' })
+      insights.push({ type: 'success', message: 'Tudo em ordem! Condomínios com coberturas adequadas e documentação em dia.' })
     }
     return insights
   }, [metrics])
@@ -155,17 +146,6 @@ export default function DashboardPage() {
     ? ((metrics.valorTotalIndenizado || 0) / metrics.valorTotalPrejuizos) * 100
     : 0
 
-  // ─── Quick Actions config ───────────────────────────────
-
-  const quickActions = [
-    { label: 'Novo Condominio', icon: <AddBusinessIcon sx={{ fontSize: 18 }} />, color: '#3b82f6', href: '/dashboard/condominios/novo', roles: ['ADMIN', 'CORRETORA', 'ADMINISTRADORA'] },
-    { label: 'Nova Vistoria', icon: <AssignmentIcon sx={{ fontSize: 18 }} />, color: '#10b981', href: '/dashboard/vistorias', roles: ['ADMIN', 'CORRETORA', 'ADMINISTRADORA'] },
-    { label: 'Comparar Orcamentos', icon: <CompareArrowsIcon sx={{ fontSize: 18 }} />, color: '#8b5cf6', href: '/dashboard/comparar', roles: ['ADMIN', 'CORRETORA', 'ADMINISTRADORA'] },
-    { label: 'Assistente IA', icon: <AutoAwesomeIcon sx={{ fontSize: 18 }} />, color: '#f59e0b', href: '/dashboard/assistente', roles: ['ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO'] },
-    { label: 'Sinistros', icon: <ReportProblemIcon sx={{ fontSize: 18 }} />, color: '#ef4444', href: '/dashboard/sinistros', roles: ['ADMIN', 'CORRETORA'] },
-    { label: 'Meu Condominio', icon: <ApartmentIcon sx={{ fontSize: 18 }} />, color: '#3b82f6', href: '/dashboard/condominios', roles: ['SINDICO'] },
-  ].filter(a => a.roles.includes(user?.role || ''))
-
   // ═══════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════
@@ -180,7 +160,7 @@ export default function DashboardPage() {
               {getGreeting()}, {user?.name?.split(' ')[0]}!
             </Typography>
             <Chip
-              label={user?.role === 'ADMIN' ? 'Admin' : user?.role === 'CORRETORA' ? 'Corretora' : user?.role === 'ADMINISTRADORA' ? 'Adm.' : 'Sindico'}
+              label={user?.role === 'ADMIN' ? 'Admin' : user?.role === 'CORRETORA' ? 'Corretora' : user?.role === 'ADMINISTRADORA' ? 'Adm.' : 'Síndico'}
               size="small"
               sx={{ fontSize: '0.65rem', fontWeight: 600, height: 20, bgcolor: '#f1f5f9', color: '#64748b' }}
             />
@@ -194,27 +174,6 @@ export default function DashboardPage() {
             <RefreshIcon sx={{ fontSize: 20 }} />
           </IconButton>
         </Tooltip>
-      </Box>
-
-      {/* ─── Quick Actions (horizontal, no topo) ────────── */}
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-        {quickActions.map((action, idx) => (
-          <motion.div key={action.label} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
-            <Chip
-              icon={action.icon as React.ReactElement}
-              label={action.label}
-              onClick={() => router.push(action.href)}
-              sx={{
-                cursor: 'pointer', fontWeight: 600, fontSize: '0.78rem',
-                bgcolor: `${action.color}08`, color: action.color,
-                border: `1px solid ${action.color}25`,
-                '& .MuiChip-icon': { color: action.color },
-                '&:hover': { bgcolor: `${action.color}15`, borderColor: action.color },
-                transition: 'all 0.15s',
-              }}
-            />
-          </motion.div>
-        ))}
       </Box>
 
       {/* ─── Alerts ─────────────────────────────────────── */}
@@ -239,9 +198,9 @@ export default function DashboardPage() {
       {/* ─── Stats Row (unica) ──────────────────────────── */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
-          { title: 'Condominios', value: metrics?.totalCondominios || 0, sub: `${metrics?.totalApolices || 0} apolices`, icon: <ApartmentIcon />, color: '#3b82f6', href: '/dashboard/condominios' },
-          { title: 'Apolices Vencendo', value: metrics?.apolicesVencendo30dias || 0, sub: 'Proximos 30 dias', icon: <WarningAmberIcon />, color: (metrics?.apolicesVencendo30dias || 0) > 0 ? '#f59e0b' : '#10b981', href: '/dashboard/documentos' },
-          { title: 'Sinistros', value: (metrics?.sinistrosAbertos || 0) + (metrics?.sinistrosEmAnalise || 0), sub: `${metrics?.sinistrosEmAnalise || 0} em analise`, icon: <ReportProblemIcon />, color: (metrics?.sinistrosAbertos || 0) > 0 ? '#ef4444' : '#10b981', href: '/dashboard/sinistros' },
+          { title: 'Condomínios', value: metrics?.totalCondominios || 0, sub: `${metrics?.totalApolices || 0} apólices`, icon: <ApartmentIcon />, color: '#3b82f6', href: '/dashboard/condominios' },
+          { title: 'Apólices Vencendo', value: metrics?.apolicesVencendo30dias || 0, sub: 'Próximos 30 dias', icon: <WarningAmberIcon />, color: (metrics?.apolicesVencendo30dias || 0) > 0 ? '#f59e0b' : '#10b981', href: '/dashboard/documentos' },
+          { title: 'Sinistros', value: (metrics?.sinistrosAbertos || 0) + (metrics?.sinistrosEmAnalise || 0), sub: `${metrics?.sinistrosEmAnalise || 0} em análise`, icon: <ReportProblemIcon />, color: (metrics?.sinistrosAbertos || 0) > 0 ? '#ef4444' : '#10b981', href: '/dashboard/sinistros' },
           { title: 'Vistorias', value: vistoriasTotal, sub: `${metrics?.vistoriasAgendadas || 0} agendadas`, icon: <AssignmentIcon />, color: '#10b981', href: '/dashboard/vistorias' },
         ].map((stat, idx) => (
           <Grid item xs={6} md={3} key={stat.title}>
@@ -268,10 +227,10 @@ export default function DashboardPage() {
         ))}
       </Grid>
 
-      {/* ─── Main Content (2 columns) ───────────────────── */}
+      {/* ─── Main Content ──────────────────────────────── */}
       <Grid container spacing={3}>
-        {/* Left Column */}
-        <Grid item xs={12} md={8}>
+        {/* Main Column */}
+        <Grid item xs={12}>
           {/* Charts 2x2 */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} md={6}>
@@ -282,15 +241,7 @@ export default function DashboardPage() {
                 )}
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Documentos por Tipo</Typography>
-                {chartsLoading ? <Skeleton variant="rounded" height={220} animation="wave" /> : (
-                  <DocumentosByTypeChart data={chartData?.documentosByTipo || []} />
-                )}
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            {user?.role === 'CORRETORA' && (<Grid item xs={12} md={6}>
               <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1 }}>
                   <TimelineIcon sx={{ color: '#3b82f6', fontSize: 18 }} />
@@ -300,23 +251,23 @@ export default function DashboardPage() {
                   <VistoriasTimelineChart data={chartData?.vistoriasByMonth || []} />
                 )}
               </Paper>
-            </Grid>
-            <Grid item xs={12} md={6}>
+            </Grid>)}
+            {user?.role === 'CORRETORA' && (<Grid item xs={12} md={6}>
               <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Top Seguradoras</Typography>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Seguradoras</Typography>
                 {chartsLoading ? <Skeleton variant="rounded" height={220} animation="wave" /> : (
                   <SeguradorasBarChart data={chartData?.topSeguradoras || []} />
                 )}
               </Paper>
-            </Grid>
+            </Grid>)}
           </Grid>
 
-          {/* Apolices Vencendo */}
+          {/* Apólices Vencendo */}
           <Paper sx={{ p: 2.5, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <ShieldIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
-                <Typography variant="subtitle2" fontWeight="bold">Apolices Vencendo</Typography>
+                <Typography variant="subtitle2" fontWeight="bold">Apólices Vencendo</Typography>
                 {(metrics?.apolicesVencendo30dias || 0) > 0 && (
                   <Chip label={metrics?.apolicesVencendo30dias} size="small" sx={{ bgcolor: '#fef3c7', color: '#f59e0b', fontWeight: 700, height: 20, fontSize: '0.7rem' }} />
                 )}
@@ -328,7 +279,7 @@ export default function DashboardPage() {
             {(!metrics?.proximasApolicesVencer || metrics.proximasApolicesVencer.length === 0) ? (
               <Box sx={{ textAlign: 'center', py: 3 }}>
                 <CheckCircleIcon sx={{ fontSize: 36, color: '#22c55e', mb: 0.5 }} />
-                <Typography variant="caption" color="text.secondary" display="block">Nenhuma apolice vencendo nos proximos 30 dias</Typography>
+                <Typography variant="caption" color="text.secondary" display="block">Nenhuma apólice vencendo nos próximos 30 dias</Typography>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
@@ -348,7 +299,7 @@ export default function DashboardPage() {
                           <Box>
                             <Typography variant="body2" fontWeight={600} sx={{ fontSize: '0.82rem' }}>{apolice.condominioNome}</Typography>
                             <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                              {apolice.seguradoraNome || 'Seguradora nao informada'} - Vence em {new Date(apolice.dataVencimento).toLocaleDateString('pt-BR')}
+                              {apolice.seguradoraNome || 'Seguradora não informada'} - Vence em {new Date(apolice.dataVencimento).toLocaleDateString('pt-BR')}
                             </Typography>
                           </Box>
                         </Box>
@@ -377,7 +328,7 @@ export default function DashboardPage() {
                 <Box sx={{ flex: 1, minWidth: 160, p: 1.5, borderRadius: 1.5, bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.25 }}>
                     <TrendingDownIcon sx={{ fontSize: 14, color: '#ef4444' }} />
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.65rem' }}>PREJUIZOS</Typography>
+                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.65rem' }}>PREJUÍZOS</Typography>
                   </Box>
                   <Typography variant="h6" fontWeight="bold" sx={{ color: '#ef4444', lineHeight: 1.2 }}>
                     {formatCurrency(metrics?.valorTotalPrejuizos)}
@@ -413,7 +364,7 @@ export default function DashboardPage() {
             <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                 <AttachMoneyIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-                <Typography variant="subtitle2" fontWeight="bold">Valor Total dos Prejuizos</Typography>
+                <Typography variant="subtitle2" fontWeight="bold">Valor Total dos Prejuízos</Typography>
               </Box>
               <Box sx={{ p: 1.5, borderRadius: 1.5, bgcolor: '#fef2f2', border: '1px solid #fecaca', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
                 <TrendingDownIcon sx={{ fontSize: 18, color: '#ef4444' }} />
@@ -425,76 +376,6 @@ export default function DashboardPage() {
           )}
         </Grid>
 
-        {/* Right Column */}
-        <Grid item xs={12} md={4}>
-          {/* Resumo Rapido */}
-          <Paper sx={{ p: 2.5, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Resumo</Typography>
-            {[
-              { label: 'Documentos', value: metrics?.totalDocumentos || 0, icon: <FolderIcon sx={{ fontSize: 18 }} />, color: '#8b5cf6', href: '/dashboard/documentos' },
-              { label: 'Orcamentos', value: metrics?.totalOrcamentos || 0, icon: <RequestQuoteIcon sx={{ fontSize: 18 }} />, color: '#06b6d4' },
-              { label: 'Notificacoes', value: metrics?.notificacoesNaoLidas || 0, icon: <NotificationsActiveIcon sx={{ fontSize: 18 }} />, color: (metrics?.notificacoesNaoLidas || 0) > 0 ? '#f59e0b' : '#94a3b8', href: '/dashboard/notificacoes', badge: (metrics?.notificacoesNaoLidas || 0) > 0 },
-            ].map((item) => (
-              <Box
-                key={item.label}
-                onClick={() => item.href ? router.push(item.href) : undefined}
-                sx={{
-                  display: 'flex', alignItems: 'center', gap: 1.5, py: 1, px: 1,
-                  borderRadius: 1.5, cursor: item.href ? 'pointer' : 'default',
-                  '&:hover': item.href ? { bgcolor: '#f8fafc' } : {},
-                  transition: 'all 0.15s',
-                }}
-              >
-                <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: `${item.color}12`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color, flexShrink: 0 }}>
-                  {item.icon}
-                </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>{item.label}</Typography>
-                <Typography variant="body2" fontWeight={700}>{item.value}</Typography>
-                {item.badge && (
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
-                )}
-              </Box>
-            ))}
-          </Paper>
-
-          {/* Activity Feed */}
-          <Paper sx={{ p: 2.5, mb: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Atividade Recente</Typography>
-            {chartsLoading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {[1, 2, 3].map(i => <Skeleton key={i} variant="rounded" height={40} animation="wave" />)}
-              </Box>
-            ) : (
-              <ActivityFeed events={chartData?.recentActivity || []} />
-            )}
-          </Paper>
-
-          {/* AI Insights */}
-          <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none', background: 'linear-gradient(135deg, #667eea05 0%, #764ba205 100%)' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <SmartToyIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-                <Typography variant="subtitle2" fontWeight="bold">Insights</Typography>
-              </Box>
-              <Button size="small" onClick={() => router.push('/dashboard/diagnostico')} sx={{ color: '#6366f1', minWidth: 'auto', fontSize: '0.75rem' }}>
-                Diagnostico
-              </Button>
-            </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-              {aiInsights.map((insight, idx) => {
-                const colors = getInsightColor(insight.type)
-                return (
-                  <motion.div key={idx} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + idx * 0.1 }}>
-                    <Box sx={{ p: 1.25, borderRadius: 1.5, bgcolor: colors.bg, borderLeft: `3px solid ${colors.border}`, display: 'flex', alignItems: 'flex-start', gap: 0.75 }}>
-                      <Box sx={{ color: colors.border, mt: 0.1 }}>{getInsightIcon(insight.type)}</Box>
-                      <Typography variant="caption" sx={{ color: colors.text, lineHeight: 1.4 }}>{insight.message}</Typography>
-                    </Box>
-                  </motion.div>
-                )
-              })}
-            </Box>
-          </Paper>
-        </Grid>
       </Grid>
     </Box>
   )

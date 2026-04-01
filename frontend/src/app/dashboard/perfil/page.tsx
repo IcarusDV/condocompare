@@ -36,7 +36,7 @@ const roleLabels: Record<string, { label: string; color: 'primary' | 'secondary'
   ADMIN: { label: 'Administrador', color: 'primary' },
   CORRETORA: { label: 'Corretora', color: 'secondary' },
   ADMINISTRADORA: { label: 'Administradora', color: 'success' },
-  SINDICO: { label: 'Sindico', color: 'warning' },
+  SINDICO: { label: 'Síndico', color: 'warning' },
 }
 
 export default function PerfilPage() {
@@ -120,7 +120,7 @@ export default function PerfilPage() {
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
-      setSnackbar({ open: true, message: 'As senhas nao coincidem', severity: 'error' })
+      setSnackbar({ open: true, message: 'As senhas não coincidem', severity: 'error' })
       return
     }
 
@@ -168,7 +168,7 @@ export default function PerfilPage() {
           Meu Perfil
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Gerencie suas informacoes pessoais, senha e preferencias
+          Gerencie suas informações pessoais, senha e preferências
         </Typography>
       </Box>
 
@@ -240,7 +240,7 @@ export default function PerfilPage() {
             value={email}
             fullWidth
             disabled
-            helperText="O email nao pode ser alterado"
+            helperText="O email não pode ser alterado"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -251,11 +251,11 @@ export default function PerfilPage() {
           />
 
           <TextField
-            label="Organizacao"
+            label="Organização"
             value={organizationName}
             onChange={(e) => setOrganizationName(e.target.value)}
             fullWidth
-            placeholder="Nome da sua organizacao"
+            placeholder="Nome da sua organização"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -273,7 +273,7 @@ export default function PerfilPage() {
               disabled={profileLoading || !name.trim()}
               sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
             >
-              Salvar Alteracoes
+              Salvar Alterações
             </Button>
           </Box>
         </Box>
@@ -319,7 +319,7 @@ export default function PerfilPage() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             fullWidth
-            helperText="Minimo de 6 caracteres"
+            helperText="Mínimo de 6 caracteres"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -347,7 +347,7 @@ export default function PerfilPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             fullWidth
             error={confirmPassword.length > 0 && newPassword !== confirmPassword}
-            helperText={confirmPassword.length > 0 && newPassword !== confirmPassword ? 'As senhas nao coincidem' : ''}
+            helperText={confirmPassword.length > 0 && newPassword !== confirmPassword ? 'As senhas não coincidem' : ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -385,14 +385,14 @@ export default function PerfilPage() {
       {/* Preferences Section */}
       <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-          Preferencias
+          Preferências
         </Typography>
         <Divider sx={{ mb: 3 }} />
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box>
             <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
-              Notificacoes
+              Notificações
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pl: 1 }}>
               <FormControlLabel
@@ -405,9 +405,9 @@ export default function PerfilPage() {
                 }
                 label={
                   <Box>
-                    <Typography variant="body2">Notificacoes por email</Typography>
+                    <Typography variant="body2">Notificações por email</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Receba alertas de vencimento de apolice e atualizacoes por email
+                      Receba alertas de vencimento de apólice e atualizações por email
                     </Typography>
                   </Box>
                 }
@@ -422,9 +422,9 @@ export default function PerfilPage() {
                 }
                 label={
                   <Box>
-                    <Typography variant="body2">Notificacoes push</Typography>
+                    <Typography variant="body2">Notificações push</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Receba notificacoes em tempo real no navegador
+                      Receba notificações em tempo real no navegador
                     </Typography>
                   </Box>
                 }
@@ -445,19 +445,19 @@ export default function PerfilPage() {
                 label="Idioma"
                 onChange={(e) => setIdioma(e.target.value)}
               >
-                <MenuItem value="pt-BR">Portugues (Brasil)</MenuItem>
+                <MenuItem value="pt-BR">Português (Brasil)</MenuItem>
                 <MenuItem value="en-US" disabled>
                   English (em breve)
                 </MenuItem>
                 <MenuItem value="es" disabled>
-                  Espanol (em breve)
+                  Español (em breve)
                 </MenuItem>
               </Select>
             </FormControl>
           </Box>
 
           <Alert severity="info" sx={{ mt: 1 }}>
-            As preferencias de notificacao e idioma estarao disponiveis em breve.
+            As preferências de notificação e idioma estarão disponíveis em breve.
           </Alert>
         </Box>
       </Paper>

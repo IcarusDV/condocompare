@@ -28,7 +28,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import PhoneIcon from '@mui/icons-material/Phone'
 import EmailIcon from '@mui/icons-material/Email'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import VerifiedIcon from '@mui/icons-material/Verified'
 import BusinessIcon from '@mui/icons-material/Business'
 import LanguageIcon from '@mui/icons-material/Language'
 import WhatsAppIcon from '@mui/icons-material/WhatsApp'
@@ -39,8 +38,6 @@ import HandymanIcon from '@mui/icons-material/Handyman'
 import DescriptionIcon from '@mui/icons-material/Description'
 import MapIcon from '@mui/icons-material/Map'
 import NotesIcon from '@mui/icons-material/Notes'
-import BlockIcon from '@mui/icons-material/Block'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import StarIcon from '@mui/icons-material/Star'
 import ElevatorIcon from '@mui/icons-material/Elevator'
@@ -62,6 +59,7 @@ import WindowIcon from '@mui/icons-material/Window'
 import GroupsIcon from '@mui/icons-material/Groups'
 import ShieldIcon from '@mui/icons-material/Shield'
 import BuildIcon from '@mui/icons-material/Build'
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
 import { parceiroService } from '@/services/parceiroService'
 import {
   ParceiroResponse,
@@ -123,7 +121,6 @@ export default function ParceiroDetalhePage() {
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const [actionLoading, setActionLoading] = useState(false)
   const [snackMessage, setSnackMessage] = useState<string | null>(null)
 
   const loadParceiro = useCallback(async () => {
@@ -155,38 +152,6 @@ export default function ParceiroDetalhePage() {
       setDeleteDialogOpen(false)
     } finally {
       setDeleting(false)
-    }
-  }
-
-  const handleToggleAtivo = async () => {
-    if (!parceiro) return
-    try {
-      setActionLoading(true)
-      if (parceiro.ativo) {
-        await parceiroService.deactivate(id)
-      } else {
-        await parceiroService.activate(id)
-      }
-      await loadParceiro()
-    } catch (err) {
-      console.error('Error toggling ativo:', err)
-      setError('Erro ao alterar status do parceiro')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleVerificar = async () => {
-    if (!parceiro || parceiro.verificado) return
-    try {
-      setActionLoading(true)
-      await parceiroService.verify(id)
-      await loadParceiro()
-    } catch (err) {
-      console.error('Error verifying parceiro:', err)
-      setError('Erro ao verificar parceiro')
-    } finally {
-      setActionLoading(false)
     }
   }
 
@@ -294,18 +259,6 @@ export default function ParceiroDetalhePage() {
               <Typography variant="h5" fontWeight="bold">
                 {parceiro.nomeFantasia || parceiro.nome}
               </Typography>
-              {parceiro.verificado && (
-                <Chip
-                  icon={<VerifiedIcon sx={{ color: '#22c55e !important', fontSize: 16 }} />}
-                  label="Verificado"
-                  size="small"
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }}
-                />
-              )}
-              {!parceiro.ativo && (
-                <Chip label="Inativo" size="small"
-                  sx={{ bgcolor: 'rgba(239,68,68,0.3)', color: 'white', fontWeight: 600, fontSize: '0.7rem' }} />
-              )}
             </Box>
             {parceiro.nomeFantasia && parceiro.nome !== parceiro.nomeFantasia && (
               <Typography variant="body2" sx={{ opacity: 0.8 }}>{parceiro.nome}</Typography>
@@ -331,57 +284,16 @@ export default function ParceiroDetalhePage() {
       <Grid container spacing={3}>
         {/* ─── Left column: Identity & Actions ────────── */}
         <Grid item xs={12} md={4}>
-          {/* Status & Actions */}
+          {/* Avaliação & Timestamps */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
             <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
-              Status e Acoes
+              Informações
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {/* Ativo/Inativo */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {parceiro.ativo ? (
-                    <CheckCircleIcon sx={{ fontSize: 20, color: '#22c55e' }} />
-                  ) : (
-                    <BlockIcon sx={{ fontSize: 20, color: '#ef4444' }} />
-                  )}
-                  <Typography variant="body2" fontWeight={600}>
-                    {parceiro.ativo ? 'Ativo' : 'Inativo'}
-                  </Typography>
-                </Box>
-                <Button size="small" variant="outlined" onClick={handleToggleAtivo} disabled={actionLoading}
-                  sx={{
-                    textTransform: 'none', fontSize: '0.75rem',
-                    borderColor: parceiro.ativo ? '#ef4444' : '#22c55e',
-                    color: parceiro.ativo ? '#ef4444' : '#22c55e',
-                    '&:hover': { bgcolor: parceiro.ativo ? '#fef2f2' : '#f0fdf4' },
-                  }}>
-                  {parceiro.ativo ? 'Desativar' : 'Ativar'}
-                </Button>
-              </Box>
-
-              {/* Verificado */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <VerifiedIcon sx={{ fontSize: 20, color: parceiro.verificado ? '#22c55e' : '#94a3b8' }} />
-                  <Typography variant="body2" fontWeight={600}>
-                    {parceiro.verificado ? 'Verificado' : 'Nao verificado'}
-                  </Typography>
-                </Box>
-                {!parceiro.verificado && (
-                  <Button size="small" variant="outlined" onClick={handleVerificar} disabled={actionLoading}
-                    sx={{ textTransform: 'none', fontSize: '0.75rem', borderColor: '#6366f1', color: '#6366f1' }}>
-                    Verificar
-                  </Button>
-                )}
-              </Box>
-
-              <Divider sx={{ my: 0.5 }} />
-
               {/* Rating */}
               <Box>
-                <Typography variant="caption" color="text.secondary">Avaliacao</Typography>
+                <Typography variant="caption" color="text.secondary">Avaliação</Typography>
                 {parceiro.avaliacao !== undefined && parceiro.avaliacao !== null ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                     <Box sx={{
@@ -395,7 +307,7 @@ export default function ParceiroDetalhePage() {
                     <Typography variant="caption" color="text.secondary">({parceiro.totalAvaliacoes || 0})</Typography>
                   </Box>
                 ) : (
-                  <Typography variant="body2" color="text.secondary">Sem avaliacao</Typography>
+                  <Typography variant="body2" color="text.secondary">Sem avaliação</Typography>
                 )}
               </Box>
 
@@ -424,7 +336,7 @@ export default function ParceiroDetalhePage() {
           {/* Quick Contact */}
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
             <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ mb: 2, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.7rem' }}>
-              Contato Rapido
+              Contato Rápido
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {parceiro.celular && (
@@ -466,7 +378,7 @@ export default function ParceiroDetalhePage() {
           <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <HandymanIcon sx={{ color: '#6366f1' }} />
-              <Typography variant="h6" fontWeight={700}>Categorias de Servico</Typography>
+              <Typography variant="h6" fontWeight={700}>Categorias de Serviço</Typography>
             </Box>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {parceiro.categorias.map((cat) => {
@@ -494,7 +406,7 @@ export default function ParceiroDetalhePage() {
               <Box sx={{ mt: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <DescriptionIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Descricao dos Servicos</Typography>
+                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Descrição dos Serviços</Typography>
                 </Box>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#374151', lineHeight: 1.8 }}>
                   {parceiro.descricaoServicos}
@@ -507,11 +419,22 @@ export default function ParceiroDetalhePage() {
               <Box sx={{ mt: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <MapIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Area de Atuacao</Typography>
+                  <Typography variant="subtitle2" fontWeight={600} color="text.secondary">Área de Atuação</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">{parceiro.areaAtuacao}</Typography>
               </Box>
             )}
+          </Paper>
+
+          {/* Benefício */}
+          <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <CardGiftcardIcon sx={{ color: '#6366f1' }} />
+              <Typography variant="h6" fontWeight={700}>Benefício</Typography>
+            </Box>
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: parceiro.beneficio ? '#374151' : '#94a3b8', lineHeight: 1.8 }}>
+              {parceiro.beneficio || 'Nenhum benefício cadastrado'}
+            </Typography>
           </Paper>
 
           {/* Dados Cadastrais */}
@@ -522,7 +445,7 @@ export default function ParceiroDetalhePage() {
             </Box>
             <Grid container spacing={2}>
               {[
-                { label: 'Razao Social', value: parceiro.nome, icon: <BusinessIcon sx={{ fontSize: 16 }} /> },
+                { label: 'Razão Social', value: parceiro.nome, icon: <BusinessIcon sx={{ fontSize: 16 }} /> },
                 { label: 'Nome Fantasia', value: parceiro.nomeFantasia, icon: <BusinessIcon sx={{ fontSize: 16 }} /> },
                 { label: 'CNPJ', value: parceiro.cnpj, icon: <BadgeIcon sx={{ fontSize: 16 }} />, copyable: true },
                 { label: 'CPF', value: parceiro.cpf, icon: <BadgeIcon sx={{ fontSize: 16 }} />, copyable: true },
@@ -558,7 +481,7 @@ export default function ParceiroDetalhePage() {
             <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <LocationOnIcon sx={{ color: '#6366f1' }} />
-                <Typography variant="h6" fontWeight={700}>Endereco</Typography>
+                <Typography variant="h6" fontWeight={700}>Endereço</Typography>
               </Box>
               <Typography variant="body2" sx={{ color: '#374151', lineHeight: 1.8 }}>
                 {enderecoCompleto}
@@ -571,7 +494,7 @@ export default function ParceiroDetalhePage() {
             <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <PersonIcon sx={{ color: '#6366f1' }} />
-                <Typography variant="h6" fontWeight={700}>Contato Responsavel</Typography>
+                <Typography variant="h6" fontWeight={700}>Contato Responsável</Typography>
               </Box>
               <Grid container spacing={2}>
                 {parceiro.contatoNome && (
@@ -595,7 +518,7 @@ export default function ParceiroDetalhePage() {
             <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <NotesIcon sx={{ color: '#6366f1' }} />
-                <Typography variant="h6" fontWeight={700}>Observacoes</Typography>
+                <Typography variant="h6" fontWeight={700}>Observações</Typography>
               </Box>
               <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#374151', lineHeight: 1.8 }}>
                 {parceiro.observacoes}
@@ -611,7 +534,7 @@ export default function ParceiroDetalhePage() {
         <DialogContent>
           <DialogContentText>
             Tem certeza que deseja excluir o parceiro <strong>{parceiro.nomeFantasia || parceiro.nome}</strong>?
-            Esta acao nao pode ser desfeita.
+            Esta ação não pode ser desfeita.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

@@ -14,8 +14,8 @@ const TIPO_COLORS: Record<string, string> = {
 }
 
 const TIPO_LABELS: Record<string, string> = {
-  APOLICE: 'Apolice',
-  ORCAMENTO: 'Orcamento',
+  APOLICE: 'Apólice',
+  ORCAMENTO: 'Orçamento',
   CONDICOES_GERAIS: 'Cond. Gerais',
   LAUDO_VISTORIA: 'Laudo',
   SINISTRO: 'Sinistro',

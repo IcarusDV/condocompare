@@ -35,7 +35,7 @@ function sanitizeErrorMessage(error: Error): string {
   const message = error.message || ''
 
   if (isAuthError(error)) {
-    return 'Sua sessao expirou ou voce nao tem permissao. Redirecionando para o login...'
+    return 'Sua sessão expirou ou você não tem permissão. Redirecionando para o login...'
   }
 
   // Don't expose stack traces or internal details

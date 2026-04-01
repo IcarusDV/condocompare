@@ -125,7 +125,7 @@ export default function BuscarParceirosPage() {
 
   const handleSearch = async () => {
     if (!condominioDetails) {
-      setError('Selecione um condominio primeiro')
+      setError('Selecione um condomínio primeiro')
       return
     }
 

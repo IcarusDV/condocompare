@@ -149,33 +149,33 @@ const stats = [
 
 const features = [
   {
-    title: 'Comparar Orcamentos',
+    title: 'Comparar Orçamentos',
     description:
-      'Compare orcamentos lado a lado com detalhamento completo de coberturas, franquias e valores. Ranking automatico identifica a melhor opcao em segundos.',
-    longDescription: 'Importe orcamentos de diferentes seguradoras e tenha uma visao consolidada com grafico radar, matriz de coberturas e recomendacao automatica baseada em custo-beneficio.',
+      'Compare orçamentos lado a lado com detalhamento completo de coberturas, franquias e valores. Ranking automático identifica a melhor opção em segundos.',
+    longDescription: 'Importe orçamentos de diferentes seguradoras e tenha uma visão consolidada com gráfico radar, matriz de coberturas e recomendação automática baseada em custo-benefício.',
     icon: CompareIcon,
     color: '#6366f1',
   },
   {
-    title: 'Analise de Apolice',
+    title: 'Análise de Apólice',
     description:
-      'Cruzamento inteligente entre caracteristicas do condominio, coberturas contratadas e condicoes gerais da seguradora.',
-    longDescription: 'Identifique lacunas de cobertura, riscos nao cobertos e oportunidades de economia com diagnostico automatico alimentado por IA.',
+      'Cruzamento inteligente entre características do condomínio, coberturas contratadas e condições gerais da seguradora.',
+    longDescription: 'Identifique lacunas de cobertura, riscos não cobertos e oportunidades de economia com diagnóstico automático alimentado por IA.',
     icon: AnalyticsIcon,
     color: '#3b82f6',
   },
   {
-    title: 'Diagnostico Tecnico',
+    title: 'Diagnóstico Técnico',
     description:
-      'Score de cobertura, dashboard com recomendacoes e relatorio tecnico resumido. Sugestoes de seguros complementares incluidas.',
-    longDescription: 'Cada condominio recebe um score personalizado baseado em suas caracteristicas, com acoes prioritarias para melhorar a protecao.',
+      'Score de cobertura, dashboard com recomendações e relatório técnico resumido. Sugestões de seguros complementares incluídas.',
+    longDescription: 'Cada condomínio recebe um score personalizado baseado em suas características, com ações prioritárias para melhorar a proteção.',
     icon: VerifiedUserIcon,
     color: '#22c55e',
   },
   {
     title: 'Vistoria Digital',
     description:
-      'Tres niveis de vistoria: basica com fotos e checklist, intermediaria com apontamentos tecnicos e completa com laudo tecnico.',
+      'Três níveis de vistoria: básica com fotos e checklist, intermediária com apontamentos técnicos e completa com laudo técnico.',
     longDescription: 'Compartilhe vistorias por link externo, acompanhe o progresso do checklist em tempo real e gere laudos profissionais automaticamente.',
     icon: CameraAltIcon,
     color: '#f59e0b',
@@ -183,16 +183,16 @@ const features = [
   {
     title: 'Central de Sinistros',
     description:
-      'Acompanhamento em tempo real dos sinistros do condominio. Historico completo e atualizacao do status de cada ocorrencia.',
-    longDescription: 'Registre sinistros com fotos e documentos, acompanhe prazos e status com a seguradora, e mantenha todo o historico organizado.',
+      'Acompanhamento em tempo real dos sinistros do condomínio. Histórico completo e atualização do status de cada ocorrência.',
+    longDescription: 'Registre sinistros com fotos e documentos, acompanhe prazos e status com a seguradora, e mantenha todo o histórico organizado.',
     icon: ReportProblemIcon,
     color: '#ef4444',
   },
   {
     title: 'Assistente IA',
     description:
-      'Tire duvidas sobre coberturas, franquias e regras do seguro. Analise de documentos com inteligencia artificial avancada.',
-    longDescription: 'Nosso assistente foi treinado com condicoes gerais de todas as principais seguradoras, legislacao e normativas do seguro condominial.',
+      'Tire dúvidas sobre coberturas, franquias e regras do seguro. Análise de documentos com inteligência artificial avançada.',
+    longDescription: 'Nosso assistente foi treinado com condições gerais de todas as principais seguradoras, legislação e normativas do seguro condominial.',
     icon: AssistantIcon,
     color: '#8b5cf6',
   },
@@ -203,21 +203,21 @@ const steps = [
     number: '01',
     title: 'Importe seus documentos',
     description:
-      'Faca upload de apolices, orcamentos, propostas e demais documentos. Aceitamos PDF e outros formatos.',
+      'Faça upload de apólices, orçamentos, propostas e demais documentos. Aceitamos PDF e outros formatos.',
     icon: CloudUploadIcon,
   },
   {
     number: '02',
     title: 'IA analisa automaticamente',
     description:
-      'Nossa inteligencia artificial extrai, organiza e cruza informacoes de todos os documentos em segundos.',
+      'Nossa inteligência artificial extrai, organiza e cruza informações de todos os documentos em segundos.',
     icon: AutoAwesomeIcon,
   },
   {
     number: '03',
-    title: 'Receba recomendacoes',
+    title: 'Receba recomendações',
     description:
-      'Obtenha diagnosticos, scores de cobertura, comparativos e recomendacoes personalizadas.',
+      'Obtenha diagnósticos, scores de cobertura, comparativos e recomendações personalizadas.',
     icon: CheckCircleOutlineIcon,
   },
 ]
@@ -225,19 +225,19 @@ const steps = [
 const showcaseItems = [
   {
     title: 'Dashboard Inteligente',
-    description: 'Visao consolidada de todos os condominios, apolices vigentes, sinistros e alertas em um unico painel.',
+    description: 'Visão consolidada de todos os condomínios, apólices vigentes, sinistros e alertas em um único painel.',
     icon: DashboardIcon,
     gradient: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
   },
   {
-    title: 'Comparacao Visual',
-    description: 'Graficos radar, matriz de coberturas e ranking automatico para comparar orcamentos de forma intuitiva.',
+    title: 'Comparação Visual',
+    description: 'Gráficos radar, matriz de coberturas e ranking automático para comparar orçamentos de forma intuitiva.',
     icon: SpeedIcon,
     gradient: 'linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)',
   },
   {
     title: 'Vistoria Completa',
-    description: 'Checklist digital, galeria de fotos, laudo tecnico e compartilhamento por link externo em uma unica ferramenta.',
+    description: 'Checklist digital, galeria de fotos, laudo técnico e compartilhamento por link externo em uma única ferramenta.',
     icon: PhotoLibraryIcon,
     gradient: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
   },
@@ -245,23 +245,23 @@ const showcaseItems = [
 
 const plans = [
   {
-    name: 'Basico',
-    description: 'Para sindicos e pequenas administradoras',
+    name: 'Básico',
+    description: 'Para síndicos e pequenas administradoras',
     monthlyPrice: 0,
     yearlyPrice: 0,
     isFree: true,
     highlight: false,
     features: [
-      { text: 'Ate 5 condominios', included: true },
-      { text: 'Comparacao basica de orcamentos', included: true },
-      { text: '1 usuario', included: true },
-      { text: 'Historico de documentos', included: true },
-      { text: 'Diagnostico tecnico', included: false },
+      { text: 'Até 5 condomínios', included: true },
+      { text: 'Comparação básica de orçamentos', included: true },
+      { text: '1 usuário', included: true },
+      { text: 'Histórico de documentos', included: true },
+      { text: 'Diagnóstico técnico', included: false },
       { text: 'Assistente IA', included: false },
       { text: 'Vistoria digital', included: false },
       { text: 'Central de sinistros', included: false },
     ],
-    cta: 'Comecar Gratis',
+    cta: 'Começar Grátis',
   },
   {
     name: 'Profissional',
@@ -271,31 +271,31 @@ const plans = [
     isFree: false,
     highlight: true,
     features: [
-      { text: 'Condominios ilimitados', included: true },
+      { text: 'Condomínios ilimitados', included: true },
       { text: 'Todas as funcionalidades', included: true },
-      { text: 'Ate 10 usuarios', included: true },
+      { text: 'Até 10 usuários', included: true },
       { text: 'Assistente IA completo', included: true },
-      { text: 'Diagnostico tecnico', included: true },
-      { text: 'Vistoria digital (3 niveis)', included: true },
+      { text: 'Diagnóstico técnico', included: true },
+      { text: 'Vistoria digital (3 níveis)', included: true },
       { text: 'Central de sinistros', included: true },
-      { text: 'Relatorios avancados', included: true },
+      { text: 'Relatórios avançados', included: true },
     ],
     cta: 'Assinar Agora',
   },
   {
     name: 'Enterprise',
-    description: 'Para grandes operacoes e white-label',
+    description: 'Para grandes operações e white-label',
     monthlyPrice: -1,
     yearlyPrice: -1,
     isFree: false,
     highlight: false,
     features: [
       { text: 'Tudo do Profissional', included: true },
-      { text: 'Usuarios ilimitados', included: true },
+      { text: 'Usuários ilimitados', included: true },
       { text: 'API dedicada', included: true },
       { text: 'White-label personalizado', included: true },
       { text: 'Suporte premium 24/7', included: true },
-      { text: 'Integracao personalizada', included: true },
+      { text: 'Integração personalizada', included: true },
       { text: 'SLA garantido', included: true },
       { text: 'Gerente de conta dedicado', included: true },
     ],
@@ -306,75 +306,75 @@ const plans = [
 const testimonials = [
   {
     name: 'Roberto Mendes',
-    role: 'Sindico',
-    company: 'Residencial Parque das Aguas',
-    text: 'O CondoCompare transformou a forma como gerencio o seguro do condominio. Antes eu levava semanas para comparar orcamentos. Agora faco tudo em minutos, com muito mais confianca nas decisoes.',
+    role: 'Síndico',
+    company: 'Residencial Parque das Águas',
+    text: 'O CondoCompare transformou a forma como gerencio o seguro do condomínio. Antes eu levava semanas para comparar orçamentos. Agora faço tudo em minutos, com muito mais confiança nas decisões.',
     avatar: 'RM',
   },
   {
     name: 'Carla Ferreira',
     role: 'Corretora de Seguros',
     company: 'CF Seguros',
-    text: 'A plataforma me permite atender muito mais clientes com qualidade superior. O diagnostico tecnico automatico e o assistente IA sao ferramentas que nao existiam no mercado.',
+    text: 'A plataforma me permite atender muito mais clientes com qualidade superior. O diagnóstico técnico automático e o assistente IA são ferramentas que não existiam no mercado.',
     avatar: 'CF',
   },
   {
     name: 'Marcos Almeida',
     role: 'Administradora',
-    company: 'Premier Administracao',
-    text: 'Administramos mais de 80 condominios e o CondoCompare centralizou tudo. A importacao de documentos e a analise automatica economizam horas de trabalho toda semana.',
+    company: 'Premier Administração',
+    text: 'Administramos mais de 80 condomínios e o CondoCompare centralizou tudo. A importação de documentos e a análise automática economizam horas de trabalho toda semana.',
     avatar: 'MA',
   },
 ]
 
 const faqItems = [
   {
-    question: 'O que e o CondoCompare?',
-    answer: 'O CondoCompare e uma plataforma desenvolvida pela IRC Corretora de Seguros para simplificar a analise, comparacao e gestao de seguros condominiais. Com inteligencia artificial, a ferramenta automatiza a extracao de dados de documentos, compara orcamentos, gera diagnosticos tecnicos e oferece recomendacoes personalizadas para cada condominio.',
+    question: 'O que é o CondoCompare?',
+    answer: 'O CondoCompare é uma plataforma desenvolvida pela IRC Corretora de Seguros para simplificar a análise, comparação e gestão de seguros condominiais. Com inteligência artificial, a ferramenta automatiza a extração de dados de documentos, compara orçamentos, gera diagnósticos técnicos e oferece recomendações personalizadas para cada condomínio.',
   },
   {
     question: 'Quem pode usar a plataforma?',
-    answer: 'A plataforma foi projetada para tres perfis principais: Sindicos (visao do seu condominio), Administradoras (gestao de multiplos condominios) e Corretoras de Seguros (visao completa de todos os clientes). Cada perfil tem permissoes e funcionalidades adaptadas as suas necessidades.',
+    answer: 'A plataforma foi projetada para três perfis principais: Síndicos (visão do seu condomínio), Administradoras (gestão de múltiplos condomínios) e Corretoras de Seguros (visão completa de todos os clientes). Cada perfil tem permissões e funcionalidades adaptadas às suas necessidades.',
   },
   {
-    question: 'Como funciona a inteligencia artificial?',
-    answer: 'Nossa IA utiliza tecnologia RAG (Retrieval-Augmented Generation) combinada com modelos de linguagem avancados. Ela e capaz de extrair dados de apolices e orcamentos em PDF, cruzar informacoes com condicoes gerais de seguradoras, legislacao e normativas, gerando analises precisas e recomendacoes contextualizadas.',
+    question: 'Como funciona a inteligência artificial?',
+    answer: 'Nossa IA utiliza tecnologia RAG (Retrieval-Augmented Generation) combinada com modelos de linguagem avançados. Ela é capaz de extrair dados de apólices e orçamentos em PDF, cruzar informações com condições gerais de seguradoras, legislação e normativas, gerando análises precisas e recomendações contextualizadas.',
   },
   {
-    question: 'Meus dados estao seguros?',
-    answer: 'Sim. Utilizamos criptografia de ponta a ponta, autenticacao JWT com refresh token, controle de acesso baseado em roles (RBAC), auditoria de todas as acoes criticas e armazenamento seguro em servidores dedicados. Seus documentos e informacoes estao protegidos com as melhores praticas do mercado.',
+    question: 'Meus dados estão seguros?',
+    answer: 'Sim. Utilizamos criptografia de ponta a ponta, autenticação JWT com refresh token, controle de acesso baseado em roles (RBAC), auditoria de todas as ações críticas e armazenamento seguro em servidores dedicados. Seus documentos e informações estão protegidos com as melhores práticas do mercado.',
   },
   {
-    question: 'Posso importar apolices de qualquer seguradora?',
-    answer: 'Sim! O CondoCompare aceita documentos em PDF de todas as seguradoras do mercado. Nossa IA e treinada para reconhecer e extrair informacoes de diferentes formatos e layouts de apolices, propostas e orcamentos.',
+    question: 'Posso importar apólices de qualquer seguradora?',
+    answer: 'Sim! O CondoCompare aceita documentos em PDF de todas as seguradoras do mercado. Nossa IA é treinada para reconhecer e extrair informações de diferentes formatos e layouts de apólices, propostas e orçamentos.',
   },
   {
-    question: 'O que esta incluso no plano gratuito?',
-    answer: 'O plano Basico (gratuito) permite cadastrar ate 5 condominios, fazer comparacoes basicas de orcamentos, importar documentos e manter um historico. E ideal para sindicos que querem experimentar a plataforma antes de fazer um upgrade.',
+    question: 'O que está incluso no plano gratuito?',
+    answer: 'O plano Básico (gratuito) permite cadastrar até 5 condomínios, fazer comparações básicas de orçamentos, importar documentos e manter um histórico. É ideal para síndicos que querem experimentar a plataforma antes de fazer um upgrade.',
   },
   {
     question: 'Como funciona a vistoria digital?',
-    answer: 'A vistoria digital permite realizar inspecoes do condominio diretamente pela plataforma, com checklist personalizado, upload de fotos, apontamentos tecnicos e geracao automatica de laudo. Voce pode compartilhar a vistoria por link externo com qualquer pessoa, sem necessidade de cadastro.',
+    answer: 'A vistoria digital permite realizar inspeções do condomínio diretamente pela plataforma, com checklist personalizado, upload de fotos, apontamentos técnicos e geração automática de laudo. Você pode compartilhar a vistoria por link externo com qualquer pessoa, sem necessidade de cadastro.',
   },
   {
     question: 'Posso cancelar a qualquer momento?',
-    answer: 'Sim. Nao ha fidelidade ou multa por cancelamento. Voce pode fazer upgrade, downgrade ou cancelar seu plano a qualquer momento. Seus dados ficam disponiveis por 30 dias apos o cancelamento para que voce possa exporta-los.',
+    answer: 'Sim. Não há fidelidade ou multa por cancelamento. Você pode fazer upgrade, downgrade ou cancelar seu plano a qualquer momento. Seus dados ficam disponíveis por 30 dias após o cancelamento para que você possa exportá-los.',
   },
   {
-    question: 'Oferecem suporte tecnico?',
-    answer: 'Sim! Todos os planos incluem suporte por email. O plano Profissional inclui suporte prioritario com tempo de resposta reduzido. O plano Enterprise oferece suporte premium 24/7 com gerente de conta dedicado e canal direto de comunicacao.',
+    question: 'Oferecem suporte técnico?',
+    answer: 'Sim! Todos os planos incluem suporte por email. O plano Profissional inclui suporte prioritário com tempo de resposta reduzido. O plano Enterprise oferece suporte premium 24/7 com gerente de conta dedicado e canal direto de comunicação.',
   },
   {
-    question: 'Como comecar a usar?',
-    answer: 'Basta criar uma conta gratuita, selecionar seu perfil (Sindico, Administradora ou Corretora), cadastrar seus condominios e comecar a importar documentos. Em poucos minutos voce ja tera acesso a comparacoes e diagnosticos. Se precisar de ajuda, nosso suporte esta disponivel para auxiliar no onboarding.',
+    question: 'Como começar a usar?',
+    answer: 'Basta criar uma conta gratuita, selecionar seu perfil (Síndico, Administradora ou Corretora), cadastrar seus condomínios e começar a importar documentos. Em poucos minutos você já terá acesso a comparações e diagnósticos. Se precisar de ajuda, nosso suporte está disponível para auxiliar no onboarding.',
   },
 ]
 
 const values = [
-  { icon: HandshakeIcon, title: 'Transparencia', description: 'Informacoes claras e acessiveis para decisoes conscientes.' },
-  { icon: EmojiObjectsIcon, title: 'Inovacao', description: 'Tecnologia de ponta aplicada ao mercado de seguros.' },
-  { icon: StarIcon, title: 'Excelencia', description: 'Compromisso com a qualidade em cada detalhe da plataforma.' },
-  { icon: SecurityIcon, title: 'Seguranca', description: 'Protecao dos dados com os mais altos padroes do mercado.' },
+  { icon: HandshakeIcon, title: 'Transparência', description: 'Informações claras e acessíveis para decisões conscientes.' },
+  { icon: EmojiObjectsIcon, title: 'Inovação', description: 'Tecnologia de ponta aplicada ao mercado de seguros.' },
+  { icon: StarIcon, title: 'Excelência', description: 'Compromisso com a qualidade em cada detalhe da plataforma.' },
+  { icon: SecurityIcon, title: 'Segurança', description: 'Proteção dos dados com os mais altos padrões do mercado.' },
 ]
 
 // ---------------------------------------------------------------------------
@@ -705,10 +705,10 @@ export default function Home() {
                     fontSize: { xs: '0.95rem', md: '1.05rem' },
                   }}
                 >
-                  Conhca o <strong style={{ color: '#818cf8' }}>CondoCompare</strong> — nossa
-                  plataforma propria que combina inteligncia artificial com anos de experiencia
-                  no mercado de seguros condominiais. Importe documentos, compare orcamentos e receba
-                  diagnosticos inteligentes. Tudo em um so lugar.
+                  Conheça o <strong style={{ color: '#818cf8' }}>CondoCompare</strong> — nossa
+                  plataforma própria que combina inteligência artificial com anos de experiência
+                  no mercado de seguros condominiais. Importe documentos, compare orçamentos e receba
+                  diagnósticos inteligentes. Tudo em um só lugar.
                 </Typography>
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
@@ -932,19 +932,19 @@ export default function Home() {
                   sx={{ color: '#475569', lineHeight: 1.8, mb: 2, fontSize: '1.05rem' }}
                 >
                   A <strong>IRC Corretora de Seguros</strong> nasceu com um proposito claro: transformar
-                  a forma como condominios contratam e gerenciam seus seguros. Com anos de experiencia
-                  no mercado condominial, entendemos as dores de sindicos, administradoras e corretores
-                  que lidam diariamente com documentos complexos, comparacoes manuais e falta de
-                  transparencia nas informacoes.
+                  a forma como condomínios contratam e gerenciam seus seguros. Com anos de experiência
+                  no mercado condominial, entendemos as dores de síndicos, administradoras e corretores
+                  que lidam diariamente com documentos complexos, comparações manuais e falta de
+                  transparência nas informações.
                 </Typography>
                 <Typography
                   variant="body1"
                   sx={{ color: '#475569', lineHeight: 1.8, mb: 4, fontSize: '1.05rem' }}
                 >
-                  Foi dessa vivencia que desenvolvemos o <strong style={{ color: '#6366f1' }}>CondoCompare</strong> —
-                  uma plataforma que une nossa expertise no seguro condominial com o que ha de mais
-                  avancado em inteligencia artificial. O resultado e uma ferramenta que economiza tempo,
-                  reduz erros e garante que cada condominio tenha a protecao adequada.
+                  Foi dessa vivência que desenvolvemos o <strong style={{ color: '#6366f1' }}>CondoCompare</strong> —
+                  uma plataforma que une nossa expertise no seguro condominial com o que há de mais
+                  avançado em inteligência artificial. O resultado é uma ferramenta que economiza tempo,
+                  reduz erros e garante que cada condomínio tenha a proteção adequada.
                 </Typography>
 
                 <Stack direction="row" spacing={4} sx={{ mb: 2 }}>
@@ -1070,7 +1070,7 @@ export default function Home() {
                   fontSize: { xs: '1.75rem', md: '2.5rem' },
                 }}
               >
-                Tudo que voce precisa em um so lugar
+                Tudo que você precisa em um só lugar
               </Typography>
               <Typography
                 variant="body1"
@@ -1082,8 +1082,8 @@ export default function Home() {
                   lineHeight: 1.7,
                 }}
               >
-                O CondoCompare reune ferramentas poderosas para analisar, comparar e gerenciar
-                o seguro do seu condominio com inteligencia artificial.
+                O CondoCompare reúne ferramentas poderosas para analisar, comparar e gerenciar
+                o seguro do seu condomínio com inteligência artificial.
               </Typography>
             </Box>
           </AnimatedSection>
@@ -1178,7 +1178,7 @@ export default function Home() {
                 variant="body1"
                 sx={{ color: '#64748b', maxWidth: 520, mx: 'auto', fontSize: '1.05rem' }}
               >
-                Em poucos minutos voce tera uma visao completa do seguro do seu condominio.
+                Em poucos minutos você terá uma visão completa do seguro do seu condomínio.
               </Typography>
             </Box>
           </AnimatedSection>
@@ -1389,13 +1389,13 @@ export default function Home() {
                   fontSize: { xs: '1.75rem', md: '2.5rem' },
                 }}
               >
-                Escolha o plano ideal para voce
+                Escolha o plano ideal para você
               </Typography>
               <Typography
                 variant="body1"
                 sx={{ color: '#64748b', maxWidth: 500, mx: 'auto', fontSize: '1.05rem', mb: 4 }}
               >
-                Comece gratis e faca upgrade quando precisar. Sem fidelidade.
+                Comece grátis e faça upgrade quando precisar. Sem fidelidade.
               </Typography>
 
               {/* Billing toggle */}
@@ -1790,7 +1790,7 @@ export default function Home() {
                   fontSize: { xs: '1.75rem', md: '2.5rem' },
                 }}
               >
-                Pronto para comecar?
+                Pronto para começar?
               </Typography>
               <Typography
                 variant="body1"
@@ -1804,7 +1804,7 @@ export default function Home() {
                 }}
               >
                 Crie sua conta gratuita e descubra como a IRC Corretora e o CondoCompare podem
-                transformar a gestao do seguro do seu condominio.
+                transformar a gestão do seguro do seu condomínio.
               </Typography>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}

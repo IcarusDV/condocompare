@@ -396,10 +396,10 @@ export default function NovoParceiroPage() {
           fullWidth
           multiline
           rows={3}
-          label="Observacoes"
+          label="Observações"
           value={formData.observacoes || ''}
           onChange={(e) => handleChange('observacoes', e.target.value)}
-          placeholder="Informacoes adicionais..."
+          placeholder="Informações adicionais..."
         />
       </Paper>
 

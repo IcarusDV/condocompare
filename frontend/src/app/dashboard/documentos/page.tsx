@@ -284,7 +284,7 @@ export default function DocumentosPage() {
   const handleDelete = async () => {
     if (!selectedDoc) { handleMenuClose(); return }
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
+      title: 'Confirmar exclusão',
       message: 'Tem certeza que deseja excluir este documento?',
       severity: 'error',
       confirmText: 'Excluir',
@@ -306,7 +306,7 @@ export default function DocumentosPage() {
   const handleBulkDelete = async () => {
     if (selected.size === 0) return
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao em massa',
+      title: 'Confirmar exclusão em massa',
       message: `Tem certeza que deseja excluir ${selected.size} documento(s)?`,
       severity: 'error',
       confirmText: 'Excluir',
@@ -435,13 +435,13 @@ export default function DocumentosPage() {
             Documentos
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Gerencie apolices, orcamentos e outros documentos
+            Gerencie apólices, orçamentos e outros documentos
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Chip
             icon={<AutoAwesomeIcon sx={{ fontSize: '16px !important' }} />}
-            label="Extracao IA ativada"
+            label="Extração IA ativada"
             size="small"
             sx={{
               bgcolor: '#f0fdf4',
@@ -492,7 +492,7 @@ export default function DocumentosPage() {
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <AssignmentIcon sx={{ color: '#7c3aed', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Apolices</Typography>
+                <Typography variant="caption" color="text.secondary">Apólices</Typography>
               </Box>
               <Typography variant="h5" fontWeight="bold" color="#7c3aed">{stats.apolices}</Typography>
             </CardContent>
@@ -503,7 +503,7 @@ export default function DocumentosPage() {
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <DescriptionIcon sx={{ color: '#2563eb', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Orcamentos</Typography>
+                <Typography variant="caption" color="text.secondary">Orçamentos</Typography>
               </Box>
               <Typography variant="h5" fontWeight="bold" color="#2563eb">{stats.orcamentos}</Typography>
             </CardContent>
@@ -570,7 +570,7 @@ export default function DocumentosPage() {
               <InputLabel>Condominio</InputLabel>
               <Select
                 value={filters.condominioId || ''}
-                label="Condominio"
+                label="Condomínio"
                 onChange={(e) => handleFilterChange('condominioId', e.target.value)}
               >
                 <MenuItem value="">Todos</MenuItem>
@@ -617,9 +617,9 @@ export default function DocumentosPage() {
                   onChange={(e) => handleFilterChange('tipo', e.target.value as TipoDocumento)}
                 >
                   <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="APOLICE">Apolice</MenuItem>
-                  <MenuItem value="ORCAMENTO">Orcamento</MenuItem>
-                  <MenuItem value="CONDICOES_GERAIS">Condicoes Gerais</MenuItem>
+                  <MenuItem value="APOLICE">Apólice</MenuItem>
+                  <MenuItem value="ORCAMENTO">Orçamento</MenuItem>
+                  <MenuItem value="CONDICOES_GERAIS">Condições Gerais</MenuItem>
                   <MenuItem value="LAUDO_VISTORIA">Laudo de Vistoria</MenuItem>
                   <MenuItem value="SINISTRO">Sinistro</MenuItem>
                   <MenuItem value="OUTRO">Outro</MenuItem>
@@ -637,7 +637,7 @@ export default function DocumentosPage() {
                   <MenuItem value="">Todos</MenuItem>
                   <MenuItem value="PENDENTE">Pendente</MenuItem>
                   <MenuItem value="PROCESSANDO">Processando</MenuItem>
-                  <MenuItem value="CONCLUIDO">Concluido</MenuItem>
+                  <MenuItem value="CONCLUIDO">Concluído</MenuItem>
                   <MenuItem value="ERRO">Erro</MenuItem>
                 </Select>
               </FormControl>
@@ -746,7 +746,7 @@ export default function DocumentosPage() {
                     Data Upload
                   </TableSortLabel>
                 </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>Acoes</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>Ações</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -805,12 +805,12 @@ export default function DocumentosPage() {
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <Typography fontWeight={500}>{doc.nome}</Typography>
                               {vencido && (
-                                <Tooltip title="Apolice vencida!">
+                                <Tooltip title="Apólice vencida!">
                                   <ErrorIcon sx={{ fontSize: 16, color: '#dc2626' }} />
                                 </Tooltip>
                               )}
                               {vencendo && !vencido && (
-                                <Tooltip title="Apolice vencendo em menos de 30 dias">
+                                <Tooltip title="Apólice vencendo em menos de 30 dias">
                                   <WarningAmberIcon sx={{ fontSize: 16, color: '#d97706' }} />
                                 </Tooltip>
                               )}

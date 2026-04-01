@@ -170,9 +170,9 @@ export const formatFileSize = (bytes?: number): string => {
 
 export const getTipoDocumentoLabel = (tipo: TipoDocumento): string => {
   const labels: Record<TipoDocumento, string> = {
-    APOLICE: 'Apolice',
-    ORCAMENTO: 'Orcamento',
-    CONDICOES_GERAIS: 'Condicoes Gerais',
+    APOLICE: 'Apólice',
+    ORCAMENTO: 'Orçamento',
+    CONDICOES_GERAIS: 'Condições Gerais',
     LAUDO_VISTORIA: 'Laudo de Vistoria',
     SINISTRO: 'Sinistro',
     OUTRO: 'Outro',

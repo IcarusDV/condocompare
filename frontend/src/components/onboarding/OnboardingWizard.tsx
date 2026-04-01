@@ -32,36 +32,36 @@ interface OnboardingWizardProps {
 const steps = [
   {
     title: 'Bem-vindo ao CondoCompare!',
-    subtitle: 'Sua plataforma inteligente para gestao de seguros condominiais',
+    subtitle: 'Sua plataforma inteligente para gestão de seguros condominiais',
     icon: <ShieldIcon sx={{ fontSize: 64, color: '#3b82f6' }} />,
     description:
-      'Vamos te guiar pelos primeiros passos para voce aproveitar ao maximo a plataforma. Sao apenas 3 passos rapidos.',
+      'Vamos te guiar pelos primeiros passos para você aproveitar ao máximo a plataforma. São apenas 3 passos rápidos.',
     color: '#3b82f6',
   },
   {
-    title: 'Cadastre seu Condominio',
-    subtitle: 'O primeiro passo e registrar as informacoes do condominio',
+    title: 'Cadastre seu Condomínio',
+    subtitle: 'O primeiro passo é registrar as informações do condomínio',
     icon: <ApartmentIcon sx={{ fontSize: 64, color: '#10b981' }} />,
     description:
-      'Acesse "Condominios" no menu lateral e clique em "Novo Condominio". Preencha os dados como nome, CNPJ, endereco e caracteristicas do imovel.',
+      'Acesse "Condomínios" no menu lateral e clique em "Novo Condomínio". Preencha os dados como nome, CNPJ, endereço e características do imóvel.',
     color: '#10b981',
   },
   {
     title: 'Importe seus Documentos',
-    subtitle: 'A IA extrai automaticamente os dados para voce',
+    subtitle: 'A IA extrai automaticamente os dados para você',
     icon: <CloudUploadIcon sx={{ fontSize: 64, color: '#8b5cf6' }} />,
     description:
-      'Faca upload de apolices, orcamentos e condicoes gerais em PDF. Nossa IA extrai automaticamente valores, coberturas e vigencias.',
+      'Faça upload de apólices, orçamentos e condições gerais em PDF. Nossa IA extrai automaticamente valores, coberturas e vigências.',
     color: '#8b5cf6',
   },
   {
     title: 'Explore as Funcionalidades',
-    subtitle: 'Tudo pronto! Conheca o que voce pode fazer',
+    subtitle: 'Tudo pronto! Conheça o que você pode fazer',
     icon: <ExploreIcon sx={{ fontSize: 64, color: '#f59e0b' }} />,
     features: [
-      { icon: <CompareArrowsIcon sx={{ fontSize: 20 }} />, text: 'Compare orcamentos lado a lado' },
-      { icon: <AnalyticsIcon sx={{ fontSize: 20 }} />, text: 'Diagnostique sua cobertura' },
-      { icon: <SmartToyIcon sx={{ fontSize: 20 }} />, text: 'Tire duvidas com a IA' },
+      { icon: <CompareArrowsIcon sx={{ fontSize: 20 }} />, text: 'Compare orçamentos lado a lado' },
+      { icon: <AnalyticsIcon sx={{ fontSize: 20 }} />, text: 'Diagnóstico de Coberturas e Riscos' },
+      { icon: <SmartToyIcon sx={{ fontSize: 20 }} />, text: 'Tire dúvidas com a IA' },
       { icon: <AssignmentIcon sx={{ fontSize: 20 }} />, text: 'Gerencie vistorias digitais' },
     ],
     color: '#f59e0b',
@@ -217,7 +217,7 @@ export default function OnboardingWizard({ open, onComplete }: OnboardingWizardP
                 variant="contained"
                 sx={{ bgcolor: currentStep.color, '&:hover': { bgcolor: currentStep.color, filter: 'brightness(0.9)' } }}
               >
-                {activeStep === steps.length - 1 ? 'Comecar!' : 'Proximo'}
+                {activeStep === steps.length - 1 ? 'Começar!' : 'Próximo'}
               </Button>
             </motion.div>
           </Box>

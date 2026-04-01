@@ -18,7 +18,7 @@ const getRecomendacaoInfo = (tipo: RecomendacaoComparacaoDTO['tipo']) => {
         icon: <AttachMoneyIcon />,
         color: '#22c55e',
         bgColor: '#dcfce7',
-        label: 'Menor Preco',
+        label: 'Menor Preço',
       }
     case 'MAIOR_COBERTURA':
       return {
@@ -32,7 +32,7 @@ const getRecomendacaoInfo = (tipo: RecomendacaoComparacaoDTO['tipo']) => {
         icon: <StarIcon />,
         color: '#f59e0b',
         bgColor: '#fef3c7',
-        label: 'Melhor Custo-Beneficio',
+        label: 'Melhor Custo-Benefício',
       }
     default:
       return {

@@ -49,7 +49,7 @@ export default function ConfiguracoesPage() {
   const handleExportData = () => {
     setSnackbar({
       open: true,
-      message: 'Exportacao de dados iniciada. Voce recebera um email quando estiver pronto.',
+      message: 'Exportação de dados iniciada. Você receberá um email quando estiver pronto.',
       severity: 'info',
     })
   }
@@ -61,11 +61,11 @@ export default function ConfiguracoesPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
           <SettingsIcon sx={{ color: '#3b82f6', fontSize: 32 }} />
           <Typography variant="h4" fontWeight="bold">
-            Configuracoes
+            Configurações
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary">
-          Gerencie aparencia, notificacoes, seguranca e dados da plataforma
+          Gerencie aparência, notificações, segurança e dados da plataforma
         </Typography>
       </Box>
 
@@ -78,7 +78,7 @@ export default function ConfiguracoesPage() {
             <LightModeIcon sx={{ color: '#3b82f6' }} />
           )}
           <Typography variant="h6" fontWeight="bold">
-            Aparencia
+            Aparência
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
@@ -90,8 +90,8 @@ export default function ConfiguracoesPage() {
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {isDark
-                ? 'O modo escuro esta ativado. Alterne para o modo claro.'
-                : 'O modo claro esta ativado. Alterne para o modo escuro.'}
+                ? 'O modo escuro está ativado. Alterne para o modo claro.'
+                : 'O modo claro está ativado. Alterne para o modo escuro.'}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -116,7 +116,7 @@ export default function ConfiguracoesPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <NotificationsIcon sx={{ color: '#3b82f6' }} />
           <Typography variant="h6" fontWeight="bold">
-            Notificacoes
+            Notificações
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
@@ -132,9 +132,9 @@ export default function ConfiguracoesPage() {
             }
             label={
               <Box>
-                <Typography variant="body2">Notificacoes por email</Typography>
+                <Typography variant="body2">Notificações por email</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Receba alertas de vencimento de apolice, atualizacoes de sinistros e novidades por email
+                  Receba alertas de vencimento de apólice, atualizações de sinistros e novidades por email
                 </Typography>
               </Box>
             }
@@ -152,9 +152,9 @@ export default function ConfiguracoesPage() {
             }
             label={
               <Box>
-                <Typography variant="body2">Notificacoes push</Typography>
+                <Typography variant="body2">Notificações push</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Receba notificacoes em tempo real diretamente no navegador
+                  Receba notificações em tempo real diretamente no navegador
                 </Typography>
               </Box>
             }
@@ -172,9 +172,9 @@ export default function ConfiguracoesPage() {
             }
             label={
               <Box>
-                <Typography variant="body2">Som de notificacao</Typography>
+                <Typography variant="body2">Som de notificação</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  Reproduza um som ao receber novas notificacoes
+                  Reproduza um som ao receber novas notificações
                 </Typography>
               </Box>
             }
@@ -182,7 +182,7 @@ export default function ConfiguracoesPage() {
         </Box>
 
         <Alert severity="info" sx={{ mt: 3 }}>
-          As preferencias de notificacao serao sincronizadas com o servidor em breve.
+          As preferências de notificação serão sincronizadas com o servidor em breve.
         </Alert>
       </Paper>
 
@@ -191,7 +191,7 @@ export default function ConfiguracoesPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <SecurityIcon sx={{ color: '#3b82f6' }} />
           <Typography variant="h6" fontWeight="bold">
-            Seguranca
+            Segurança
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
@@ -200,10 +200,10 @@ export default function ConfiguracoesPage() {
           {/* Last Login */}
           <Box>
             <Typography variant="body1" fontWeight={500}>
-              Ultimo acesso
+              Último acesso
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              16 de marco de 2026, 10:30 - Navegador Chrome, Linux
+              16 de março de 2026, 10:30 - Navegador Chrome, Linux
             </Typography>
           </Box>
 
@@ -216,7 +216,7 @@ export default function ConfiguracoesPage() {
                 Alterar senha
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Atualize sua senha periodicamente para maior seguranca
+                Atualize sua senha periodicamente para maior segurança
               </Typography>
             </Box>
             <Button
@@ -240,12 +240,12 @@ export default function ConfiguracoesPage() {
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography variant="body1" fontWeight={500}>
-                  Autenticacao em dois fatores
+                  Autenticação em dois fatores
                 </Typography>
                 <Chip label="Em breve" size="small" color="warning" variant="outlined" sx={{ height: 22 }} />
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Adicione uma camada extra de seguranca a sua conta
+                Adicione uma camada extra de segurança à sua conta
               </Typography>
             </Box>
             <Switch
@@ -263,7 +263,7 @@ export default function ConfiguracoesPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
           <CloudDownloadIcon sx={{ color: '#3b82f6' }} />
           <Typography variant="h6" fontWeight="bold">
-            Dados e Exportacao
+            Dados e Exportação
           </Typography>
         </Box>
         <Divider sx={{ mb: 3 }} />
@@ -275,7 +275,7 @@ export default function ConfiguracoesPage() {
                 Exportar todos os dados
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Baixe uma copia de todos os seus dados em formato CSV ou PDF
+                Baixe uma cópia de todos os seus dados em formato CSV ou PDF
               </Typography>
             </Box>
             <Button
@@ -292,12 +292,12 @@ export default function ConfiguracoesPage() {
 
           <Alert severity="info" icon={<InfoIcon />}>
             <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
-              Politica de retencao de dados
+              Política de retenção de dados
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Seus dados sao armazenados de forma segura e criptografada. Documentos e apolices sao mantidos
-              por tempo indeterminado enquanto sua conta estiver ativa. Logs de auditoria sao retidos por
-              5 anos conforme exigencias regulatorias. Para solicitar a exclusao de dados, entre em contato
+              Seus dados são armazenados de forma segura e criptografada. Documentos e apólices são mantidos
+              por tempo indeterminado enquanto sua conta estiver ativa. Logs de auditoria são retidos por
+              5 anos conforme exigências regulatórias. Para solicitar a exclusão de dados, entre em contato
               com o suporte.
             </Typography>
           </Alert>
@@ -317,7 +317,7 @@ export default function ConfiguracoesPage() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Typography variant="body1" fontWeight={500}>
-              Versao da plataforma
+              Versão da plataforma
             </Typography>
             <Chip label="v1.0.0" size="small" variant="outlined" sx={{ fontWeight: 600 }} />
           </Box>
@@ -327,10 +327,10 @@ export default function ConfiguracoesPage() {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box>
               <Typography variant="body1" fontWeight={500}>
-                Documentacao
+                Documentação
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Acesse guias de uso, tutoriais e a documentacao da API
+                Acesse guias de uso, tutoriais e a documentação da API
               </Typography>
             </Box>
             <MuiLink
@@ -338,7 +338,7 @@ export default function ConfiguracoesPage() {
               underline="hover"
               sx={{ color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}
             >
-              Acessar documentacao
+              Acessar documentação
             </MuiLink>
           </Box>
 

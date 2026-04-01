@@ -29,10 +29,10 @@ export default function SeguradorasBarChart({ data }: Props) {
           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
           <YAxis type="category" dataKey="label" width={100} tick={{ fontSize: 11 }} />
           <Tooltip
-            formatter={(value: number) => [value, 'Condominios']}
+            formatter={(value: number) => [value, 'Condomínios']}
             contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
           />
-          <Bar dataKey="condominios" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Condominios" />
+          <Bar dataKey="condominios" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Condomínios" />
         </BarChart>
       </ResponsiveContainer>
     </Box>

@@ -149,7 +149,7 @@ function SeguradoraFormDialog({
             <TextField fullWidth label="CNPJ" value={form.cnpj} onChange={e => setForm(prev => ({ ...prev, cnpj: e.target.value }))} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label="Codigo SUSEP" value={form.codigoSusep} onChange={e => setForm(prev => ({ ...prev, codigoSusep: e.target.value }))} />
+            <TextField fullWidth label="Código SUSEP" value={form.codigoSusep} onChange={e => setForm(prev => ({ ...prev, codigoSusep: e.target.value }))} />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField fullWidth label="Telefone" value={form.telefone} onChange={e => setForm(prev => ({ ...prev, telefone: e.target.value }))} />
@@ -161,10 +161,10 @@ function SeguradoraFormDialog({
             <TextField fullWidth label="Website" value={form.website} onChange={e => setForm(prev => ({ ...prev, website: e.target.value }))} />
           </Grid>
           <Grid item xs={12}>
-            <TextField fullWidth label="Endereco Completo" value={form.enderecoCompleto} onChange={e => setForm(prev => ({ ...prev, enderecoCompleto: e.target.value }))} />
+            <TextField fullWidth label="Endereço Completo" value={form.enderecoCompleto} onChange={e => setForm(prev => ({ ...prev, enderecoCompleto: e.target.value }))} />
           </Grid>
           <Grid item xs={12}>
-            <TextField fullWidth multiline rows={2} label="Descricao" value={form.descricao} onChange={e => setForm(prev => ({ ...prev, descricao: e.target.value }))} />
+            <TextField fullWidth multiline rows={2} label="Descrição" value={form.descricao} onChange={e => setForm(prev => ({ ...prev, descricao: e.target.value }))} />
           </Grid>
 
           {/* Especialidades */}
@@ -264,7 +264,7 @@ function IAChatDialog({ open, onClose, seguradora }: { open: boolean; onClose: (
         <Box sx={{ minHeight: 300, maxHeight: 400, overflow: 'auto', mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {messages.length === 0 && (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-              Pergunte qualquer coisa sobre {seguradora?.nome}. Ex: &quot;Quais sao as coberturas mais comuns?&quot;, &quot;Como funciona a franquia?&quot;
+              Pergunte qualquer coisa sobre {seguradora?.nome}. Ex: &quot;Quais são as coberturas mais comuns?&quot;, &quot;Como funciona a franquia?&quot;
             </Typography>
           )}
           {messages.map((msg, i) => (
@@ -306,7 +306,7 @@ function DeleteDialog({
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Excluir Seguradora</DialogTitle>
       <DialogContent>
-        <Typography>Tem certeza que deseja excluir <strong>{seguradora?.nome}</strong>? Esta acao nao pode ser desfeita.</Typography>
+        <Typography>Tem certeza que deseja excluir <strong>{seguradora?.nome}</strong>? Esta ação não pode ser desfeita.</Typography>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
@@ -348,11 +348,16 @@ export default function SeguradorasPage() {
   // Comparative selection
   const [compareIds, setCompareIds] = useState<string[]>([])
 
+  const ALLOWED_SEGURADORAS = ['ALLIANZ', 'AXA', 'CHUBB', 'HDI', 'TOKIO MARINE']
+
   const fetchSeguradoras = useCallback(async () => {
     try {
       setLoading(true)
       const data = await seguradoraService.list()
-      setSeguradoras(data)
+      const filtered = data.filter(s =>
+        ALLOWED_SEGURADORAS.some(name => s.nome.toUpperCase().includes(name))
+      )
+      setSeguradoras(filtered)
     } catch {
       setSnackbar({ open: true, message: 'Erro ao carregar seguradoras' })
     } finally {
@@ -415,7 +420,7 @@ export default function SeguradorasPage() {
     setDeleting(true)
     try {
       await seguradoraService.delete(deletingSeguradora.id)
-      setSnackbar({ open: true, message: 'Seguradora excluida com sucesso' })
+      setSnackbar({ open: true, message: 'Seguradora excluída com sucesso' })
       setDeleteOpen(false)
       setDeletingSeguradora(null)
       fetchSeguradoras()
@@ -452,7 +457,7 @@ export default function SeguradorasPage() {
               <Typography variant="h4" fontWeight="bold">Seguradoras</Typography>
             </Box>
             <Typography variant="body1" sx={{ opacity: 0.85, maxWidth: 700 }}>
-              Gerencie as seguradoras parceiras, visualize estatisticas, compare metricas e consulte a IA sobre cada uma.
+              Gerencie as seguradoras parceiras, visualize estatísticas, compare métricas e consulte a IA sobre cada uma.
             </Typography>
           </Box>
           <Button
@@ -504,7 +509,7 @@ export default function SeguradorasPage() {
         sx={{ mb: 3, bgcolor: '#eff6ff', border: '1px solid #bfdbfe', '& .MuiAlert-icon': { color: '#3b82f6' } }}
       >
         <Typography variant="body2">
-          <strong>Assistente IA integrado:</strong> Clique no icone de chat em cada seguradora para perguntar diretamente a IA sobre regras, coberturas, franquias e particularidades.
+          <strong>Assistente IA integrado:</strong> Clique no ícone de chat em cada seguradora para perguntar diretamente a IA sobre regras, coberturas, franquias e particularidades.
         </Typography>
       </Alert>
 
@@ -599,7 +604,7 @@ export default function SeguradorasPage() {
                       </Box>
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                      {seguradora.descricao || seguradora.observacoes || 'Sem descricao disponivel'}
+                      {seguradora.descricao || seguradora.observacoes || 'Sem descrição disponível'}
                     </Typography>
                     {/* Contact info chips */}
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1 }}>
@@ -687,8 +692,8 @@ export default function SeguradorasPage() {
       <TabPanel value={tab} index={1}>
         {compareIds.length < 2 && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Selecione pelo menos 2 seguradoras na aba &quot;Seguradoras&quot; (clicando no icone de comparacao) para ver o comparativo detalhado.
-            {compareIds.length === 1 && ' Voce selecionou 1 - selecione mais.'}
+            Selecione pelo menos 2 seguradoras na aba &quot;Seguradoras&quot; (clicando no ícone de comparação) para ver o comparativo detalhado.
+            {compareIds.length === 1 && ' Você selecionou 1 - selecione mais.'}
             {compareIds.length === 0 && ' A tabela abaixo mostra todas as seguradoras.'}
           </Alert>
         )}
@@ -706,10 +711,10 @@ export default function SeguradorasPage() {
                     <TableCell align="center" sx={{ fontWeight: 600 }}>Especialidades</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 600 }}>Regras</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 600 }}>Info IA</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>Apolices</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Apólices</TableCell>
                     <TableCell align="center" sx={{ fontWeight: 600 }}>Vigentes</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>Premio Medio</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 600 }}>Condominios</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Prêmio Médio</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Condomínios</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

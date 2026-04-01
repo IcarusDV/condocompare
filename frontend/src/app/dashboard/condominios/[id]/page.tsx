@@ -86,17 +86,17 @@ interface DiagnosticoData {
 }
 
 const statusConfig: Record<StatusApolice, { label: string; color: 'error' | 'warning' | 'success' | 'default'; icon: React.ElementType }> = {
-  VENCIDA: { label: 'Apolice Vencida', color: 'error', icon: ErrorIcon },
-  VENCENDO: { label: 'Apolice Vencendo', color: 'warning', icon: WarningAmberIcon },
-  VIGENTE: { label: 'Apolice Vigente', color: 'success', icon: CheckCircleIcon },
-  SEM_APOLICE: { label: 'Sem Apolice', color: 'default', icon: HelpOutlineIcon },
+  VENCIDA: { label: 'Apólice Vencida', color: 'error', icon: ErrorIcon },
+  VENCENDO: { label: 'Apólice Vencendo', color: 'warning', icon: WarningAmberIcon },
+  VIGENTE: { label: 'Apólice Vigente', color: 'success', icon: CheckCircleIcon },
+  SEM_APOLICE: { label: 'Sem Apólice', color: 'default', icon: HelpOutlineIcon },
 }
 
 const amenidadesConfig = [
   { key: 'temPortaria24h', label: 'Portaria 24h', icon: MeetingRoomIcon },
   { key: 'temPiscina', label: 'Piscina', icon: PoolIcon },
   { key: 'temAcademia', label: 'Academia', icon: FitnessCenterIcon },
-  { key: 'temSalaoFestas', label: 'Salao de Festas', icon: CelebrationIcon },
+  { key: 'temSalaoFestas', label: 'Salão de Festas', icon: CelebrationIcon },
   { key: 'temPlayground', label: 'Playground', icon: ChildCareIcon },
   { key: 'temChurrasqueira', label: 'Churrasqueira', icon: OutdoorGrillIcon },
   { key: 'temQuadra', label: 'Quadra', icon: SportsTennisIcon },
@@ -121,11 +121,11 @@ function calculateCompleteness(c: CondominioResponse): { percent: number; missin
     { check: !!c.caracteristicas.numeroBlocos, label: 'Numero de Blocos' },
     { check: !!c.caracteristicas.numeroAndares, label: 'Numero de Andares' },
     { check: !!c.caracteristicas.areaConstruida, label: 'Area Construida' },
-    { check: !!c.caracteristicas.anoConstrucao, label: 'Ano de Construcao' },
-    { check: !!c.caracteristicas.tipoConstrucao, label: 'Tipo de Construcao' },
-    { check: !!c.sindico.sindicoNome, label: 'Sindico' },
+    { check: !!c.caracteristicas.anoConstrucao, label: 'Ano de Construção' },
+    { check: !!c.caracteristicas.tipoConstrucao, label: 'Tipo de Construção' },
+    { check: !!c.sindico.sindicoNome, label: 'Síndico' },
     { check: !!c.seguro.seguradoraAtual, label: 'Seguradora' },
-    { check: !!c.seguro.vencimentoApolice, label: 'Vencimento Apolice' },
+    { check: !!c.seguro.vencimentoApolice, label: 'Vencimento Apólice' },
   ]
   const filled = fields.filter(f => f.check).length
   const missing = fields.filter(f => !f.check).map(f => f.label)
@@ -280,7 +280,7 @@ export default function CondominioDetalhesPage() {
 
   const handleDelete = async () => {
     const ok = await confirmDialog({
-      title: 'Confirmar exclusao',
+      title: 'Confirmar exclusão',
       message: 'Tem certeza que deseja excluir este condominio?',
       severity: 'error',
       confirmText: 'Excluir',
@@ -371,7 +371,7 @@ export default function CondominioDetalhesPage() {
   if (!condominio) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography>Condominio nao encontrado.</Typography>
+        <Typography>Condomínio não encontrado.</Typography>
       </Box>
     )
   }
@@ -713,7 +713,7 @@ export default function CondominioDetalhesPage() {
               <Grid item xs={12} md={6}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                   <PersonIcon color="primary" />
-                  <Typography variant="h6" fontWeight="600">Sindico</Typography>
+                  <Typography variant="h6" fontWeight="600">Síndico</Typography>
                 </Box>
                 {condominio.sindico.sindicoNome ? (
                   <>
@@ -770,7 +770,7 @@ export default function CondominioDetalhesPage() {
               {condominio.observacoes && (
                 <Grid item xs={12}>
                   <Divider sx={{ mb: 2 }} />
-                  <Typography variant="h6" fontWeight="600" sx={{ mb: 1 }}>Observacoes</Typography>
+                  <Typography variant="h6" fontWeight="600" sx={{ mb: 1 }}>Observações</Typography>
                   <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>
                     {condominio.observacoes}
                   </Typography>
@@ -858,7 +858,7 @@ export default function CondominioDetalhesPage() {
                           onClick={() => router.push(`/dashboard/seguros/apolices/${apoliceVigente.id}`)}
                           sx={{ mt: 1, color: '#6366f1', p: 0 }}
                         >
-                          Ver Apolice Completa
+                          Ver Apólice Completa
                         </Button>
                       </Box>
                     )}
@@ -876,7 +876,7 @@ export default function CondominioDetalhesPage() {
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <DescriptionIcon color="primary" />
-                    <Typography variant="h6" fontWeight="600">Historico de Apolices</Typography>
+                    <Typography variant="h6" fontWeight="600">Histórico de Apólices</Typography>
                     <Chip label={apolices.length} size="small" sx={{ bgcolor: '#ede9fe', color: '#6366f1', fontWeight: 700, height: 22 }} />
                   </Box>
                 </Box>
@@ -938,7 +938,7 @@ export default function CondominioDetalhesPage() {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <SmartToyIcon sx={{ color: '#6366f1' }} />
-                      <Typography variant="h6" fontWeight="600">Diagnostico de Cobertura</Typography>
+                      <Typography variant="h6" fontWeight="600">Diagnóstico de Cobertura</Typography>
                       <Chip label="IA" size="small" sx={{ bgcolor: '#6366f1', color: 'white', height: 20, fontSize: '0.7rem' }} />
                     </Box>
                     <Button
@@ -1222,7 +1222,7 @@ export default function CondominioDetalhesPage() {
                           <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Tipo</TableCell>
                           <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Status</TableCell>
                           <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Data Agendada</TableCell>
-                          <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Responsavel</TableCell>
+                          <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Responsável</TableCell>
                           <TableCell sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Nota</TableCell>
                           <TableCell align="right" sx={{ fontWeight: 700, textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>Acoes</TableCell>
                         </TableRow>

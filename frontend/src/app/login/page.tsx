@@ -39,8 +39,8 @@ const features = [
   },
   {
     icon: <InsightsIcon sx={{ fontSize: 22 }} />,
-    title: 'Diagnostico Tecnico',
-    text: 'Score de cobertura e recomendacoes personalizadas',
+    title: 'Diagnóstico Técnico',
+    text: 'Score de cobertura e recomendações personalizadas',
   },
   {
     icon: <SmartToyIcon sx={{ fontSize: 22 }} />,

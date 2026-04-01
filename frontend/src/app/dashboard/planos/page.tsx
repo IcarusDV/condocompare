@@ -39,13 +39,13 @@ import { billingService, formatCurrency } from '@/services/billingService'
 import { PlanoResponse, AssinaturaResponse } from '@/types'
 
 const FEATURES_LABELS: Record<string, string> = {
-  temDiagnostico: 'Diagnostico Tecnico',
+  temDiagnostico: 'Diagnóstico Técnico',
   temAssistenteIa: 'Assistente IA',
   temRag: 'Analise de Documentos (RAG)',
   temVistoriaCompleta: 'Vistoria Completa',
   temLaudoTecnico: 'Laudo Tecnico',
   temParceiros: 'Marketplace Parceiros',
-  temRelatoriosAvancados: 'Relatorios Avancados',
+  temRelatoriosAvancados: 'Relatórios Avançados',
   temApiAcesso: 'Acesso via API',
 }
 
@@ -167,8 +167,8 @@ export default function PlanosPage() {
             </Button>
           }
         >
-          Voce esta no plano <strong>{assinaturaAtiva.planoNome}</strong> ({assinaturaAtiva.tipoPagamento}).
-          Valido ate {new Date(assinaturaAtiva.dataFim).toLocaleDateString('pt-BR')}.
+          Você está no plano <strong>{assinaturaAtiva.planoNome}</strong> ({assinaturaAtiva.tipoPagamento}).
+          Válido até {new Date(assinaturaAtiva.dataFim).toLocaleDateString('pt-BR')}.
           Valor: {formatCurrency(assinaturaAtiva.valor)}/{assinaturaAtiva.tipoPagamento === 'ANUAL' ? 'ano' : 'mes'}
         </Alert>
       )}

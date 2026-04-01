@@ -315,9 +315,9 @@ export default function EditarParceiroPage() {
 
       {/* Observacoes */}
       <Paper sx={{ p: 3, mb: 3 }}>
-        <TextField fullWidth multiline rows={3} label="Observacoes"
+        <TextField fullWidth multiline rows={3} label="Observações"
           value={formData.observacoes || ''} onChange={(e) => handleChange('observacoes', e.target.value)}
-          placeholder="Informacoes adicionais..." />
+          placeholder="Informações adicionais..." />
       </Paper>
 
       {/* Actions */}
