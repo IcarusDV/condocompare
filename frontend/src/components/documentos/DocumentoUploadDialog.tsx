@@ -39,7 +39,6 @@ import ErrorIcon from '@mui/icons-material/Error'
 import { documentoService, formatFileSize } from '@/services/documentoService'
 import { condominioService } from '@/services/condominioService'
 import { seguradoraService } from '@/services/seguradoraService'
-import { iaService } from '@/services/iaService'
 import { TipoDocumento, CondominioListResponse, SeguradoraResponse } from '@/types'
 
 interface DocumentoUploadDialogProps {
@@ -250,57 +249,8 @@ export function DocumentoUploadDialog({
             seguradoraNome: seguradoraNome || undefined,
           })
 
-          // 2. If auto-extract is enabled for orcamento/apolice PDFs
-          if (
-            autoExtract &&
-            (tipo === 'ORCAMENTO' || tipo === 'APOLICE') &&
-            entry.file.type === 'application/pdf'
-          ) {
-            setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'extracting' } : f))
-
-            try {
-              const extractResult = await iaService.extractPdf(entry.file, 'orcamento')
-
-              if (extractResult.dados_extraidos) {
-                const dados = extractResult.dados_extraidos
-                const coberturas = dados.coberturas || []
-
-                if (coberturas.length > 0) {
-                  const today = new Date().toISOString().split('T')[0]
-                  const nextYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-
-                  await documentoService.updateOrcamentoData(uploadedDoc.id, {
-                    seguradoraNome: dados.seguradoraNome || seguradoraNome || 'Não identificada',
-                    valorPremio: dados.valorPremio || 0,
-                    dataVigenciaInicio: dados.dataVigenciaInicio || today,
-                    dataVigenciaFim: dados.dataVigenciaFim || nextYear,
-                    dadosOrcamento: {
-                      coberturas: coberturas.map((c) => ({
-                        nome: c.nome,
-                        valorLimite: c.valorLimite,
-                        franquia: c.franquia,
-                        incluido: c.incluido !== false,
-                      })),
-                      formaPagamento: dados.formaPagamento,
-                      descontos: dados.descontos,
-                    },
-                  })
-                  setFiles(prev =>
-                    prev.map((f, idx) => idx === i ? { ...f, status: 'done', extractedCount: coberturas.length } : f)
-                  )
-                } else {
-                  setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done', extractedCount: 0 } : f))
-                }
-              } else {
-                setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done', extractedCount: 0 } : f))
-              }
-            } catch {
-              // Extraction failed but upload succeeded
-              setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done', extractedCount: 0 } : f))
-            }
-          } else {
-            setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f))
-          }
+          // Backend will handle extraction asynchronously via RabbitMQ
+          setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f))
         } catch (err) {
           console.error(`Error uploading ${entry.file.name}:`, err)
           setFiles(prev =>
@@ -658,7 +608,7 @@ export function DocumentoUploadDialog({
                           Extrair coberturas automaticamente
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          A IA vai identificar e preencher as coberturas dos PDFs
+                          O sistema vai identificar e preencher as coberturas dos PDFs automaticamente
                         </Typography>
                       </Box>
                       <Box

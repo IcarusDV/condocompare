@@ -8,6 +8,7 @@ import com.condocompare.documentos.entity.StatusProcessamento;
 import com.condocompare.documentos.entity.TipoDocumento;
 import com.condocompare.documentos.repository.DocumentoRepository;
 import com.condocompare.documentos.service.MinioService;
+import com.condocompare.documentos.service.PdfExtractionService;
 import com.condocompare.notificacoes.entity.TipoNotificacao;
 import com.condocompare.notificacoes.service.NotificacaoService;
 import com.condocompare.users.entity.Role;
@@ -16,15 +17,10 @@ import com.condocompare.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.InputStream;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,9 +35,8 @@ public class DocumentoMessageListener {
     private final MinioService minioService;
     private final NotificacaoService notificacaoService;
     private final UserRepository userRepository;
-    private final WebClient iaServiceWebClient;
+    private final PdfExtractionService pdfExtractionService;
 
-    private static final Duration IA_TIMEOUT = Duration.ofSeconds(180);
     private static final int MAX_RETRIES = 3;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE_PROCESS)
@@ -139,47 +134,12 @@ public class DocumentoMessageListener {
             byte[] fileBytes = fileStream.readAllBytes();
             fileStream.close();
 
-            org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(fileBytes) {
-                @Override
-                public String getFilename() {
-                    return message.getNomeArquivo();
-                }
-            };
-
-            String extractEndpoint;
-            MediaType contentType;
-
-            if (mimeType.equals("application/pdf")) {
-                extractEndpoint = "/documents/extract";
-                contentType = MediaType.APPLICATION_PDF;
-            } else if (mimeType.startsWith("image/")) {
-                extractEndpoint = "/documents/extract-image";
-                contentType = MediaType.parseMediaType(mimeType);
-            } else if (mimeType.contains("word") || mimeType.contains("officedocument")) {
-                extractEndpoint = "/documents/extract-docx";
-                contentType = MediaType.parseMediaType(mimeType);
-            } else {
-                log.info("Tipo de arquivo nao suportado para extracao: mimeType={}", mimeType);
-                return null;
+            if ("application/pdf".equals(mimeType)) {
+                return pdfExtractionService.extractText(fileBytes);
             }
 
-            org.springframework.http.client.MultipartBodyBuilder builder =
-                    new org.springframework.http.client.MultipartBodyBuilder();
-            builder.part("file", resource).contentType(contentType);
-            builder.part("tipo", message.getTipo().toLowerCase());
-
-            Map<String, Object> response = iaServiceWebClient.post()
-                    .uri(extractEndpoint)
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                    .body(org.springframework.web.reactive.function.BodyInserters.fromMultipartData(builder.build()))
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .timeout(IA_TIMEOUT)
-                    .block();
-
-            if (response != null && response.containsKey("texto_extraido")) {
-                return (String) response.get("texto_extraido");
-            }
+            // For non-PDF files, native extraction is not supported
+            log.info("Extração nativa suporta apenas PDF. Tipo: {}", mimeType);
             return null;
         } catch (Exception e) {
             log.error("Erro ao extrair texto do documento: {}", e.getMessage());
@@ -188,68 +148,17 @@ public class DocumentoMessageListener {
     }
 
     private String classifyDocument(String texto, String nomeArquivo) {
-        try {
-            Map<String, Object> body = Map.of(
-                    "texto", texto.substring(0, Math.min(texto.length(), 2000)),
-                    "nome_arquivo", nomeArquivo != null ? nomeArquivo : "desconhecido"
-            );
-
-            Map<String, Object> response = iaServiceWebClient.post()
-                    .uri("/documents/classify")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .timeout(Duration.ofSeconds(30))
-                    .block();
-
-            if (response != null) {
-                String tipo = (String) response.get("tipo");
-                Number confianca = (Number) response.get("confianca");
-                if (tipo != null && confianca != null && confianca.doubleValue() >= 0.6) {
-                    log.info("Documento classificado: tipo={}, confianca={}", tipo, confianca);
-                    return tipo;
-                }
-            }
-        } catch (Exception e) {
-            log.warn("Falha na classificacao automatica: {}", e.getMessage());
-        }
-        return "OUTRO";
+        return pdfExtractionService.classifyDocument(texto, nomeArquivo);
     }
 
     private Map<String, Object> indexAndExtract(String documentoId, String condominioId,
                                                   String tipo, String texto, String nomeArquivo) {
         try {
-            Map<String, Object> body = Map.of(
-                    "documento_id", documentoId,
-                    "condominio_id", condominioId != null ? condominioId : "",
-                    "tipo_documento", tipo,
-                    "texto", texto,
-                    "metadata", Map.of("filename", nomeArquivo != null ? nomeArquivo : "")
-            );
-
-            Map<String, Object> response = iaServiceWebClient.post()
-                    .uri("/rag/index-and-extract")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(body)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                    .timeout(IA_TIMEOUT)
-                    .block();
-
-            if (response != null) {
-                int chunks = response.get("chunks_created") != null ?
-                        ((Number) response.get("chunks_created")).intValue() : 0;
-                log.info("RAG indexacao concluida: documentoId={}, chunks={}", documentoId, chunks);
-
-                @SuppressWarnings("unchecked")
-                Map<String, Object> dados = (Map<String, Object>) response.get("dados_extraidos");
-                return dados;
-            }
+            return pdfExtractionService.extractData(texto, tipo);
         } catch (Exception e) {
-            log.warn("Falha ao indexar/extrair no RAG: {}", e.getMessage());
+            log.warn("Falha na extração de dados: {}", e.getMessage());
+            return null;
         }
-        return null;
     }
 
     @Transactional

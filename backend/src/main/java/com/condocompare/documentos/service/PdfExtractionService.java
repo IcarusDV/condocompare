@@ -1,0 +1,542 @@
+package com.condocompare.documentos.service;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+@Service
+@Slf4j
+public class PdfExtractionService {
+
+    private static final DateTimeFormatter BR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter ISO_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    // --- Known seguradoras ---
+    private static final String[] SEGURADORAS = {
+            "Porto Seguro", "Tokio Marine", "Bradesco Seguros", "SulAmérica", "SulAmerica",
+            "Allianz", "Liberty", "Mapfre", "HDI", "Zurich", "Chubb", "AXA",
+            "Sompo", "Alfa Seguros", "Excelsior", "Fairfax", "Generali",
+            "Itaú Seguros", "Mitsui Sumitomo", "Pottencial", "Sancor", "Junto Seguros",
+            "Too Seguros", "Yasuda", "Suhai", "Azul Seguros", "Yelum"
+    };
+
+    // --- Classification keyword sets ---
+    private static final Map<String, List<String>> CLASSIFICATION_KEYWORDS = Map.of(
+            "APOLICE", List.of("apólice", "apolice", "número da apólice", "numero da apolice",
+                    "proposta de seguro", "vigência da apólice", "vigencia da apolice",
+                    "certificado de seguro", "endosso"),
+            "ORCAMENTO", List.of("orçamento", "orcamento", "cotação", "cotacao",
+                    "prêmio total", "premio total", "proposta comercial",
+                    "simulação", "simulacao", "valor do seguro"),
+            "CONDICOES_GERAIS", List.of("condições gerais", "condicoes gerais", "cláusulas",
+                    "clausulas", "disposições gerais", "disposicoes gerais",
+                    "condições especiais", "condicoes especiais"),
+            "LAUDO_VISTORIA", List.of("laudo", "vistoria", "inspeção", "inspecao",
+                    "laudo técnico", "laudo tecnico", "relatório de vistoria",
+                    "relatorio de vistoria"),
+            "SINISTRO", List.of("sinistro", "aviso de sinistro", "ocorrência", "ocorrencia",
+                    "regulação de sinistro", "regulacao de sinistro", "comunicação de sinistro")
+    );
+
+    // --- Coverage name patterns ---
+    private static final String COVERAGE_NAMES_REGEX =
+            "(?:incêndio|incendio|raio|explosão|explosao|" +
+            "vendaval|granizo|fumaça|fumaca|" +
+            "danos? el[ée]tricos?|danos? por [áa]gua|danos? mec[âa]nicos?|" +
+            "responsabilidade civil|rc do s[íi]ndico|rc do condom[íi]nio|rc elevador|rc guarda|" +
+            "roubo|furto qualificado|furto|subtração de bens|subtracao de bens|" +
+            "quebra de vidros?|quebra de m[áa]quinas?|" +
+            "alagamento|inundação|inundacao|transbordamento|" +
+            "impacto de ve[íi]culos?|queda de aeronaves?|" +
+            "despesas fixas|perda de aluguel|perda de receita|" +
+            "desmoronamento|desabamento|" +
+            "tumultos?|greve|lock[- ]?out|" +
+            "equipamentos? eletr[ôo]nicos?|" +
+            "vida|morte acidental|invalidez permanente|ipa|" +
+            "portão|portao|porta automática|porta automatica|" +
+            "anúncios luminosos|anuncios luminosos|" +
+            "paisagismo|jardins?|" +
+            "vazamento de tanques?|" +
+            "remoção de entulhos?|remocao de entulhos?|" +
+            "salvamento|combate a inc[êe]ndio|" +
+            "rc (?:operações|operacoes)|" +
+            "derramamento de sprinklers?|" +
+            "vidros|espelhos|m[áa]rmores?)";
+
+    /**
+     * Extract all text from a PDF file using PDFBox.
+     */
+    public String extractText(byte[] fileBytes) {
+        try (PDDocument document = Loader.loadPDF(fileBytes)) {
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document);
+            log.info("PDF text extracted: {} characters, {} pages", text.length(), document.getNumberOfPages());
+            return text;
+        } catch (Exception e) {
+            log.error("Erro ao extrair texto do PDF: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Classify a document based on keywords found in the text and filename.
+     */
+    public String classifyDocument(String text, String filename) {
+        if (text == null || text.isBlank()) {
+            return "OUTRO";
+        }
+
+        String lowerText = text.toLowerCase();
+        String lowerFilename = (filename != null) ? filename.toLowerCase() : "";
+
+        // Score each type by counting keyword matches
+        Map<String, Integer> scores = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : CLASSIFICATION_KEYWORDS.entrySet()) {
+            int score = 0;
+            for (String keyword : entry.getValue()) {
+                if (lowerText.contains(keyword.toLowerCase())) {
+                    score++;
+                }
+                if (lowerFilename.contains(keyword.toLowerCase())) {
+                    score += 2; // filename matches are weighted higher
+                }
+            }
+            scores.put(entry.getKey(), score);
+        }
+
+        // Find the type with the highest score
+        String bestType = "OUTRO";
+        int bestScore = 0;
+        for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+            if (entry.getValue() > bestScore) {
+                bestScore = entry.getValue();
+                bestType = entry.getKey();
+            }
+        }
+
+        // Require at least 2 keyword matches to classify
+        if (bestScore < 2) {
+            return "OUTRO";
+        }
+
+        log.info("Documento classificado como {} (score={})", bestType, bestScore);
+        return bestType;
+    }
+
+    /**
+     * Extract structured data from the text based on the document type.
+     * Returns a Map in the format expected by the existing system.
+     */
+    public Map<String, Object> extractData(String text, String tipo) {
+        if (text == null || text.isBlank()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, Object> result = new HashMap<>();
+
+        // Extract seguradora
+        String seguradoraNome = extractSeguradora(text);
+        if (seguradoraNome != null) {
+            result.put("seguradoraNome", seguradoraNome);
+        }
+
+        // Extract monetary values (premio)
+        BigDecimal valorPremio = extractValorPremio(text);
+        if (valorPremio != null) {
+            result.put("valorPremio", valorPremio);
+        }
+
+        // Extract vigencia dates
+        String vigenciaInicio = extractVigenciaInicio(text);
+        String vigenciaFim = extractVigenciaFim(text);
+        if (vigenciaInicio != null) {
+            result.put("dataVigenciaInicio", vigenciaInicio);
+        }
+        if (vigenciaFim != null) {
+            result.put("dataVigenciaFim", vigenciaFim);
+        }
+
+        // Extract coberturas for APOLICE and ORCAMENTO
+        if ("APOLICE".equals(tipo) || "ORCAMENTO".equals(tipo)) {
+            List<Map<String, Object>> coberturas = extractCoberturas(text);
+            if (!coberturas.isEmpty()) {
+                result.put("coberturas", coberturas);
+            }
+        }
+
+        // Extract forma de pagamento
+        String formaPagamento = extractFormaPagamento(text);
+        if (formaPagamento != null) {
+            result.put("formaPagamento", formaPagamento);
+        }
+
+        // Extract condominio data
+        Map<String, Object> condominioData = extractCondominioData(text);
+        if (!condominioData.isEmpty()) {
+            result.put("condominio_data", condominioData);
+        }
+
+        log.info("Dados extraidos: {} campos, {} coberturas",
+                result.size(),
+                result.containsKey("coberturas") ? ((List<?>) result.get("coberturas")).size() : 0);
+
+        return result;
+    }
+
+    // ============================
+    // Private extraction methods
+    // ============================
+
+    private String extractSeguradora(String text) {
+        String lowerText = text.toLowerCase();
+        for (String seg : SEGURADORAS) {
+            if (lowerText.contains(seg.toLowerCase())) {
+                return seg;
+            }
+        }
+        // Try to find via CNPJ-based patterns or "Seguradora:" label
+        Pattern segPattern = Pattern.compile(
+                "(?i)(?:seguradora|companhia de seguros|cia\\. de seguros|seguros s[./]a)\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s&.]+)",
+                Pattern.UNICODE_CHARACTER_CLASS);
+        Matcher m = segPattern.matcher(text);
+        if (m.find()) {
+            String found = m.group(1).trim();
+            if (found.length() > 3 && found.length() < 80) {
+                return found.replaceAll("\\s+", " ").trim();
+            }
+        }
+        return null;
+    }
+
+    private BigDecimal extractValorPremio(String text) {
+        // Priority 1: explicit "prêmio total" or "prêmio líquido" patterns
+        Pattern[] premioPatterns = {
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)(?:valor\\s+(?:total|do\\s+(?:prêmio|premio|seguro)))\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*\\(?R\\$\\)?\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+        };
+
+        for (Pattern p : premioPatterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                BigDecimal value = parseBrazilianMoney(m.group(1));
+                if (value != null && value.compareTo(BigDecimal.ZERO) > 0) {
+                    return value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private String extractVigenciaInicio(String text) {
+        Pattern[] patterns = {
+                Pattern.compile("(?i)(?:in[íi]cio\\s*(?:da\\s*)?vig[êe]ncia|vig[êe]ncia\\s*(?:de|a\\s*partir\\s*de|in[íi]cio))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                Pattern.compile("(?i)(?:in[íi]cio|vigente\\s+(?:a\\s+partir|desde))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})\\s*(?:a|até|ate|-)\\s*\\d{2}/\\d{2}/\\d{4}"),
+                Pattern.compile("(?i)per[íi]odo\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})\\s*(?:a|até|ate|-)\\s*\\d{2}/\\d{2}/\\d{4}"),
+        };
+
+        for (Pattern p : patterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                return convertDateToIso(m.group(1));
+            }
+        }
+        return null;
+    }
+
+    private String extractVigenciaFim(String text) {
+        Pattern[] patterns = {
+                Pattern.compile("(?i)(?:t[ée]rmino|vencimento|fim)\\s*(?:da\\s*)?(?:vig[êe]ncia)?\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                Pattern.compile("(?i)per[íi]odo\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                Pattern.compile("(?i)(?:vigente\\s+até|validade\\s+até|válido\\s+até)\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+        };
+
+        for (Pattern p : patterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                return convertDateToIso(m.group(1));
+            }
+        }
+        return null;
+    }
+
+    private List<Map<String, Object>> extractCoberturas(String text) {
+        List<Map<String, Object>> coberturas = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+
+        // Strategy 1: Named coverage followed by R$ value on the same or next line
+        Pattern coverageWithValue = Pattern.compile(
+                "(?im)(" + COVERAGE_NAMES_REGEX + "[^\\n]*?)\\s+R\\$\\s*([\\d.]+,[\\d]{2})",
+                Pattern.UNICODE_CHARACTER_CLASS);
+
+        Matcher m = coverageWithValue.matcher(text);
+        while (m.find()) {
+            String rawName = m.group(1).trim();
+            String rawValue = m.group(m.groupCount());
+
+            String cleanName = cleanCoverageName(rawName);
+            if (cleanName.length() < 3 || cleanName.length() > 120) continue;
+
+            String key = cleanName.toLowerCase();
+            if (seen.contains(key)) continue;
+            seen.add(key);
+
+            BigDecimal valor = parseBrazilianMoney(rawValue);
+            if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            Map<String, Object> cobertura = new LinkedHashMap<>();
+            cobertura.put("nome", cleanName);
+            cobertura.put("valorLimite", valor);
+            cobertura.put("franquia", null);
+            cobertura.put("incluido", true);
+
+            // Try to find a franquia value near this coverage
+            BigDecimal franquia = findFranquiaNear(text, m.start(), m.end(), cleanName);
+            if (franquia != null) {
+                cobertura.put("franquia", franquia);
+            }
+
+            coberturas.add(cobertura);
+        }
+
+        // Strategy 2: Table-like format "CoberturaNome | LimiteMax | Franquia"
+        // Some PDFs have tabular layouts where values appear after the coverage name
+        Pattern tablePattern = Pattern.compile(
+                "(?im)(" + COVERAGE_NAMES_REGEX + "[^\\n]{0,60}?)\\s{2,}([\\d.]+,[\\d]{2})\\s{2,}([\\d.]+,[\\d]{2})?",
+                Pattern.UNICODE_CHARACTER_CLASS);
+
+        Matcher tm = tablePattern.matcher(text);
+        while (tm.find()) {
+            String rawName = tm.group(1).trim();
+            String cleanName = cleanCoverageName(rawName);
+            String key = cleanName.toLowerCase();
+            if (seen.contains(key) || cleanName.length() < 3) continue;
+            seen.add(key);
+
+            BigDecimal valor = parseBrazilianMoney(tm.group(tm.groupCount() - 1));
+            if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            Map<String, Object> cobertura = new LinkedHashMap<>();
+            cobertura.put("nome", cleanName);
+            cobertura.put("valorLimite", valor);
+            cobertura.put("incluido", true);
+
+            if (tm.group(tm.groupCount()) != null) {
+                BigDecimal franquia = parseBrazilianMoney(tm.group(tm.groupCount()));
+                cobertura.put("franquia", franquia);
+            } else {
+                cobertura.put("franquia", null);
+            }
+
+            coberturas.add(cobertura);
+        }
+
+        return coberturas;
+    }
+
+    private BigDecimal findFranquiaNear(String text, int matchStart, int matchEnd, String coverageName) {
+        // Look within ~300 chars after the coverage match for a franquia value
+        int searchEnd = Math.min(text.length(), matchEnd + 300);
+        String nearby = text.substring(matchEnd, searchEnd);
+
+        // Look for "franquia" keyword followed by a value
+        Pattern franquiaPattern = Pattern.compile(
+                "(?i)franquia\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"
+        );
+        Matcher fm = franquiaPattern.matcher(nearby);
+        if (fm.find()) {
+            return parseBrazilianMoney(fm.group(1));
+        }
+
+        // Also check for percentage-based franquia
+        Pattern pctPattern = Pattern.compile("(?i)franquia\\s*:?\\s*(\\d+)\\s*%");
+        Matcher pm = pctPattern.matcher(nearby);
+        if (pm.find()) {
+            // Store as negative to indicate percentage (convention)
+            // Actually, just return null - let the user handle percentage franquias
+            return null;
+        }
+
+        return null;
+    }
+
+    private String cleanCoverageName(String rawName) {
+        // Remove trailing dots, dashes, spaces, colons
+        String name = rawName
+                .replaceAll("[.…:]+$", "")
+                .replaceAll("\\s+", " ")
+                .replaceAll("^\\d+\\s*[-.)]+\\s*", "") // remove leading numbering like "1. " or "1) "
+                .trim();
+
+        // Capitalize first letter
+        if (!name.isEmpty()) {
+            name = name.substring(0, 1).toUpperCase() + name.substring(1);
+        }
+        return name;
+    }
+
+    private String extractFormaPagamento(String text) {
+        Pattern[] patterns = {
+                Pattern.compile("(?i)(?:forma\\s*(?:de)?\\s*pagamento|pagamento)\\s*:?\\s*([^\\n]{3,60})"),
+                Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?)\\s*(?:de)?\\s*R\\$\\s*[\\d.,]+"),
+                Pattern.compile("(?i)(?:parcelamento|parcelas?)\\s*:?\\s*(\\d+)\\s*(?:x|vezes|parcelas?)"),
+        };
+
+        // Check for specific payment method keywords
+        String lowerText = text.toLowerCase();
+        if (lowerText.contains("à vista") || lowerText.contains("a vista")) {
+            return "À vista";
+        }
+
+        Matcher m = patterns[0].matcher(text);
+        if (m.find()) {
+            String forma = m.group(1).trim();
+            if (forma.length() > 3 && forma.length() < 60) {
+                return forma;
+            }
+        }
+
+        // Check for installments
+        m = patterns[1].matcher(text);
+        if (m.find()) {
+            return m.group(0).trim();
+        }
+
+        m = patterns[2].matcher(text);
+        if (m.find()) {
+            return m.group(0).trim();
+        }
+
+        return null;
+    }
+
+    private Map<String, Object> extractCondominioData(String text) {
+        Map<String, Object> data = new HashMap<>();
+
+        // CNPJ
+        Pattern cnpjPattern = Pattern.compile("(\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})");
+        Matcher m = cnpjPattern.matcher(text);
+        if (m.find()) {
+            data.put("cnpj", m.group(1));
+        }
+
+        // CEP
+        Pattern cepPattern = Pattern.compile("(\\d{5}-\\d{3})");
+        m = cepPattern.matcher(text);
+        if (m.find()) {
+            data.put("cep", m.group(1));
+        }
+
+        // Address - look for patterns like "Rua/Av/Avenida/Alameda ... , nº ... "
+        Pattern enderecoPattern = Pattern.compile(
+                "(?i)((?:rua|r\\.|av\\.?|avenida|alameda|al\\.|travessa|tv\\.|praça|pça\\.|estrada|rod\\.?)\\s+[^\\n,]{3,80}(?:,\\s*(?:n[ºo°]?\\s*)?\\d+)?)",
+                Pattern.UNICODE_CHARACTER_CLASS);
+        m = enderecoPattern.matcher(text);
+        if (m.find()) {
+            data.put("endereco", m.group(1).trim());
+        }
+
+        // City/State - common formats: "Cidade - UF", "Cidade/UF", "Cidade - Estado"
+        Pattern cidadeEstadoPattern = Pattern.compile(
+                "(?i)(?:cidade|município|municipio|localidade)?\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s]{2,30})\\s*[-/]\\s*([A-Z]{2})(?:\\s|\\n|$)",
+                Pattern.UNICODE_CHARACTER_CLASS);
+        m = cidadeEstadoPattern.matcher(text);
+        if (m.find()) {
+            String cidade = m.group(1).trim();
+            String estado = m.group(2).trim().toUpperCase();
+            if (isValidUf(estado)) {
+                data.put("cidade", cidade);
+                data.put("estado", estado);
+            }
+        }
+
+        // Number of units
+        Pattern unidadesPattern = Pattern.compile("(?i)(\\d+)\\s*(?:unidades?|apart(?:amentos?)?|salas?|conjuntos?)");
+        m = unidadesPattern.matcher(text);
+        if (m.find()) {
+            try {
+                int num = Integer.parseInt(m.group(1));
+                if (num > 0 && num < 10000) {
+                    data.put("numeroUnidades", num);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // Number of blocks/towers
+        Pattern blocosPattern = Pattern.compile("(?i)(\\d+)\\s*(?:blocos?|torres?|edif[íi]cios?)");
+        m = blocosPattern.matcher(text);
+        if (m.find()) {
+            try {
+                int num = Integer.parseInt(m.group(1));
+                if (num > 0 && num < 100) {
+                    data.put("numeroBlocos", num);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // Built area
+        Pattern areaPattern = Pattern.compile("(?i)(?:[áa]rea\\s*(?:constru[íi]da|total))\\s*:?\\s*([\\d.,]+)\\s*m[²2]?");
+        m = areaPattern.matcher(text);
+        if (m.find()) {
+            try {
+                String areaStr = m.group(1).replace(".", "").replace(",", ".");
+                BigDecimal area = new BigDecimal(areaStr);
+                if (area.compareTo(BigDecimal.ZERO) > 0) {
+                    data.put("areaConstruida", area);
+                }
+            } catch (Exception ignored) {}
+        }
+
+        return data;
+    }
+
+    // ============================
+    // Utility methods
+    // ============================
+
+    private BigDecimal parseBrazilianMoney(String value) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            // Brazilian format: 1.234.567,89 -> 1234567.89
+            String normalized = value.replace(".", "").replace(",", ".");
+            BigDecimal result = new BigDecimal(normalized);
+            return result.compareTo(BigDecimal.ZERO) > 0 ? result : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String convertDateToIso(String brDate) {
+        if (brDate == null) return null;
+        try {
+            LocalDate date = LocalDate.parse(brDate, BR_DATE);
+            return date.format(ISO_DATE);
+        } catch (Exception e) {
+            log.warn("Falha ao converter data: {}", brDate);
+            return null;
+        }
+    }
+
+    private boolean isValidUf(String uf) {
+        Set<String> ufs = Set.of(
+                "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO",
+                "MA", "MG", "MS", "MT", "PA", "PB", "PE", "PI", "PR",
+                "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"
+        );
+        return ufs.contains(uf);
+    }
+}
