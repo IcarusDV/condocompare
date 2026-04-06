@@ -37,14 +37,22 @@ public class MinioService {
                 .build());
 
             if (!exists) {
-                minioClient.makeBucket(MakeBucketArgs.builder()
-                    .bucket(bucketName)
-                    .build());
-                log.info("Bucket criado: {}", bucketName);
+                try {
+                    minioClient.makeBucket(MakeBucketArgs.builder()
+                        .bucket(bucketName)
+                        .build());
+                    log.info("Bucket criado: {}", bucketName);
+                } catch (Exception createEx) {
+                    // Supabase Storage não permite criar buckets via S3 API
+                    // O bucket precisa ser criado manualmente no painel do Supabase
+                    log.warn("Não foi possível criar bucket '{}'. Se usar Supabase, crie manualmente. Erro: {}",
+                        bucketName, createEx.getMessage());
+                }
             }
         } catch (Exception e) {
-            log.error("Erro ao verificar/criar bucket: {}", bucketName, e);
-            throw new BusinessException("Erro ao inicializar storage: " + e.getMessage());
+            // Se não conseguir verificar, assume que o bucket existe (Supabase pode não suportar listBuckets)
+            log.warn("Não foi possível verificar bucket '{}', assumindo que existe. Erro: {}",
+                bucketName, e.getMessage());
         }
     }
 

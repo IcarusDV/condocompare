@@ -38,8 +38,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorIcon from '@mui/icons-material/Error'
 import { documentoService, formatFileSize } from '@/services/documentoService'
 import { condominioService } from '@/services/condominioService'
+import { seguradoraService } from '@/services/seguradoraService'
 import { iaService } from '@/services/iaService'
-import { TipoDocumento, CondominioListResponse } from '@/types'
+import { TipoDocumento, CondominioListResponse, SeguradoraResponse } from '@/types'
 
 interface DocumentoUploadDialogProps {
   open: boolean
@@ -87,6 +88,7 @@ export function DocumentoUploadDialog({
   const [seguradoraNome, setSeguradoraNome] = useState('')
   const [condominioId, setCondominioId] = useState(initialCondominioId || '')
   const [condominios, setCondominios] = useState<CondominioListResponse[]>([])
+  const [seguradoras, setSeguradoras] = useState<SeguradoraResponse[]>([])
   const [loadingCondominios, setLoadingCondominios] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -99,6 +101,9 @@ export function DocumentoUploadDialog({
     if (open && !initialCondominioId) {
       loadCondominios()
     }
+    if (open) {
+      loadSeguradoras()
+    }
   }, [open, initialCondominioId])
 
   useEffect(() => {
@@ -106,6 +111,15 @@ export function DocumentoUploadDialog({
       setCondominioId(initialCondominioId)
     }
   }, [initialCondominioId])
+
+  const loadSeguradoras = async () => {
+    try {
+      const response = await seguradoraService.list()
+      setSeguradoras(response)
+    } catch (err) {
+      console.error('Error loading seguradoras:', err)
+    }
+  }
 
   const loadCondominios = async () => {
     try {
@@ -577,16 +591,40 @@ export function DocumentoUploadDialog({
               </Select>
             </FormControl>
 
-            {(tipo === 'ORCAMENTO' || tipo === 'APOLICE') && (
-              <>
+            <Autocomplete
+              options={seguradoras}
+              getOptionLabel={(option) => typeof option === 'string' ? option : option.nome}
+              freeSolo
+              value={seguradoras.find(s => s.nome === seguradoraNome) || null}
+              inputValue={seguradoraNome}
+              onInputChange={(_, newValue) => setSeguradoraNome(newValue)}
+              onChange={(_, newValue) => {
+                if (typeof newValue === 'string') {
+                  setSeguradoraNome(newValue)
+                } else if (newValue) {
+                  setSeguradoraNome(newValue.nome)
+                } else {
+                  setSeguradoraNome('')
+                }
+              }}
+              disabled={uploading}
+              renderInput={(params) => (
                 <TextField
+                  {...params}
                   label="Seguradora"
                   size="small"
-                  value={seguradoraNome}
-                  onChange={(e) => setSeguradoraNome(e.target.value)}
-                  placeholder="Ex: Porto Seguro, Tokio Marine, etc."
-                  disabled={uploading}
+                  placeholder="Selecione ou digite a seguradora"
                 />
+              )}
+              renderOption={(props, option) => (
+                <li {...props} key={option.id}>
+                  <Typography variant="body2">{option.nome}</Typography>
+                </li>
+              )}
+            />
+
+            {(tipo === 'ORCAMENTO' || tipo === 'APOLICE') && (
+              <>
                 {showExtractOption && (
                   <Paper
                     sx={{
