@@ -98,12 +98,13 @@ export const sinistroService = {
 
 export const getTipoSinistroLabel = (tipo: TipoSinistro): string => {
   const labels: Record<TipoSinistro, string> = {
-    INCENDIO: 'Incendio',
-    ROUBO: 'Roubo',
-    DANOS_AGUA: 'Danos por Agua',
-    DANOS_ELETRICOS: 'Danos Eletricos',
+    INCENDIO_RAIO_EXPLOSAO: 'Incêndio, Raio e Explosão',
+    DANOS_AGUA: 'Danos por Água',
+    DANOS_ELETRICOS: 'Danos Elétricos',
+    ROUBO_FURTO: 'Roubo/Furto',
+    VENDAVAL_GRANIZO: 'Vendaval/Granizo',
     RESPONSABILIDADE_CIVIL: 'Responsabilidade Civil',
-    VENDAVAL: 'Vendaval',
+    QUEBRA_VIDROS: 'Quebra de Vidros',
     OUTROS: 'Outros',
   }
   return labels[tipo] || tipo

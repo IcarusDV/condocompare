@@ -303,16 +303,17 @@ public class DocumentoService {
      * Impede que um atacante envie um .exe declarando ser application/pdf.
      */
     private void validateMagicBytes(MultipartFile file, String contentType) {
-        byte[] header = new byte[8];
-        int read;
-        try (InputStream is = file.getInputStream()) {
-            read = is.read(header);
+        byte[] fileBytes;
+        try {
+            fileBytes = file.getBytes();
         } catch (IOException e) {
-            throw new BusinessException("Erro ao validar arquivo: " + e.getMessage());
+            throw new BusinessException("Erro ao ler arquivo: " + e.getMessage());
         }
-        if (read < 4) {
+        if (fileBytes.length < 4) {
             throw new BusinessException("Arquivo inválido ou corrompido");
         }
+        byte[] header = new byte[Math.min(8, fileBytes.length)];
+        System.arraycopy(fileBytes, 0, header, 0, header.length);
 
         boolean match = switch (contentType) {
             case "application/pdf" ->

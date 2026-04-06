@@ -43,6 +43,10 @@ import SecurityIcon from '@mui/icons-material/Security'
 import PersonIcon from '@mui/icons-material/Person'
 import ShieldIcon from '@mui/icons-material/Shield'
 import HomeWorkIcon from '@mui/icons-material/HomeWork'
+import LocalParkingIcon from '@mui/icons-material/LocalParking'
+import StorefrontIcon from '@mui/icons-material/Storefront'
+import ElectricCarIcon from '@mui/icons-material/ElectricCar'
+import PedalBikeIcon from '@mui/icons-material/PedalBike'
 import { CreateCondominioRequest, UpdateCondominioRequest, TipoConstrucao, CondominioResponse } from '@/types'
 import { condominioService } from '@/services/condominioService'
 import { iaService } from '@/services/iaService'
@@ -82,6 +86,19 @@ function flattenCondominioResponse(data: CondominioResponse): FormData {
     temChurrasqueira: data.amenidades.temChurrasqueira,
     temQuadra: data.amenidades.temQuadra,
     temPortaria24h: data.amenidades.temPortaria24h,
+    possuiAreaComercial: data.amenidades.possuiAreaComercial ?? false,
+    tamanhoAreaComercial: data.amenidades.tamanhoAreaComercial,
+    numFuncionariosRegistrados: data.amenidades.numFuncionariosRegistrados,
+    idadeFuncionariosRegistrados: data.amenidades.idadeFuncionariosRegistrados ?? '',
+    numPavimentos: data.amenidades.numPavimentos,
+    possuiGaragem: data.amenidades.possuiGaragem ?? false,
+    vagasGaragem: data.amenidades.vagasGaragem,
+    espacosConveniencia: data.amenidades.espacosConveniencia ?? [],
+    espacosConvenienciaOutros: '',
+    sistemaProtecaoIncendio: data.amenidades.sistemaProtecaoIncendio ?? [],
+    sistemaProtecaoIncendioOutros: '',
+    possuiRecargaEletricos: data.amenidades.possuiRecargaEletricos ?? false,
+    possuiBicicletario: data.amenidades.possuiBicicletario ?? false,
     sindicoNome: data.sindico.sindicoNome,
     sindicoEmail: data.sindico.sindicoEmail,
     sindicoTelefone: data.sindico.sindicoTelefone,
@@ -118,6 +135,19 @@ const initialFormData: FormData = {
   temChurrasqueira: false,
   temQuadra: false,
   temPortaria24h: false,
+  possuiAreaComercial: false,
+  tamanhoAreaComercial: undefined,
+  numFuncionariosRegistrados: undefined,
+  idadeFuncionariosRegistrados: '',
+  numPavimentos: undefined,
+  possuiGaragem: false,
+  vagasGaragem: undefined,
+  espacosConveniencia: [],
+  espacosConvenienciaOutros: '',
+  sistemaProtecaoIncendio: [],
+  sistemaProtecaoIncendioOutros: '',
+  possuiRecargaEletricos: false,
+  possuiBicicletario: false,
   sindicoNome: '',
   sindicoEmail: '',
   sindicoTelefone: '',
@@ -129,12 +159,12 @@ const initialFormData: FormData = {
 const STEPS = [
   { label: 'Dados Básicos', icon: ApartmentIcon },
   { label: 'Endereço', icon: LocationOnIcon },
-  { label: 'Características & Amenidades', icon: HomeWorkIcon },
+  { label: 'Características & Estrutura', icon: HomeWorkIcon },
   { label: 'Síndico', icon: PersonIcon },
   { label: 'Seguro', icon: ShieldIcon },
 ]
 
-const amenidades = [
+const estruturaToggles = [
   { key: 'temPortaria24h' as const, label: 'Portaria 24h', icon: SecurityIcon, color: '#3b82f6' },
   { key: 'temPiscina' as const, label: 'Piscina', icon: PoolIcon, color: '#06b6d4' },
   { key: 'temAcademia' as const, label: 'Academia', icon: FitnessCenterIcon, color: '#8b5cf6' },
@@ -144,6 +174,9 @@ const amenidades = [
   { key: 'temQuadra' as const, label: 'Quadra', icon: SportsSoccerIcon, color: '#22c55e' },
   { key: 'temPlacasSolares' as const, label: 'Placas Solares', icon: SolarPowerIcon, color: '#eab308' },
 ]
+
+const ESPACOS_CONVENIENCIA_OPTIONS = ['Minimercado', 'Farmacia', 'Outros']
+const SISTEMA_PROTECAO_INCENDIO_OPTIONS = ['Extintores', 'Hidrantes', 'Alarme de Incendio', 'Sprinklers', 'Outros']
 
 const UF_LIST = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',
@@ -327,6 +360,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
         numeroAndares: formData.numeroAndares ? Number(formData.numeroAndares) : undefined,
         numeroFuncionarios: formData.numeroFuncionarios ? Number(formData.numeroFuncionarios) : undefined,
         anoConstrucao: formData.anoConstrucao ? Number(formData.anoConstrucao) : undefined,
+        tamanhoAreaComercial: formData.tamanhoAreaComercial ? Number(formData.tamanhoAreaComercial) : undefined,
+        numFuncionariosRegistrados: formData.numFuncionariosRegistrados ? Number(formData.numFuncionariosRegistrados) : undefined,
+        numPavimentos: formData.numPavimentos ? Number(formData.numPavimentos) : undefined,
+        vagasGaragem: formData.vagasGaragem ? Number(formData.vagasGaragem) : undefined,
       }
 
       if (isEditing && initialData) {
@@ -613,28 +650,28 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               />
             </Box>
 
-            {/* Amenidades */}
-            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Amenidades</Typography>
+            {/* Estrutura */}
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Estrutura</Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
-              {amenidades.map((amenidade) => {
-                const Icon = amenidade.icon
-                const isActive = !!formData[amenidade.key]
+              {estruturaToggles.map((item) => {
+                const Icon = item.icon
+                const isActive = !!formData[item.key]
                 return (
                   <Paper
-                    key={amenidade.key}
-                    onClick={() => handleChange(amenidade.key, !formData[amenidade.key])}
+                    key={item.key}
+                    onClick={() => handleChange(item.key, !formData[item.key])}
                     elevation={0}
                     sx={{
                       p: 2,
                       textAlign: 'center',
                       cursor: 'pointer',
                       border: '2px solid',
-                      borderColor: isActive ? amenidade.color : 'divider',
-                      bgcolor: isActive ? `${amenidade.color}10` : 'transparent',
+                      borderColor: isActive ? item.color : 'divider',
+                      bgcolor: isActive ? `${item.color}10` : 'transparent',
                       borderRadius: 3,
                       transition: 'all 0.2s',
                       '&:hover': {
-                        borderColor: amenidade.color,
+                        borderColor: item.color,
                         transform: 'translateY(-2px)',
                         boxShadow: 2,
                       },
@@ -648,19 +685,19 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        bgcolor: isActive ? `${amenidade.color}20` : '#f3f4f6',
+                        bgcolor: isActive ? `${item.color}20` : '#f3f4f6',
                         mx: 'auto',
                         mb: 1,
                       }}
                     >
-                      <Icon sx={{ fontSize: 24, color: isActive ? amenidade.color : '#9ca3af' }} />
+                      <Icon sx={{ fontSize: 24, color: isActive ? item.color : '#9ca3af' }} />
                     </Box>
                     <Typography
                       variant="body2"
                       fontWeight={isActive ? 600 : 400}
                       color={isActive ? 'text.primary' : 'text.secondary'}
                     >
-                      {amenidade.label}
+                      {item.label}
                     </Typography>
                     {isActive && (
                       <Chip
@@ -670,7 +707,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                           mt: 0.5,
                           height: 20,
                           fontSize: '0.65rem',
-                          bgcolor: amenidade.color,
+                          bgcolor: item.color,
                           color: 'white',
                         }}
                       />
@@ -678,6 +715,199 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                   </Paper>
                 )
               })}
+
+              {/* Additional toggle cards */}
+              {[
+                { key: 'possuiAreaComercial' as const, label: 'Area Comercial', icon: StorefrontIcon, color: '#f97316' },
+                { key: 'possuiGaragem' as const, label: 'Garagem', icon: LocalParkingIcon, color: '#6366f1' },
+                { key: 'possuiRecargaEletricos' as const, label: 'Recarga Eletricos', icon: ElectricCarIcon, color: '#14b8a6' },
+                { key: 'possuiBicicletario' as const, label: 'Bicicletario', icon: PedalBikeIcon, color: '#84cc16' },
+              ].map((item) => {
+                const Icon = item.icon
+                const isActive = !!formData[item.key]
+                return (
+                  <Paper
+                    key={item.key}
+                    onClick={() => handleChange(item.key, !formData[item.key])}
+                    elevation={0}
+                    sx={{
+                      p: 2,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      border: '2px solid',
+                      borderColor: isActive ? item.color : 'divider',
+                      bgcolor: isActive ? `${item.color}10` : 'transparent',
+                      borderRadius: 3,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        borderColor: item.color,
+                        transform: 'translateY(-2px)',
+                        boxShadow: 2,
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: isActive ? `${item.color}20` : '#f3f4f6',
+                        mx: 'auto',
+                        mb: 1,
+                      }}
+                    >
+                      <Icon sx={{ fontSize: 24, color: isActive ? item.color : '#9ca3af' }} />
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      fontWeight={isActive ? 600 : 400}
+                      color={isActive ? 'text.primary' : 'text.secondary'}
+                    >
+                      {item.label}
+                    </Typography>
+                    {isActive && (
+                      <Chip
+                        label="Ativo"
+                        size="small"
+                        sx={{
+                          mt: 0.5,
+                          height: 20,
+                          fontSize: '0.65rem',
+                          bgcolor: item.color,
+                          color: 'white',
+                        }}
+                      />
+                    )}
+                  </Paper>
+                )
+              })}
+            </Box>
+
+            {/* Conditional fields for Area Comercial */}
+            {formData.possuiAreaComercial && (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Tamanho Area Comercial (m2)"
+                  value={formData.tamanhoAreaComercial || ''}
+                  onChange={(e) => handleChange('tamanhoAreaComercial', e.target.value)}
+                  InputProps={{ endAdornment: <InputAdornment position="end">m2</InputAdornment> }}
+                />
+              </Box>
+            )}
+
+            {/* Conditional fields for Garagem */}
+            {formData.possuiGaragem && (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Vagas de Garagem"
+                  value={formData.vagasGaragem || ''}
+                  onChange={(e) => handleChange('vagasGaragem', e.target.value)}
+                />
+              </Box>
+            )}
+
+            {/* Additional numeric/text fields */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Numero de Pavimentos"
+                value={formData.numPavimentos || ''}
+                onChange={(e) => handleChange('numPavimentos', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Funcionarios Registrados"
+                value={formData.numFuncionariosRegistrados || ''}
+                onChange={(e) => handleChange('numFuncionariosRegistrados', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                label="Faixa Etaria Funcionarios"
+                value={formData.idadeFuncionariosRegistrados || ''}
+                onChange={(e) => handleChange('idadeFuncionariosRegistrados', e.target.value)}
+                placeholder="Ex: 25-55 anos"
+              />
+            </Box>
+
+            {/* Espacos de Conveniencia - Multi-select chips */}
+            <Box>
+              <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>Espacos de Conveniencia</Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {ESPACOS_CONVENIENCIA_OPTIONS.map((option) => {
+                  const selected = (formData.espacosConveniencia || []).includes(option)
+                  return (
+                    <Chip
+                      key={option}
+                      label={option}
+                      onClick={() => {
+                        const current = formData.espacosConveniencia || []
+                        const updated = selected
+                          ? current.filter((v: string) => v !== option)
+                          : [...current, option]
+                        handleChange('espacosConveniencia', updated)
+                      }}
+                      color={selected ? 'primary' : 'default'}
+                      variant={selected ? 'filled' : 'outlined'}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  )
+                })}
+              </Box>
+              {(formData.espacosConveniencia || []).includes('Outros') && (
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Especifique outros espacos"
+                  value={formData.espacosConvenienciaOutros || ''}
+                  onChange={(e) => handleChange('espacosConvenienciaOutros', e.target.value)}
+                  sx={{ mt: 1 }}
+                />
+              )}
+            </Box>
+
+            {/* Sistema de Protecao contra Incendio - Multi-select chips */}
+            <Box>
+              <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>Sistema de Protecao contra Incendio</Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {SISTEMA_PROTECAO_INCENDIO_OPTIONS.map((option) => {
+                  const selected = (formData.sistemaProtecaoIncendio || []).includes(option)
+                  return (
+                    <Chip
+                      key={option}
+                      label={option}
+                      onClick={() => {
+                        const current = formData.sistemaProtecaoIncendio || []
+                        const updated = selected
+                          ? current.filter((v: string) => v !== option)
+                          : [...current, option]
+                        handleChange('sistemaProtecaoIncendio', updated)
+                      }}
+                      color={selected ? 'primary' : 'default'}
+                      variant={selected ? 'filled' : 'outlined'}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  )
+                })}
+              </Box>
+              {(formData.sistemaProtecaoIncendio || []).includes('Outros') && (
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Especifique outros sistemas"
+                  value={formData.sistemaProtecaoIncendioOutros || ''}
+                  onChange={(e) => handleChange('sistemaProtecaoIncendioOutros', e.target.value)}
+                  sx={{ mt: 1 }}
+                />
+              )}
             </Box>
           </Box>
         )

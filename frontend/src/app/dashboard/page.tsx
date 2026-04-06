@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
@@ -16,7 +16,6 @@ import {
   Chip,
   Button,
   Skeleton,
-  LinearProgress,
   Tooltip,
   IconButton,
 } from '@mui/material'
@@ -24,7 +23,7 @@ import { motion } from 'framer-motion'
 import ApartmentIcon from '@mui/icons-material/Apartment'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import ReportProblemIcon from '@mui/icons-material/ReportProblem'
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates'
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
@@ -40,11 +39,6 @@ import MotionCard from '@/components/animations/MotionCard'
 const SinistrosDonutChart = dynamic(() => import('@/components/dashboard/SinistrosDonutChart'), { ssr: false })
 const VistoriasTimelineChart = dynamic(() => import('@/components/dashboard/VistoriasTimelineChart'), { ssr: false })
 const SeguradorasBarChart = dynamic(() => import('@/components/dashboard/SeguradorasBarChart'), { ssr: false })
-
-interface AIInsight {
-  type: 'success' | 'warning' | 'error' | 'info'
-  message: string
-}
 
 const getGreeting = (): string => {
   const hour = new Date().getHours()
@@ -66,45 +60,6 @@ export default function DashboardPage() {
   const handleRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: dashboardKeys.all })
   }, [queryClient])
-
-  const aiInsights = useMemo<AIInsight[]>(() => {
-    if (!metrics) return []
-    const insights: AIInsight[] = []
-    if (metrics.apolicesVencendo30dias > 0) {
-      insights.push({ type: 'warning', message: `${metrics.apolicesVencendo30dias} apólice(s) vencendo nos próximos 30 dias. Solicite novos orçamentos.` })
-    }
-    if (metrics.sinistrosAbertos > 0) {
-      insights.push({ type: 'error', message: `${metrics.sinistrosAbertos} sinistro(s) aberto(s) aguardando ação. Acompanhe os prazos.` })
-    }
-    if (metrics.sinistrosEmAnalise > 0) {
-      insights.push({ type: 'info', message: `${metrics.sinistrosEmAnalise} sinistro(s) em análise pelas seguradoras.` })
-    }
-    if (metrics.notificacoesNaoLidas > 0) {
-      insights.push({ type: 'info', message: `Você tem ${metrics.notificacoesNaoLidas} notificação(ões) não lida(s).` })
-    }
-    if (insights.length === 0) {
-      insights.push({ type: 'success', message: 'Tudo em ordem! Condomínios com coberturas adequadas e documentação em dia.' })
-    }
-    return insights
-  }, [metrics])
-
-  const getInsightIcon = (type: AIInsight['type']) => {
-    switch (type) {
-      case 'success': return <CheckCircleIcon sx={{ fontSize: 18 }} />
-      case 'warning': return <WarningAmberIcon sx={{ fontSize: 18 }} />
-      case 'error': return <ReportProblemIcon sx={{ fontSize: 18 }} />
-      default: return <TipsAndUpdatesIcon sx={{ fontSize: 18 }} />
-    }
-  }
-
-  const getInsightColor = (type: AIInsight['type']) => {
-    switch (type) {
-      case 'success': return { bg: '#f0fdf4', border: '#22c55e', text: '#166534' }
-      case 'warning': return { bg: '#fffbeb', border: '#f59e0b', text: '#92400e' }
-      case 'error': return { bg: '#fef2f2', border: '#ef4444', text: '#991b1b' }
-      default: return { bg: '#eff6ff', border: '#3b82f6', text: '#1e40af' }
-    }
-  }
 
   const formatCurrency = (value?: number) => {
     if (!value) return 'R$ 0,00'
@@ -142,10 +97,6 @@ export default function DashboardPage() {
   }
 
   const vistoriasTotal = (metrics?.vistoriasAgendadas || 0) + (metrics?.vistoriasConcluidas || 0)
-  const coberturaPercentual = metrics?.valorTotalPrejuizos && metrics.valorTotalPrejuizos > 0
-    ? ((metrics.valorTotalIndenizado || 0) / metrics.valorTotalPrejuizos) * 100
-    : 0
-
   // ═══════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════
@@ -179,21 +130,25 @@ export default function DashboardPage() {
       {/* ─── Alerts ─────────────────────────────────────── */}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {aiInsights.length > 0 && aiInsights[0].type !== 'success' && (
-        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          {aiInsights.filter(i => i.type !== 'success').map((insight, idx) => {
-            const colors = getInsightColor(insight.type)
-            return (
-              <motion.div key={idx} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.1 }}>
-                <Box sx={{ px: 1.5, py: 0.75, borderRadius: 1.5, bgcolor: colors.bg, border: `1px solid ${colors.border}30`, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  <Box sx={{ color: colors.border }}>{getInsightIcon(insight.type)}</Box>
-                  <Typography variant="caption" sx={{ color: colors.text, fontWeight: 500 }}>{insight.message}</Typography>
-                </Box>
-              </motion.div>
-            )
-          })}
-        </Box>
-      )}
+      {/* ─── Comparar Orcamentos ───────────────────────── */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          variant="contained"
+          startIcon={<CompareArrowsIcon />}
+          onClick={() => router.push('/dashboard/comparar')}
+          sx={{
+            bgcolor: '#6366f1',
+            '&:hover': { bgcolor: '#4f46e5' },
+            textTransform: 'none',
+            fontWeight: 600,
+            borderRadius: 2,
+            px: 3,
+            py: 1,
+          }}
+        >
+          Comparar Orçamentos
+        </Button>
+      </Box>
 
       {/* ─── Stats Row (unica) ──────────────────────────── */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -322,7 +277,7 @@ export default function DashboardPage() {
             <Paper sx={{ p: 2.5, border: '1px solid #e2e8f0', boxShadow: 'none', mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <AttachMoneyIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-                <Typography variant="subtitle2" fontWeight="bold">Resumo Financeiro de Sinistros</Typography>
+                <Typography variant="subtitle2" fontWeight="bold">Resumo de Sinistros</Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 2, alignItems: 'stretch', flexWrap: 'wrap' }}>
                 <Box sx={{ flex: 1, minWidth: 160, p: 1.5, borderRadius: 1.5, bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
@@ -343,18 +298,6 @@ export default function DashboardPage() {
                     {formatCurrency(metrics?.valorTotalIndenizado)}
                   </Typography>
                 </Box>
-                {(metrics?.valorTotalPrejuizos || 0) > 0 && (
-                  <Box sx={{ flex: 1, minWidth: 160, p: 1.5, borderRadius: 1.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} sx={{ fontSize: '0.65rem', mb: 0.5 }}>
-                      COBERTURA: {coberturaPercentual.toFixed(1)}%
-                    </Typography>
-                    <LinearProgress
-                      variant="determinate"
-                      value={Math.min(coberturaPercentual, 100)}
-                      sx={{ height: 6, borderRadius: 3, bgcolor: '#fee2e2', '& .MuiLinearProgress-bar': { bgcolor: '#22c55e', borderRadius: 3 } }}
-                    />
-                  </Box>
-                )}
               </Box>
             </Paper>
           )}

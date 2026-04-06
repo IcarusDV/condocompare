@@ -473,32 +473,8 @@ export default function SeguradorasPage() {
 
       {/* Summary Cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6} md={3}>
+        <Grid item xs={12} md={3}>
           <StatCard icon={<BusinessIcon sx={{ color: 'white', fontSize: 20 }} />} label="Total Seguradoras" value={seguradoras.length} color="#3b82f6" />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <StatCard
-            icon={<StarIcon sx={{ color: 'white', fontSize: 20 }} />}
-            label="Com Especialidades"
-            value={seguradoras.filter(s => (s.especialidades || []).length > 0).length}
-            color="#f59e0b"
-          />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <StatCard
-            icon={<GavelIcon sx={{ color: 'white', fontSize: 20 }} />}
-            label="Com Regras"
-            value={seguradoras.filter(s => (s.regras || []).length > 0).length}
-            color="#6366f1"
-          />
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <StatCard
-            icon={<SmartToyIcon sx={{ color: 'white', fontSize: 20 }} />}
-            label="Com Info IA"
-            value={seguradoras.filter(s => (s.iaConhecimento || []).length > 0).length}
-            color="#10b981"
-          />
         </Grid>
       </Grid>
 

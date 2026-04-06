@@ -45,15 +45,15 @@ const DRAWER_WIDTH_COLLAPSED = 72
 const menuItems = [
   { title: 'Dashboard', icon: DashboardIcon, href: '/dashboard' },
   { title: 'Condomínios', icon: ApartmentIcon, href: '/dashboard/condominios' },
+  { title: 'Documentos', icon: DescriptionIcon, href: '/dashboard/documentos' },
   { title: 'Comparar Orçamentos', icon: CompareIcon, href: '/dashboard/comparar' },
   { title: 'Vistorias', icon: AssignmentIcon, href: '/dashboard/vistorias' },
-  { title: 'Sinistros', icon: ReportProblemIcon, href: '/dashboard/sinistros' },
-  { title: 'Documentos', icon: DescriptionIcon, href: '/dashboard/documentos' },
   { title: 'Diagnóstico', icon: AnalyticsIcon, href: '/dashboard/diagnostico' },
-  { title: 'Parceiros', icon: GroupsIcon, href: '/dashboard/parceiros' },
-  { title: 'Relatórios', icon: SummarizeIcon, href: '/dashboard/relatorios' },
   { title: 'Assistente IA', icon: SmartToyIcon, href: '/dashboard/assistente' },
+  { title: 'Sinistros', icon: ReportProblemIcon, href: '/dashboard/sinistros' },
   { title: 'Seguradoras', icon: BusinessIcon, href: '/dashboard/seguradoras' },
+  { title: 'Relatórios', icon: SummarizeIcon, href: '/dashboard/relatorios' },
+  { title: 'Parceiros', icon: GroupsIcon, href: '/dashboard/parceiros' },
   { title: 'Usuários', icon: PeopleIcon, href: '/dashboard/usuarios', adminOnly: true },
 ]
 

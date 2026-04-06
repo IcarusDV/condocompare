@@ -368,12 +368,14 @@ export default function RelatoriosPage() {
         BASICA: 'Básica',
         INTERMEDIARIA: 'Intermediária',
         COMPLETA: 'Completa',
-        INCENDIO: 'Incêndio',
+        INCENDIO_RAIO_EXPLOSAO: 'Incêndio, Raio e Explosão',
         ALAGAMENTO: 'Alagamento',
-        ROUBO: 'Roubo',
-        DANO_ELETRICO: 'Dano Elétrico',
+        DANOS_AGUA: 'Danos por Água',
+        DANOS_ELETRICOS: 'Danos Elétricos',
+        ROUBO_FURTO: 'Roubo/Furto',
+        VENDAVAL_GRANIZO: 'Vendaval/Granizo',
         RESPONSABILIDADE_CIVIL: 'Resp. Civil',
-        VENDAVAL: 'Vendaval',
+        QUEBRA_VIDROS: 'Quebra de Vidros',
       }
       return labels[String(value)] || String(value)
     }

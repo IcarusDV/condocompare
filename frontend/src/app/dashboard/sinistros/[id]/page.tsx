@@ -870,12 +870,13 @@ export default function SinistroDetailPage() {
               <FormControl fullWidth size="small">
                 <InputLabel>Tipo</InputLabel>
                 <Select value={editData.tipo || ''} label="Tipo" onChange={(e) => setEditData(p => ({ ...p, tipo: e.target.value as TipoSinistro }))}>
-                  <MenuItem value="INCENDIO">Incêndio</MenuItem>
-                  <MenuItem value="ROUBO">Roubo</MenuItem>
+                  <MenuItem value="INCENDIO_RAIO_EXPLOSAO">Incêndio, Raio e Explosão</MenuItem>
                   <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem>
                   <MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
+                  <MenuItem value="ROUBO_FURTO">Roubo/Furto</MenuItem>
+                  <MenuItem value="VENDAVAL_GRANIZO">Vendaval/Granizo</MenuItem>
                   <MenuItem value="RESPONSABILIDADE_CIVIL">Responsabilidade Civil</MenuItem>
-                  <MenuItem value="VENDAVAL">Vendaval</MenuItem>
+                  <MenuItem value="QUEBRA_VIDROS">Quebra de Vidros</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
                 </Select>
               </FormControl>

@@ -72,6 +72,17 @@ export interface AmenidadesResponse {
   temChurrasqueira?: boolean
   temQuadra?: boolean
   temPortaria24h?: boolean
+  possuiAreaComercial?: boolean
+  tamanhoAreaComercial?: number
+  numFuncionariosRegistrados?: number
+  idadeFuncionariosRegistrados?: string
+  numPavimentos?: number
+  possuiGaragem?: boolean
+  vagasGaragem?: number
+  espacosConveniencia?: string[]
+  sistemaProtecaoIncendio?: string[]
+  possuiRecargaEletricos?: boolean
+  possuiBicicletario?: boolean
 }
 
 export interface SindicoResponse {
@@ -114,6 +125,19 @@ export interface CreateCondominioRequest {
   temChurrasqueira?: boolean
   temQuadra?: boolean
   temPortaria24h?: boolean
+  possuiAreaComercial?: boolean
+  tamanhoAreaComercial?: number
+  numFuncionariosRegistrados?: number
+  idadeFuncionariosRegistrados?: string
+  numPavimentos?: number
+  possuiGaragem?: boolean
+  vagasGaragem?: number
+  espacosConveniencia?: string[]
+  espacosConvenienciaOutros?: string
+  sistemaProtecaoIncendio?: string[]
+  sistemaProtecaoIncendioOutros?: string
+  possuiRecargaEletricos?: boolean
+  possuiBicicletario?: boolean
   tipoConstrucao?: TipoConstrucao
   sindicoNome?: string
   sindicoEmail?: string
@@ -492,7 +516,7 @@ export interface VistoriaFoto {
 
 // ========== SINISTROS ==========
 
-export type TipoSinistro = 'INCENDIO' | 'ROUBO' | 'DANOS_AGUA' | 'DANOS_ELETRICOS' | 'RESPONSABILIDADE_CIVIL' | 'VENDAVAL' | 'OUTROS'
+export type TipoSinistro = 'INCENDIO_RAIO_EXPLOSAO' | 'DANOS_AGUA' | 'DANOS_ELETRICOS' | 'ROUBO_FURTO' | 'VENDAVAL_GRANIZO' | 'RESPONSABILIDADE_CIVIL' | 'QUEBRA_VIDROS' | 'OUTROS'
 export type StatusSinistro = 'ABERTO' | 'EM_ANALISE' | 'APROVADO' | 'NEGADO' | 'PAGO' | 'CANCELADO'
 
 export interface SinistroResponse {

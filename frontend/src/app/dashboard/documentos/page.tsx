@@ -371,12 +371,11 @@ export default function DocumentosPage() {
 
   // Stats
   const stats = useMemo(() => {
-    if (!data?.content) return { total: 0, orcamentos: 0, apolices: 0, pendentes: 0, totalSize: 0, vencendo: 0 }
+    if (!data?.content) return { total: 0, orcamentos: 0, apolices: 0, totalSize: 0, vencendo: 0 }
     const total = data.totalElements
     const content = data.content
     const orcamentos = content.filter(d => d.tipo === 'ORCAMENTO').length
     const apolices = content.filter(d => d.tipo === 'APOLICE').length
-    const pendentes = content.filter(d => d.status === 'PENDENTE').length
     const totalSize = content.reduce((sum, d) => sum + (d.tamanhoBytes || 0), 0)
     const now = new Date()
     const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -385,7 +384,7 @@ export default function DocumentosPage() {
       const fim = new Date(d.dataVigenciaFim)
       return fim > now && fim <= thirtyDays
     }).length
-    return { total, orcamentos, apolices, pendentes, totalSize, vencendo }
+    return { total, orcamentos, apolices, totalSize, vencendo }
   }, [data])
 
   const isVencendo = (doc: DocumentoListResponse) => {
@@ -506,17 +505,6 @@ export default function DocumentosPage() {
                 <Typography variant="caption" color="text.secondary">Orçamentos</Typography>
               </Box>
               <Typography variant="h5" fontWeight="bold" color="#2563eb">{stats.orcamentos}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={2}>
-          <Card sx={{ bgcolor: '#fefce8', border: '1px solid #fde68a' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <HourglassEmptyIcon sx={{ color: '#d97706', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Pendentes</Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="#d97706">{stats.pendentes}</Typography>
             </CardContent>
           </Card>
         </Grid>

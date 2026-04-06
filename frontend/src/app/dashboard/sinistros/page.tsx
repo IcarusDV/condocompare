@@ -474,12 +474,13 @@ export default function SinistrosPage() {
               <InputLabel>Tipo</InputLabel>
               <Select value={filterTipo} label="Tipo" onChange={(e) => { setFilterTipo(e.target.value as TipoSinistro | ''); setPage(0) }}>
                 <MenuItem value="">Todos</MenuItem>
-                <MenuItem value="INCENDIO">Incêndio</MenuItem>
-                <MenuItem value="ROUBO">Roubo</MenuItem>
+                <MenuItem value="INCENDIO_RAIO_EXPLOSAO">Incêndio, Raio e Explosão</MenuItem>
                 <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem>
                 <MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
+                <MenuItem value="ROUBO_FURTO">Roubo/Furto</MenuItem>
+                <MenuItem value="VENDAVAL_GRANIZO">Vendaval/Granizo</MenuItem>
                 <MenuItem value="RESPONSABILIDADE_CIVIL">Resp. Civil</MenuItem>
-                <MenuItem value="VENDAVAL">Vendaval</MenuItem>
+                <MenuItem value="QUEBRA_VIDROS">Quebra de Vidros</MenuItem>
                 <MenuItem value="OUTROS">Outros</MenuItem>
               </Select>
             </FormControl>
@@ -671,9 +672,13 @@ export default function SinistrosPage() {
             <Grid item xs={12} md={6}>
               <FormControl fullWidth size="small" required><InputLabel>Tipo</InputLabel>
                 <Select value={formData.tipo} label="Tipo" onChange={(e) => setFormData(p => ({ ...p, tipo: e.target.value as TipoSinistro }))}>
-                  <MenuItem value="INCENDIO">Incêndio</MenuItem><MenuItem value="ROUBO">Roubo</MenuItem>
-                  <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem><MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
-                  <MenuItem value="RESPONSABILIDADE_CIVIL">Responsabilidade Civil</MenuItem><MenuItem value="VENDAVAL">Vendaval</MenuItem>
+                  <MenuItem value="INCENDIO_RAIO_EXPLOSAO">Incêndio, Raio e Explosão</MenuItem>
+                  <MenuItem value="DANOS_AGUA">Danos por Água</MenuItem>
+                  <MenuItem value="DANOS_ELETRICOS">Danos Elétricos</MenuItem>
+                  <MenuItem value="ROUBO_FURTO">Roubo/Furto</MenuItem>
+                  <MenuItem value="VENDAVAL_GRANIZO">Vendaval/Granizo</MenuItem>
+                  <MenuItem value="RESPONSABILIDADE_CIVIL">Responsabilidade Civil</MenuItem>
+                  <MenuItem value="QUEBRA_VIDROS">Quebra de Vidros</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
                 </Select>
               </FormControl>

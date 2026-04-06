@@ -92,7 +92,7 @@ const statusConfig: Record<StatusApolice, { label: string; color: 'error' | 'war
   SEM_APOLICE: { label: 'Sem Apólice', color: 'default', icon: HelpOutlineIcon },
 }
 
-const amenidadesConfig = [
+const estruturaConfig = [
   { key: 'temPortaria24h', label: 'Portaria 24h', icon: MeetingRoomIcon },
   { key: 'temPiscina', label: 'Piscina', icon: PoolIcon },
   { key: 'temAcademia', label: 'Academia', icon: FitnessCenterIcon },
@@ -688,12 +688,6 @@ export default function CondominioDetalhesPage() {
                       <Typography fontWeight="500">{condominio.caracteristicas.areaConstruida} m2</Typography>
                     </Grid>
                   )}
-                  {condominio.caracteristicas.areaTotal && (
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">Area Total</Typography>
-                      <Typography fontWeight="500">{condominio.caracteristicas.areaTotal} m2</Typography>
-                    </Grid>
-                  )}
                   {condominio.caracteristicas.anoConstrucao && (
                     <Grid item xs={6}>
                       <Typography variant="body2" color="text.secondary">Ano Construcao</Typography>
@@ -730,15 +724,15 @@ export default function CondominioDetalhesPage() {
                 )}
               </Grid>
 
-              {/* Amenidades */}
+              {/* Estrutura */}
               <Grid item xs={12} md={6}>
-                <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Amenidades</Typography>
+                <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Estrutura</Typography>
                 <Grid container spacing={1}>
-                  {amenidadesConfig.map((amenidade) => {
-                    const hasAmenidade = condominio.amenidades[amenidade.key as keyof typeof condominio.amenidades]
-                    const AmenidadeIcon = amenidade.icon
+                  {estruturaConfig.map((item) => {
+                    const hasItem = condominio.amenidades[item.key as keyof typeof condominio.amenidades]
+                    const ItemIcon = item.icon
                     return (
-                      <Grid item xs={6} key={amenidade.key}>
+                      <Grid item xs={6} key={item.key}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -746,15 +740,15 @@ export default function CondominioDetalhesPage() {
                             gap: 1,
                             p: 1,
                             borderRadius: 1,
-                            bgcolor: hasAmenidade ? '#f0fdf4' : '#fafafa',
-                            border: `1px solid ${hasAmenidade ? '#bbf7d0' : '#f1f5f9'}`,
+                            bgcolor: hasItem ? '#f0fdf4' : '#fafafa',
+                            border: `1px solid ${hasItem ? '#bbf7d0' : '#f1f5f9'}`,
                           }}
                         >
-                          <AmenidadeIcon sx={{ color: hasAmenidade ? '#22c55e' : '#d1d5db', fontSize: 20 }} />
-                          <Typography variant="body2" sx={{ color: hasAmenidade ? '#166534' : '#9ca3af', flex: 1 }}>
-                            {amenidade.label}
+                          <ItemIcon sx={{ color: hasItem ? '#22c55e' : '#d1d5db', fontSize: 20 }} />
+                          <Typography variant="body2" sx={{ color: hasItem ? '#166534' : '#9ca3af', flex: 1 }}>
+                            {item.label}
                           </Typography>
-                          {hasAmenidade ? (
+                          {hasItem ? (
                             <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 16 }} />
                           ) : (
                             <CancelIcon sx={{ color: '#d1d5db', fontSize: 16 }} />
@@ -763,7 +757,87 @@ export default function CondominioDetalhesPage() {
                       </Grid>
                     )
                   })}
+
+                  {/* Additional Estrutura fields */}
+                  {condominio.amenidades.possuiAreaComercial && (
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                        <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#166534', flex: 1 }}>
+                          Area Comercial{condominio.amenidades.tamanhoAreaComercial ? ` (${condominio.amenidades.tamanhoAreaComercial} m2)` : ''}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                  {condominio.amenidades.possuiGaragem && (
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                        <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#166534', flex: 1 }}>
+                          Garagem{condominio.amenidades.vagasGaragem ? ` (${condominio.amenidades.vagasGaragem} vagas)` : ''}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                  {condominio.amenidades.possuiRecargaEletricos && (
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                        <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#166534', flex: 1 }}>Recarga Eletricos</Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                  {condominio.amenidades.possuiBicicletario && (
+                    <Grid item xs={6}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                        <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: '#166534', flex: 1 }}>Bicicletario</Typography>
+                      </Box>
+                    </Grid>
+                  )}
                 </Grid>
+
+                {/* Numeric/text fields */}
+                <Box sx={{ mt: 2 }}>
+                  {condominio.amenidades.numPavimentos && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary">Pavimentos</Typography>
+                      <Typography variant="body2" fontWeight="500">{condominio.amenidades.numPavimentos}</Typography>
+                    </Box>
+                  )}
+                  {condominio.amenidades.numFuncionariosRegistrados && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary">Funcionarios Registrados</Typography>
+                      <Typography variant="body2" fontWeight="500">{condominio.amenidades.numFuncionariosRegistrados}</Typography>
+                    </Box>
+                  )}
+                  {condominio.amenidades.idadeFuncionariosRegistrados && (
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary">Faixa Etaria Funcionarios</Typography>
+                      <Typography variant="body2" fontWeight="500">{condominio.amenidades.idadeFuncionariosRegistrados}</Typography>
+                    </Box>
+                  )}
+                  {condominio.amenidades.espacosConveniencia && condominio.amenidades.espacosConveniencia.length > 0 && (
+                    <Box sx={{ py: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Espacos de Conveniencia</Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                        {condominio.amenidades.espacosConveniencia.map((e: string) => (
+                          <Chip key={e} label={e} size="small" variant="outlined" />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                  {condominio.amenidades.sistemaProtecaoIncendio && condominio.amenidades.sistemaProtecaoIncendio.length > 0 && (
+                    <Box sx={{ py: 0.5 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Protecao Contra Incendio</Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                        {condominio.amenidades.sistemaProtecaoIncendio.map((s: string) => (
+                          <Chip key={s} label={s} size="small" variant="outlined" />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
               </Grid>
 
               {/* Observacoes */}
