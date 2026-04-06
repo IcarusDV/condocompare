@@ -9,6 +9,7 @@ import com.condocompare.common.service.EmailService;
 import com.condocompare.users.entity.User;
 import com.condocompare.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -54,7 +56,11 @@ public class AuthService {
 
         userRepository.save(user);
         auditService.log("REGISTER", "USER", user.getId(), "Role: " + user.getRole());
-        emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getName());
+        } catch (Exception e) {
+            log.warn("Falha ao enviar email de boas-vindas para {}: {}", user.getEmail(), e.getMessage());
+        }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtService.generateToken(userDetails, user.getId(), user.getRole().name());
