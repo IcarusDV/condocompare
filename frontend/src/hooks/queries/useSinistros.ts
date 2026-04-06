@@ -70,6 +70,7 @@ export function useSinistroStats() {
   return useQuery<SinistroStatsResponse>({
     queryKey: sinistroKeys.stats(),
     queryFn: () => sinistroService.getStats(),
+    retry: 1,
   })
 }
 

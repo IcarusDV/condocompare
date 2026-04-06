@@ -26,6 +26,7 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem'
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import AssignmentIcon from '@mui/icons-material/Assignment'
+import SmartToyIcon from '@mui/icons-material/SmartToy'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
 import TrendingDownIcon from '@mui/icons-material/TrendingDown'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
@@ -130,35 +131,43 @@ export default function DashboardPage() {
       {/* ─── Alerts ─────────────────────────────────────── */}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      {/* ─── Comparar Orcamentos ───────────────────────── */}
-      <Box sx={{ mb: 2 }}>
-        <Button
-          variant="contained"
-          startIcon={<CompareArrowsIcon />}
-          onClick={() => router.push('/dashboard/comparar')}
-          sx={{
-            bgcolor: '#6366f1',
-            '&:hover': { bgcolor: '#4f46e5' },
-            textTransform: 'none',
-            fontWeight: 600,
-            borderRadius: 2,
-            px: 3,
-            py: 1,
-          }}
-        >
-          Comparar Orçamentos
-        </Button>
+      {/* ─── Quick Actions ──────────────────────────────── */}
+      <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+        {[
+          { label: 'Novo Condomínio', icon: <ApartmentIcon sx={{ fontSize: 16 }} />, href: '/dashboard/condominios/novo', color: '#3b82f6' },
+          { label: 'Nova Vistoria', icon: <AssignmentIcon sx={{ fontSize: 16 }} />, href: '/dashboard/vistorias', color: '#10b981' },
+          { label: 'Comparar Orçamentos', icon: <CompareArrowsIcon sx={{ fontSize: 16 }} />, href: '/dashboard/comparar', color: '#6366f1' },
+          { label: 'Assistente IA', icon: <SmartToyIcon sx={{ fontSize: 16 }} />, href: '/dashboard/assistente', color: '#f59e0b' },
+          { label: 'Sinistros', icon: <ReportProblemIcon sx={{ fontSize: 16 }} />, href: '/dashboard/sinistros', color: '#ef4444' },
+        ].map((action) => (
+          <Chip
+            key={action.label}
+            icon={action.icon}
+            label={action.label}
+            onClick={() => router.push(action.href)}
+            sx={{
+              bgcolor: `${action.color}12`,
+              color: action.color,
+              fontWeight: 600,
+              fontSize: '0.8rem',
+              border: `1px solid ${action.color}30`,
+              '&:hover': { bgcolor: `${action.color}22` },
+              '& .MuiChip-icon': { color: action.color },
+              cursor: 'pointer',
+              py: 2,
+            }}
+          />
+        ))}
       </Box>
 
       {/* ─── Stats Row (unica) ──────────────────────────── */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {[
           { title: 'Condomínios', value: metrics?.totalCondominios || 0, sub: `${metrics?.totalApolices || 0} apólices`, icon: <ApartmentIcon />, color: '#3b82f6', href: '/dashboard/condominios' },
-          { title: 'Apólices Vencendo', value: metrics?.apolicesVencendo30dias || 0, sub: 'Próximos 30 dias', icon: <WarningAmberIcon />, color: (metrics?.apolicesVencendo30dias || 0) > 0 ? '#f59e0b' : '#10b981', href: '/dashboard/documentos' },
           { title: 'Sinistros', value: (metrics?.sinistrosAbertos || 0) + (metrics?.sinistrosEmAnalise || 0), sub: `${metrics?.sinistrosEmAnalise || 0} em análise`, icon: <ReportProblemIcon />, color: (metrics?.sinistrosAbertos || 0) > 0 ? '#ef4444' : '#10b981', href: '/dashboard/sinistros' },
           { title: 'Vistorias', value: vistoriasTotal, sub: `${metrics?.vistoriasAgendadas || 0} agendadas`, icon: <AssignmentIcon />, color: '#10b981', href: '/dashboard/vistorias' },
         ].map((stat, idx) => (
-          <Grid item xs={6} md={3} key={stat.title}>
+          <Grid item xs={6} md={4} key={stat.title}>
             <MotionCard
               delay={idx * 0.06}
               onClick={() => router.push(stat.href)}

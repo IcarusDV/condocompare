@@ -192,7 +192,7 @@ export default function SinistrosPage() {
   const sinistros = sinistrosPage?.content ?? []
   const totalElements = sinistrosPage?.totalElements ?? 0
   const condominios = condominiosPage?.content ?? []
-  const error = queryError ? 'Erro ao carregar dados' : null
+  const error = queryError ? 'Erro ao carregar sinistros. Verifique sua conexão e tente novamente.' : null
   const saving = createSinistro.isPending
 
   const filteredSinistros = sinistros.filter(s => {
@@ -336,7 +336,7 @@ export default function SinistrosPage() {
         </Box>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => {}}>{error}</Alert>}
 
       {/* Stats Row 1: Status counts */}
       <Grid container spacing={2} sx={{ mb: 2 }}>

@@ -62,12 +62,14 @@ import {
   getStatusColor,
 } from '@/services/documentoService'
 import { condominioService } from '@/services/condominioService'
+import { seguradoraService } from '@/services/seguradoraService'
 import {
   DocumentoListResponse,
   DocumentoFilter,
   TipoDocumento,
   StatusProcessamento,
   CondominioListResponse,
+  SeguradoraResponse,
   Page,
 } from '@/types'
 import { useAuth } from '@/contexts/AuthContext'
@@ -115,6 +117,7 @@ export default function DocumentosPage() {
   const [data, setData] = useState<Page<DocumentoListResponse> | null>(null)
   const [condominios, setCondominios] = useState<CondominioListResponse[]>([])
   const [condominiosMap, setCondominiosMap] = useState<Record<string, string>>({})
+  const [seguradoras, setSeguradoras] = useState<SeguradoraResponse[]>([])
   const [page, setPage] = useState(() => {
     const p = searchParams.get('page')
     return p ? parseInt(p, 10) : 0
@@ -195,7 +198,16 @@ export default function DocumentosPage() {
         console.error('Error loading condominios:', err)
       }
     }
+    const loadSeguradoras = async () => {
+      try {
+        const response = await seguradoraService.list()
+        setSeguradoras(response)
+      } catch (err) {
+        console.error('Error loading seguradoras:', err)
+      }
+    }
     loadCondominios()
+    loadSeguradoras()
   }, [])
 
   const fetchData = useCallback(async () => {
@@ -553,7 +565,7 @@ export default function DocumentosPage() {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2.5}>
             <FormControl fullWidth size="small">
               <InputLabel>Condominio</InputLabel>
               <Select
@@ -568,7 +580,22 @@ export default function DocumentosPage() {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={5}>
+          <Grid item xs={12} md={2.5}>
+            <FormControl fullWidth size="small">
+              <InputLabel>Seguradora</InputLabel>
+              <Select
+                value={filters.seguradora || ''}
+                label="Seguradora"
+                onChange={(e) => handleFilterChange('seguradora', e.target.value)}
+              >
+                <MenuItem value="">Todas</MenuItem>
+                {seguradoras.map((s) => (
+                  <MenuItem key={s.id} value={s.nome}>{s.nome}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={3}>
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
               {selected.size > 0 && canDelete && (
                 <Button

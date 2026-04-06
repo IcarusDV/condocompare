@@ -96,8 +96,8 @@ export const sinistroService = {
   },
 }
 
-export const getTipoSinistroLabel = (tipo: TipoSinistro): string => {
-  const labels: Record<TipoSinistro, string> = {
+export const getTipoSinistroLabel = (tipo: string): string => {
+  const labels: Record<string, string> = {
     INCENDIO_RAIO_EXPLOSAO: 'Incêndio, Raio e Explosão',
     DANOS_AGUA: 'Danos por Água',
     DANOS_ELETRICOS: 'Danos Elétricos',
@@ -107,11 +107,11 @@ export const getTipoSinistroLabel = (tipo: TipoSinistro): string => {
     QUEBRA_VIDROS: 'Quebra de Vidros',
     OUTROS: 'Outros',
   }
-  return labels[tipo] || tipo
+  return labels[tipo] || tipo || 'Desconhecido'
 }
 
-export const getStatusSinistroLabel = (status: StatusSinistro): string => {
-  const labels: Record<StatusSinistro, string> = {
+export const getStatusSinistroLabel = (status: string): string => {
+  const labels: Record<string, string> = {
     ABERTO: 'Aberto',
     EM_ANALISE: 'Em Analise',
     APROVADO: 'Aprovado',
@@ -119,11 +119,11 @@ export const getStatusSinistroLabel = (status: StatusSinistro): string => {
     PAGO: 'Pago',
     CANCELADO: 'Cancelado',
   }
-  return labels[status] || status
+  return labels[status] || status || 'Desconhecido'
 }
 
-export const getStatusSinistroColor = (status: StatusSinistro): 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info' => {
-  const colors: Record<StatusSinistro, 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info'> = {
+export const getStatusSinistroColor = (status: string): 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info' => {
+  const colors: Record<string, 'default' | 'primary' | 'success' | 'error' | 'warning' | 'info'> = {
     ABERTO: 'warning',
     EM_ANALISE: 'info',
     APROVADO: 'primary',
