@@ -200,6 +200,16 @@ public class CondominioService {
 
     // === Métodos auxiliares ===
 
+    /**
+     * Valida se o usuário atual tem acesso ao condomínio informado.
+     * Lança BusinessException se não tiver. Usado por outros services para
+     * garantir que dados vinculados a um condomínio respeitem o RBAC.
+     */
+    public void validateCondominioAccess(UUID condominioId) {
+        User currentUser = getCurrentUser();
+        findByIdWithAccessCheck(condominioId, currentUser);
+    }
+
     private Condominio findByIdWithAccessCheck(UUID id, User user) {
         Condominio condominio = condominioRepository.findById(id)
             .filter(Condominio::isActive)

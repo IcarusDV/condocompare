@@ -49,12 +49,14 @@ public class ApoliceController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar apólice por ID")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApoliceResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(apoliceService.findById(id));
     }
 
     @GetMapping
     @Operation(summary = "Listar apólices com filtros e paginação")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<ApoliceListResponse>> findAll(
             @Parameter(description = "Busca por número da apólice, condomínio ou seguradora")
             @RequestParam(required = false) String search,
@@ -87,12 +89,14 @@ public class ApoliceController {
 
     @GetMapping("/condominio/{condominioId}")
     @Operation(summary = "Listar apólices de um condomínio")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ApoliceListResponse>> findByCondominio(@PathVariable UUID condominioId) {
         return ResponseEntity.ok(apoliceService.findByCondominio(condominioId));
     }
 
     @GetMapping("/condominio/{condominioId}/vigente")
     @Operation(summary = "Buscar apólice vigente de um condomínio")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApoliceResponse> findVigenteByCondominio(@PathVariable UUID condominioId) {
         ApoliceResponse apolice = apoliceService.findVigenteByCondominio(condominioId);
         return apolice != null ? ResponseEntity.ok(apolice) : ResponseEntity.notFound().build();
@@ -100,6 +104,7 @@ public class ApoliceController {
 
     @GetMapping("/vencendo")
     @Operation(summary = "Listar apólices vencendo")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ApoliceListResponse>> findVencendo(
             @Parameter(description = "Dias para vencimento (padrão: 30)")
             @RequestParam(defaultValue = "30") int dias
@@ -109,6 +114,7 @@ public class ApoliceController {
 
     @GetMapping("/vencidas")
     @Operation(summary = "Listar apólices vencidas")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ApoliceListResponse>> findVencidas() {
         return ResponseEntity.ok(apoliceService.findVencidas());
     }
@@ -136,6 +142,7 @@ public class ApoliceController {
 
     @GetMapping("/{id}/coberturas")
     @Operation(summary = "Listar coberturas da apólice")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CoberturaResponse>> findCoberturas(@PathVariable UUID id) {
         return ResponseEntity.ok(apoliceService.findCoberturasByApolice(id));
     }

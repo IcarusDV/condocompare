@@ -3,6 +3,7 @@ package com.condocompare.billing.controller;
 import com.condocompare.billing.dto.*;
 import com.condocompare.billing.service.BillingService;
 import com.condocompare.billing.service.StripeService;
+import com.condocompare.common.security.SecurityUtils;
 import com.stripe.exception.StripeException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,6 +25,7 @@ public class BillingController {
 
     private final BillingService billingService;
     private final StripeService stripeService;
+    private final SecurityUtils securityUtils;
 
     // ===== Planos (publico) =====
 
@@ -45,9 +47,9 @@ public class BillingController {
     @Operation(summary = "Criar nova assinatura")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<AssinaturaResponse> createAssinatura(
-            @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody CreateAssinaturaRequest request
     ) {
+        UUID userId = securityUtils.getCurrentUserId();
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(billingService.createAssinatura(userId, request));
     }
@@ -55,9 +57,8 @@ public class BillingController {
     @GetMapping("/assinaturas/ativa")
     @Operation(summary = "Buscar assinatura ativa do usuario")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<AssinaturaResponse> getAssinaturaAtiva(
-            @RequestHeader("X-User-Id") UUID userId
-    ) {
+    public ResponseEntity<AssinaturaResponse> getAssinaturaAtiva() {
+        UUID userId = securityUtils.getCurrentUserId();
         AssinaturaResponse response = billingService.getAssinaturaAtiva(userId);
         if (response == null) {
             return ResponseEntity.noContent().build();
@@ -68,18 +69,16 @@ public class BillingController {
     @GetMapping("/assinaturas/historico")
     @Operation(summary = "Historico de assinaturas do usuario")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<List<AssinaturaResponse>> getHistorico(
-            @RequestHeader("X-User-Id") UUID userId
-    ) {
+    public ResponseEntity<List<AssinaturaResponse>> getHistorico() {
+        UUID userId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(billingService.getHistorico(userId));
     }
 
     @PostMapping("/assinaturas/cancelar")
     @Operation(summary = "Cancelar assinatura ativa")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<AssinaturaResponse> cancelarAssinatura(
-            @RequestHeader("X-User-Id") UUID userId
-    ) {
+    public ResponseEntity<AssinaturaResponse> cancelarAssinatura() {
+        UUID userId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(billingService.cancelarAssinatura(userId));
     }
 
@@ -89,9 +88,9 @@ public class BillingController {
     @Operation(summary = "Criar sessao de checkout Stripe")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CheckoutResponse> createCheckout(
-            @RequestHeader("X-User-Id") UUID userId,
             @Valid @RequestBody CreateCheckoutRequest request
     ) {
+        UUID userId = securityUtils.getCurrentUserId();
         if (!stripeService.isConfigured()) {
             // Fallback: create subscription directly without payment
             CreateAssinaturaRequest assinaturaRequest = new CreateAssinaturaRequest(

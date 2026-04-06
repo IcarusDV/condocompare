@@ -49,12 +49,14 @@ public class CondominioController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar condomínio por ID")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CondominioResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(condominioService.findById(id));
     }
 
     @GetMapping
     @Operation(summary = "Listar condomínios com filtros e paginação")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<CondominioListResponse>> findAll(
             @Parameter(description = "Busca por nome, CNPJ ou cidade")
             @RequestParam(required = false) String search,
@@ -95,6 +97,7 @@ public class CondominioController {
 
     @GetMapping("/vencendo")
     @Operation(summary = "Listar condomínios com apólice vencendo")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CondominioListResponse>> findVencendo(
             @Parameter(description = "Dias para vencimento (padrão: 30)")
             @RequestParam(defaultValue = "30") int dias
@@ -104,6 +107,7 @@ public class CondominioController {
 
     @GetMapping("/vencidos")
     @Operation(summary = "Listar condomínios com apólice vencida")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<CondominioListResponse>> findVencidos() {
         return ResponseEntity.ok(condominioService.findCondominiosVencidos());
     }

@@ -24,9 +24,12 @@ import java.util.concurrent.atomic.AtomicLong;
 public class RateLimitFilter implements Filter {
 
     private static final int MAX_REQUESTS_PER_MINUTE = 120;
+    // Limite mais restrito para endpoints de autenticação (anti brute-force)
+    private static final int MAX_AUTH_REQUESTS_PER_MINUTE = 10;
     private static final long WINDOW_MS = 60_000L;
 
     private final Map<String, RateBucket> buckets = new ConcurrentHashMap<>();
+    private final Map<String, RateBucket> authBuckets = new ConcurrentHashMap<>();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -42,18 +45,35 @@ public class RateLimitFilter implements Filter {
         }
 
         String clientIp = getClientIp(httpRequest);
-        RateBucket bucket = buckets.computeIfAbsent(clientIp, k -> new RateBucket());
+
+        // Limite adicional mais restrito para endpoints de autenticação
+        boolean isAuthEndpoint = path.startsWith("/v1/auth/login")
+            || path.startsWith("/v1/auth/register")
+            || path.startsWith("/v1/auth/forgot-password")
+            || path.startsWith("/v1/auth/reset-password");
+
+        if (isAuthEndpoint) {
+            RateBucket authBucket = authBuckets.computeIfAbsent(clientIp, k -> new RateBucket(MAX_AUTH_REQUESTS_PER_MINUTE));
+            if (!authBucket.tryConsume()) {
+                writeRateLimitResponse(httpResponse, "Muitas tentativas de autenticação. Aguarde um momento.");
+                return;
+            }
+        }
+
+        RateBucket bucket = buckets.computeIfAbsent(clientIp, k -> new RateBucket(MAX_REQUESTS_PER_MINUTE));
 
         if (!bucket.tryConsume()) {
-            httpResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            httpResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            httpResponse.getWriter().write(
-                "{\"status\":429,\"message\":\"Muitas requisições. Tente novamente em instantes.\"}"
-            );
+            writeRateLimitResponse(httpResponse, "Muitas requisições. Tente novamente em instantes.");
             return;
         }
 
         chain.doFilter(request, response);
+    }
+
+    private void writeRateLimitResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write("{\"status\":429,\"message\":\"" + message + "\"}");
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -67,6 +87,11 @@ public class RateLimitFilter implements Filter {
     private static class RateBucket {
         private final AtomicInteger count = new AtomicInteger(0);
         private final AtomicLong windowStart = new AtomicLong(System.currentTimeMillis());
+        private final int limit;
+
+        RateBucket(int limit) {
+            this.limit = limit;
+        }
 
         boolean tryConsume() {
             long now = System.currentTimeMillis();
@@ -78,7 +103,7 @@ public class RateLimitFilter implements Filter {
                 return true;
             }
 
-            return count.incrementAndGet() <= MAX_REQUESTS_PER_MINUTE;
+            return count.incrementAndGet() <= limit;
         }
     }
 }

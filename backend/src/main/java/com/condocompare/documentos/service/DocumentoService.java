@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -291,6 +292,53 @@ public class DocumentoService {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType)) {
             throw new BusinessException("Tipo de arquivo não permitido. Permitidos: PDF, JPEG, PNG, WEBP, DOC, DOCX");
+        }
+
+        // Valida magic bytes para evitar spoofing de Content-Type
+        validateMagicBytes(file, contentType);
+    }
+
+    /**
+     * Valida os primeiros bytes do arquivo (magic bytes) contra o Content-Type declarado.
+     * Impede que um atacante envie um .exe declarando ser application/pdf.
+     */
+    private void validateMagicBytes(MultipartFile file, String contentType) {
+        byte[] header = new byte[8];
+        int read;
+        try (InputStream is = file.getInputStream()) {
+            read = is.read(header);
+        } catch (IOException e) {
+            throw new BusinessException("Erro ao validar arquivo: " + e.getMessage());
+        }
+        if (read < 4) {
+            throw new BusinessException("Arquivo inválido ou corrompido");
+        }
+
+        boolean match = switch (contentType) {
+            case "application/pdf" ->
+                // %PDF
+                header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46;
+            case "image/jpeg" ->
+                (header[0] & 0xFF) == 0xFF && (header[1] & 0xFF) == 0xD8 && (header[2] & 0xFF) == 0xFF;
+            case "image/png" ->
+                (header[0] & 0xFF) == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
+            case "image/webp" ->
+                // RIFF....WEBP
+                header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46;
+            case "application/msword" ->
+                // D0 CF 11 E0
+                (header[0] & 0xFF) == 0xD0 && (header[1] & 0xFF) == 0xCF
+                    && (header[2] & 0xFF) == 0x11 && (header[3] & 0xFF) == 0xE0;
+            case "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ->
+                // PK (ZIP)
+                header[0] == 0x50 && header[1] == 0x4B && header[2] == 0x03 && header[3] == 0x04;
+            default -> false;
+        };
+
+        if (!match) {
+            log.warn("Magic bytes não batem com Content-Type declarado: contentType={}, nome={}",
+                contentType, file.getOriginalFilename());
+            throw new BusinessException("Conteúdo do arquivo não corresponde ao tipo declarado");
         }
     }
 

@@ -2,6 +2,10 @@ package com.condocompare.auth.filter;
 
 import com.condocompare.auth.service.JwtService;
 import com.condocompare.auth.service.TokenBlacklistService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -57,10 +61,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
+        } catch (ExpiredJwtException e) {
+            logger.warn("Token JWT expirado [IP=" + getClientIp(request) + "]: " + e.getMessage());
+        } catch (MalformedJwtException | UnsupportedJwtException | SignatureException e) {
+            logger.warn("Token JWT inválido [IP=" + getClientIp(request) + "]: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Token JWT vazio ou inválido [IP=" + getClientIp(request) + "]");
         } catch (Exception e) {
-            logger.error("Erro ao processar token JWT", e);
+            logger.error("Erro inesperado ao processar token JWT [IP=" + getClientIp(request) + "]", e);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

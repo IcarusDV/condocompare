@@ -3,6 +3,7 @@ package com.condocompare.seguros.service;
 import com.condocompare.common.exception.ResourceNotFoundException;
 import com.condocompare.condominios.entity.Condominio;
 import com.condocompare.condominios.repository.CondominioRepository;
+import com.condocompare.condominios.service.CondominioService;
 import com.condocompare.seguros.dto.*;
 import com.condocompare.seguros.entity.*;
 import com.condocompare.seguros.mapper.SeguroMapper;
@@ -27,6 +28,7 @@ public class ApoliceService {
     private final CondominioRepository condominioRepository;
     private final SeguradoraService seguradoraService;
     private final SeguroMapper seguroMapper;
+    private final CondominioService condominioService;
 
     @Transactional
     public ApoliceResponse create(CreateApoliceRequest request) {
@@ -143,7 +145,9 @@ public class ApoliceService {
 
     @Transactional(readOnly = true)
     public ApoliceResponse findById(UUID id) {
-        return seguroMapper.toApoliceResponse(findEntityById(id));
+        Apolice apolice = findEntityById(id);
+        condominioService.validateCondominioAccess(apolice.getCondominio().getId());
+        return seguroMapper.toApoliceResponse(apolice);
     }
 
     @Transactional(readOnly = true)
@@ -155,6 +159,7 @@ public class ApoliceService {
 
     @Transactional(readOnly = true)
     public List<ApoliceListResponse> findByCondominio(UUID condominioId) {
+        condominioService.validateCondominioAccess(condominioId);
         return apoliceRepository.findByCondominioIdAndActiveTrue(condominioId).stream()
             .map(seguroMapper::toApoliceListResponse)
             .toList();
@@ -162,6 +167,7 @@ public class ApoliceService {
 
     @Transactional(readOnly = true)
     public ApoliceResponse findVigenteByCondominio(UUID condominioId) {
+        condominioService.validateCondominioAccess(condominioId);
         return apoliceRepository.findApoliceVigenteByCondominio(condominioId)
             .map(seguroMapper::toApoliceResponse)
             .orElse(null);
