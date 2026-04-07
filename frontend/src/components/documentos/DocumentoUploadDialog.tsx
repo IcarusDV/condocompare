@@ -250,10 +250,11 @@ export function DocumentoUploadDialog({
 
           // Backend will handle extraction asynchronously via RabbitMQ
           setFiles(prev => prev.map((f, idx) => idx === i ? { ...f, status: 'done' } : f))
-        } catch (err) {
-          console.error(`Error uploading ${entry.file.name}:`, err)
+        } catch (err: any) {
+          const errorDetail = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Erro desconhecido'
+          console.error(`Error uploading ${entry.file.name}:`, errorDetail, err?.response?.data)
           setFiles(prev =>
-            prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: 'Erro no upload' } : f)
+            prev.map((f, idx) => idx === i ? { ...f, status: 'error', error: errorDetail } : f)
           )
         }
       }

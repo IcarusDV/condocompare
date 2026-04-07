@@ -37,7 +37,7 @@ public class DocumentoController {
     @Operation(summary = "Upload de documento")
     @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<DocumentoResponse> upload(
-        @RequestPart("file") MultipartFile file,
+        @RequestParam("file") MultipartFile file,
         @RequestParam("condominioId") String condominioId,
         @RequestParam("tipo") String tipo,
         @RequestParam("nome") String nome,
