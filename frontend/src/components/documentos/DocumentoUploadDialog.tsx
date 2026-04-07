@@ -33,7 +33,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import ImageIcon from '@mui/icons-material/Image'
 import DescriptionIcon from '@mui/icons-material/Description'
 import DeleteIcon from '@mui/icons-material/Delete'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
+import SendIcon from '@mui/icons-material/Send'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorIcon from '@mui/icons-material/Error'
 import { documentoService, formatFileSize } from '@/services/documentoService'
@@ -91,7 +91,6 @@ export function DocumentoUploadDialog({
   const [loadingCondominios, setLoadingCondominios] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [autoExtract, setAutoExtract] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const [uploadComplete, setUploadComplete] = useState(false)
@@ -293,8 +292,6 @@ export function DocumentoUploadDialog({
   const selectedCondominio = condominios.find(c => c.id === condominioId)
   const doneCount = files.filter(f => f.status === 'done').length
   const errorCount = files.filter(f => f.status === 'error').length
-  const hasPdfs = files.some(f => f.file.type === 'application/pdf')
-  const showExtractOption = (tipo === 'ORCAMENTO' || tipo === 'APOLICE') && hasPdfs
 
   return (
     <Dialog
@@ -573,73 +570,6 @@ export function DocumentoUploadDialog({
               )}
             />
 
-            {(tipo === 'ORCAMENTO' || tipo === 'APOLICE') && (
-              <>
-                {showExtractOption && (
-                  <Paper
-                    sx={{
-                      p: 2,
-                      bgcolor: autoExtract ? '#f0fdf4' : '#f8fafc',
-                      border: '1px solid',
-                      borderColor: autoExtract ? '#22c55e' : '#e2e8f0',
-                      borderRadius: 2,
-                      cursor: uploading ? 'default' : 'pointer',
-                      transition: 'all 0.2s',
-                    }}
-                    onClick={() => !uploading && setAutoExtract(!autoExtract)}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box
-                        sx={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '50%',
-                          bgcolor: autoExtract ? '#22c55e' : '#e2e8f0',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <AutoAwesomeIcon sx={{ fontSize: 20, color: autoExtract ? 'white' : '#94a3b8' }} />
-                      </Box>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" fontWeight={600} color={autoExtract ? '#166534' : 'text.primary'}>
-                          Extrair coberturas automaticamente
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          O sistema vai identificar e preencher as coberturas dos PDFs automaticamente
-                        </Typography>
-                      </Box>
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 22,
-                          borderRadius: 11,
-                          bgcolor: autoExtract ? '#22c55e' : '#d1d5db',
-                          position: 'relative',
-                          transition: 'all 0.2s',
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 18,
-                            height: 18,
-                            borderRadius: '50%',
-                            bgcolor: 'white',
-                            position: 'absolute',
-                            top: 2,
-                            left: autoExtract ? 20 : 2,
-                            transition: 'all 0.2s',
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  </Paper>
-                )}
-              </>
-            )}
-
             <TextField
               label="Observações"
               size="small"
@@ -673,22 +603,14 @@ export function DocumentoUploadDialog({
               variant="contained"
               onClick={handleUpload}
               disabled={files.length === 0 || !condominioId || uploading}
-              startIcon={
-                showExtractOption && autoExtract
-                  ? <AutoAwesomeIcon />
-                  : files.length > 1
-                    ? undefined
-                    : undefined
-              }
+              startIcon={<SendIcon />}
               sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}
             >
               {uploading
                 ? `Enviando ${currentIndex + 1}/${files.length}...`
                 : files.length > 1
                   ? `Enviar ${files.length} Arquivos`
-                  : showExtractOption && autoExtract
-                    ? 'Enviar e Extrair'
-                    : 'Enviar'}
+                  : 'Enviar'}
             </Button>
           </>
         )}

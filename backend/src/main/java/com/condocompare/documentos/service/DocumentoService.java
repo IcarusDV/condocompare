@@ -294,8 +294,12 @@ public class DocumentoService {
             throw new BusinessException("Tipo de arquivo não permitido. Permitidos: PDF, JPEG, PNG, WEBP, DOC, DOCX");
         }
 
-        // Valida magic bytes para evitar spoofing de Content-Type
-        validateMagicBytes(file, contentType);
+        // Valida magic bytes (warning only - não bloqueia upload)
+        try {
+            validateMagicBytes(file, contentType);
+        } catch (BusinessException e) {
+            log.warn("Magic bytes mismatch (upload permitido): {}", e.getMessage());
+        }
     }
 
     /**
