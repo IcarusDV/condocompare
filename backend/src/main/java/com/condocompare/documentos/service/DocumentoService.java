@@ -424,8 +424,8 @@ public class DocumentoService {
         User currentUser = getCurrentUser();
         validateCondominioAccess(condominioId, currentUser);
 
-        if (orcamentoIds.size() < 2 || orcamentoIds.size() > 4) {
-            throw new BusinessException("Selecione entre 2 e 4 orçamentos para comparação");
+        if (orcamentoIds.size() < 2 || orcamentoIds.size() > 5) {
+            throw new BusinessException("Selecione entre 2 e 5 orçamentos para comparação");
         }
 
         List<Documento> documentos = documentoRepository.findAllById(orcamentoIds);
