@@ -1,12 +1,9 @@
-from openai import OpenAI
-from typing import List, Dict, Any, Optional
+from anthropic import Anthropic
+from typing import List, Dict, Any
 from src.config import settings
 
-# Initialize Groq client (OpenAI compatible)
-client = OpenAI(
-    api_key=settings.groq_api_key,
-    base_url=settings.groq_base_url,
-)
+# Initialize Claude client
+client = Anthropic(api_key=settings.anthropic_api_key)
 
 SYSTEM_PROMPT_ASSISTENTE = """Voce e um assistente especialista em seguros de condominio no Brasil.
 Seu nome e CondoCompare IA.
@@ -41,6 +38,12 @@ Ao analisar, considere:
 
 Formato da resposta deve ser estruturado em JSON."""
 
+SYSTEM_PROMPT_EXTRACAO = """Voce e um especialista em extracao de dados de documentos de seguro condominio.
+Sua funcao e extrair dados estruturados de textos de apolices, orcamentos e propostas de seguro.
+
+Extraia os dados no formato JSON solicitado. Seja preciso com valores monetarios e datas.
+Se um dado nao estiver disponivel no texto, use null."""
+
 
 async def chat_completion(
     messages: List[Dict[str, str]],
@@ -48,20 +51,29 @@ async def chat_completion(
     temperature: float = 0.7,
     max_tokens: int = 1024,
 ) -> str:
-    """Executa chat completion usando Groq API"""
+    """Executa chat completion usando Claude API"""
     try:
-        full_messages = [{"role": "system", "content": system_prompt}] + messages
+        # Claude API usa 'system' separado dos messages
+        # E não aceita role 'system' nos messages
+        clean_messages = []
+        for msg in messages:
+            if msg["role"] != "system":
+                clean_messages.append(msg)
 
-        response = client.chat.completions.create(
-            model=settings.groq_model,
-            messages=full_messages,
-            temperature=temperature,
+        if not clean_messages:
+            clean_messages = [{"role": "user", "content": "Olá"}]
+
+        response = client.messages.create(
+            model=settings.claude_model,
             max_tokens=max_tokens,
+            system=system_prompt,
+            messages=clean_messages,
+            temperature=temperature,
         )
 
-        return response.choices[0].message.content or ""
+        return response.content[0].text
     except Exception as e:
-        raise Exception(f"Erro ao chamar LLM: {str(e)}")
+        raise Exception(f"Erro ao chamar Claude: {str(e)}")
 
 
 async def analyze_condominio(
@@ -111,7 +123,6 @@ Responda APENAS com o JSON, sem texto adicional."""
     # Parse JSON response
     import json
     try:
-        # Try to extract JSON from response
         response = response.strip()
         if response.startswith("```json"):
             response = response[7:]
@@ -121,7 +132,6 @@ Responda APENAS com o JSON, sem texto adicional."""
             response = response[:-3]
         return json.loads(response.strip())
     except json.JSONDecodeError:
-        # Return default structure if parsing fails
         return {
             "score": 50,
             "status": "atencao",
@@ -137,6 +147,65 @@ Responda APENAS com o JSON, sem texto adicional."""
                 "impacto": "Analise manual necessaria"
             }]
         }
+
+
+async def extract_document_data(text: str, tipo: str) -> Dict[str, Any]:
+    """Extrai dados estruturados de texto de documento usando Claude"""
+
+    prompt = f"""Extraia os seguintes dados do texto de um documento de seguro do tipo {tipo}:
+
+TEXTO DO DOCUMENTO:
+{text[:8000]}
+
+Retorne um JSON com a seguinte estrutura:
+{{
+    "seguradoraNome": "nome da seguradora",
+    "valorPremio": <valor numerico do premio>,
+    "dataVigenciaInicio": "YYYY-MM-DD",
+    "dataVigenciaFim": "YYYY-MM-DD",
+    "formaPagamento": "descricao da forma de pagamento",
+    "coberturas": [
+        {{
+            "nome": "nome da cobertura",
+            "valorLimite": <valor numerico>,
+            "franquia": <valor numerico ou null>,
+            "incluido": true
+        }}
+    ],
+    "condominio_data": {{
+        "cnpj": "XX.XXX.XXX/XXXX-XX",
+        "endereco": "endereco completo",
+        "cidade": "cidade",
+        "estado": "UF",
+        "cep": "XXXXX-XXX",
+        "areaConstruida": <numero ou null>,
+        "numeroUnidades": <numero ou null>,
+        "numeroBlocos": <numero ou null>
+    }}
+}}
+
+Se algum dado nao estiver no texto, use null. Valores monetarios devem ser numericos (sem R$).
+Responda APENAS com o JSON."""
+
+    response = await chat_completion(
+        messages=[{"role": "user", "content": prompt}],
+        system_prompt=SYSTEM_PROMPT_EXTRACAO,
+        temperature=0.1,
+        max_tokens=3000,
+    )
+
+    import json
+    try:
+        response = response.strip()
+        if response.startswith("```json"):
+            response = response[7:]
+        if response.startswith("```"):
+            response = response[3:]
+        if response.endswith("```"):
+            response = response[:-3]
+        return json.loads(response.strip())
+    except json.JSONDecodeError:
+        return {}
 
 
 def format_condominio_data(data: Dict[str, Any]) -> str:
@@ -160,7 +229,6 @@ def format_condominio_data(data: Dict[str, Any]) -> str:
     if data.get("anoConstrucao"):
         lines.append(f"- Ano Construcao: {data['anoConstrucao']}")
 
-    # Amenidades
     amenidades = []
     if data.get("temPiscina"):
         amenidades.append("Piscina")

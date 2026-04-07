@@ -9,10 +9,9 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379"
 
-    # Groq API (OpenAI compatible)
-    groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
-    groq_base_url: str = "https://api.groq.com/openai/v1"
+    # Anthropic Claude API
+    anthropic_api_key: str = ""
+    claude_model: str = "claude-sonnet-4-20250514"
 
     # CORS - configurable via CORS_ORIGINS env var (comma-separated string or JSON array)
     cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8080"]
