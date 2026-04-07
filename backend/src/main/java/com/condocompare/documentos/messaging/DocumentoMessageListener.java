@@ -17,10 +17,14 @@ import com.condocompare.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,6 +40,7 @@ public class DocumentoMessageListener {
     private final NotificacaoService notificacaoService;
     private final UserRepository userRepository;
     private final PdfExtractionService pdfExtractionService;
+    private final WebClient iaServiceWebClient;
 
     private static final int MAX_RETRIES = 3;
 
@@ -166,14 +171,85 @@ public class DocumentoMessageListener {
         return pdfExtractionService.classifyDocument(texto, nomeArquivo);
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> indexAndExtract(String documentoId, String condominioId,
                                                   String tipo, String texto, String nomeArquivo) {
+        Map<String, Object> extractedData = null;
+
+        // 1. Try RAG index-and-extract (indexes chunks for search AND extracts data via Claude)
         try {
-            return pdfExtractionService.extractData(texto, tipo);
+            log.info("Indexando documento no RAG e extraindo dados via Claude: {}", documentoId);
+            Map<String, Object> ragBody = new java.util.HashMap<>();
+            ragBody.put("documento_id", documentoId);
+            ragBody.put("condominio_id", condominioId);
+            ragBody.put("tipo_documento", tipo != null ? tipo : "OUTRO");
+            ragBody.put("texto", texto);
+            ragBody.put("metadata", Map.of("filename", nomeArquivo != null ? nomeArquivo : ""));
+
+            Map<String, Object> ragResponse = iaServiceWebClient.post()
+                .uri("/rag/index-and-extract")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(ragBody)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .timeout(Duration.ofSeconds(120))
+                .block();
+
+            if (ragResponse != null) {
+                log.info("RAG indexing concluido: documentoId={}, chunks={}",
+                        documentoId, ragResponse.get("chunks_created"));
+
+                Map<String, Object> dados = (Map<String, Object>) ragResponse.get("dados_extraidos");
+                if (dados != null && !dados.isEmpty()) {
+                    log.info("Extracao Claude (via RAG) concluida: {} campos extraidos", dados.size());
+                    extractedData = dados;
+                }
+            }
         } catch (Exception e) {
-            log.warn("Falha na extração de dados: {}", e.getMessage());
-            return null;
+            log.warn("RAG index-and-extract falhou: {}. Tentando fallback.", e.getMessage());
         }
+
+        // 2. Fallback: try Claude extraction via /documents/extract-text if RAG failed
+        if (extractedData == null) {
+            try {
+                log.info("Tentando extracao via /documents/extract-text para documento: {}", documentoId);
+                Map<String, Object> body = Map.of(
+                    "texto", texto,
+                    "tipo", tipo.toLowerCase()
+                );
+
+                Map<String, Object> response = iaServiceWebClient.post()
+                    .uri("/documents/extract-text")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                    .timeout(Duration.ofSeconds(60))
+                    .block();
+
+                if (response != null && response.containsKey("dados_extraidos")) {
+                    Map<String, Object> dados = (Map<String, Object>) response.get("dados_extraidos");
+                    if (dados != null && !dados.isEmpty()) {
+                        log.info("Extracao Claude concluida: {} campos extraidos", dados.size());
+                        extractedData = dados;
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Extracao Claude tambem falhou: {}", e.getMessage());
+            }
+        }
+
+        // 3. Final fallback: PDFBox regex extraction
+        if (extractedData == null) {
+            try {
+                extractedData = pdfExtractionService.extractData(texto, tipo);
+            } catch (Exception e) {
+                log.warn("Extracao PDFBox tambem falhou: {}", e.getMessage());
+                return null;
+            }
+        }
+
+        return extractedData;
     }
 
     @Transactional

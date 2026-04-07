@@ -131,6 +131,37 @@ def delete_chunks_by_documento(documento_id: str) -> int:
         conn.close()
 
 
+def get_seguradora_knowledge(seguradora_nome: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Fetch seguradora knowledge (especialidades, regras, ia_conhecimento) from the database."""
+    conn = get_connection()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            if seguradora_nome:
+                cur.execute(
+                    """
+                    SELECT nome, especialidades, regras, ia_conhecimento, descricao
+                    FROM condocompare.seguradoras
+                    WHERE active = TRUE AND LOWER(nome) LIKE %s
+                    """,
+                    (f"%{seguradora_nome.lower()}%",),
+                )
+            else:
+                cur.execute(
+                    """
+                    SELECT nome, especialidades, regras, ia_conhecimento, descricao
+                    FROM condocompare.seguradoras
+                    WHERE active = TRUE
+                    ORDER BY nome
+                    """
+                )
+            results = cur.fetchall()
+            return [dict(r) for r in results]
+    except Exception:
+        return []
+    finally:
+        conn.close()
+
+
 def get_chunk_stats() -> Dict[str, Any]:
     """Get statistics about stored chunks."""
     conn = get_connection()

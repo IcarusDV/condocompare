@@ -11,7 +11,7 @@ from PIL import Image
 import pytesseract
 from docx import Document
 
-from src.services.llm import chat_completion
+from src.services.llm import chat_completion, extract_document_data
 
 logger = logging.getLogger(__name__)
 
@@ -292,19 +292,32 @@ async def extract_from_text(request: ExtractTextRequest):
     """
     Extrai dados estruturados a partir de texto ja extraido do PDF.
     Usado pelo pipeline automatico (backend envia texto, nao arquivo).
+    Usa extract_document_data (Claude) para extracao completa incluindo condominio_data.
     """
     try:
-        dados = await _extract_structured_data(request.texto, request.tipo.lower())
+        # Use the more complete extraction from llm.py that includes condominio_data
+        dados = await extract_document_data(request.texto, request.tipo.lower())
 
         return ExtractTextResponse(
             tipo=request.tipo,
             dados_extraidos=dados,
             success=True,
-            message="Dados extraidos com sucesso",
+            message="Dados extraidos com sucesso via Claude",
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao extrair dados: {str(e)}")
+        logger.error(f"Erro na extracao via Claude, tentando fallback: {e}")
+        # Fallback to simpler extraction
+        try:
+            dados = await _extract_structured_data(request.texto, request.tipo.lower())
+            return ExtractTextResponse(
+                tipo=request.tipo,
+                dados_extraidos=dados,
+                success=True,
+                message="Dados extraidos com fallback",
+            )
+        except Exception as fallback_error:
+            raise HTTPException(status_code=500, detail=f"Erro ao extrair dados: {str(fallback_error)}")
 
 
 @router.post("/analyze")

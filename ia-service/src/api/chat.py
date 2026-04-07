@@ -4,7 +4,7 @@ from typing import Optional, List
 from uuid import UUID
 
 from src.services.llm import chat_completion, SYSTEM_PROMPT_ASSISTENTE
-from src.rag.store import search_chunks
+from src.rag.store import search_chunks, get_seguradora_knowledge
 
 router = APIRouter()
 
@@ -81,10 +81,48 @@ async def chat(request: ChatRequest):
         except Exception:
             pass  # RAG is optional, continue without it
 
-        # Add current message
+        # Fetch seguradora knowledge when relevant
+        seguradora_context = ""
+        try:
+            # Detect if the user mentions a specific seguradora
+            message_lower = request.message.lower()
+            seguradora_names = [
+                "porto seguro", "tokio marine", "bradesco", "sulamerica", "sulamérica",
+                "allianz", "liberty", "mapfre", "hdi", "zurich", "chubb", "axa",
+                "sompo", "alfa seguros", "junto seguros", "too seguros", "yelum",
+            ]
+            mentioned_seguradora = None
+            for name in seguradora_names:
+                if name in message_lower:
+                    mentioned_seguradora = name
+                    break
+
+            # Fetch knowledge: specific seguradora if mentioned, or all for comparison/general context
+            needs_seguradora_context = (
+                mentioned_seguradora
+                or request.context_type in ("cobertura", "franquia", "comparacao", "diagnostico")
+            )
+            if needs_seguradora_context:
+                seguradoras = get_seguradora_knowledge(mentioned_seguradora)
+                if seguradoras:
+                    seg_parts = []
+                    for seg in seguradoras[:5]:  # Limit to 5 to avoid token bloat
+                        parts = [f"**{seg['nome']}**: {seg.get('descricao', '')}"]
+                        if seg.get("especialidades"):
+                            parts.append(f"  Especialidades: {', '.join(seg['especialidades'])}")
+                        if seg.get("regras"):
+                            parts.append(f"  Regras: {'; '.join(seg['regras'])}")
+                        if seg.get("ia_conhecimento"):
+                            parts.append(f"  Conhecimento: {'; '.join(seg['ia_conhecimento'])}")
+                        seg_parts.append("\n".join(parts))
+                    seguradora_context = "\n\nCONHECIMENTO SOBRE SEGURADORAS:\n" + "\n\n".join(seg_parts)
+        except Exception:
+            pass  # Seguradora knowledge is optional
+
+        # Add current message with RAG + seguradora context
         user_message = request.message
-        if rag_context:
-            user_message = request.message + rag_context
+        if rag_context or seguradora_context:
+            user_message = request.message + rag_context + seguradora_context
         messages.append({"role": "user", "content": user_message})
 
         # Get context-specific system prompt addition
@@ -116,8 +154,22 @@ async def explain_coverage(cobertura: str, seguradora: Optional[str] = None):
     """
     try:
         prompt = f"Explique de forma clara e objetiva a cobertura '{cobertura}' em seguros de condominio."
+
+        # Enrich with seguradora-specific knowledge if available
         if seguradora:
             prompt += f" Considere especificidades da seguradora {seguradora} se conhecidas."
+            try:
+                seg_data = get_seguradora_knowledge(seguradora)
+                if seg_data:
+                    seg = seg_data[0]
+                    seg_info = f"\n\nDados da seguradora {seg['nome']}:"
+                    if seg.get("regras"):
+                        seg_info += f"\nRegras: {'; '.join(seg['regras'])}"
+                    if seg.get("ia_conhecimento"):
+                        seg_info += f"\nConhecimento: {'; '.join(seg['ia_conhecimento'])}"
+                    prompt += seg_info
+            except Exception:
+                pass
 
         response = await chat_completion(
             messages=[{"role": "user", "content": prompt}],
@@ -249,9 +301,30 @@ async def analyze_comparacao(request: ComparacaoRequest):
 - Desconto: {orc.descontos or 0}%"""
             orcamentos_text.append(text)
 
+        # Enrich with seguradora knowledge for the compared seguradoras
+        seguradora_info = ""
+        try:
+            seg_names = {orc.seguradora for orc in request.orcamentos}
+            for seg_name in seg_names:
+                seg_data = get_seguradora_knowledge(seg_name)
+                if seg_data:
+                    seg = seg_data[0]
+                    info_parts = [f"\n{seg['nome']}:"]
+                    if seg.get("regras"):
+                        info_parts.append(f"  Regras: {'; '.join(seg['regras'])}")
+                    if seg.get("especialidades"):
+                        info_parts.append(f"  Especialidades: {', '.join(seg['especialidades'])}")
+                    seguradora_info += "\n".join(info_parts)
+        except Exception:
+            pass
+
+        seg_context = ""
+        if seguradora_info:
+            seg_context = f"\n\nINFORMACOES SOBRE AS SEGURADORAS:{seguradora_info}\n"
+
         prompt = f"""Analise os seguintes orcamentos de seguro para condominio e forneca uma analise textual detalhada comparando-os:
 
-{chr(10).join(orcamentos_text)}
+{chr(10).join(orcamentos_text)}{seg_context}
 
 Por favor, analise:
 1. Qual oferece o melhor custo-beneficio e porque
