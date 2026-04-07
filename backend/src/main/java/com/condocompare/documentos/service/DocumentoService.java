@@ -458,15 +458,36 @@ public class DocumentoService {
         return new ComparacaoResultadoDTO(orcamentos, resumo);
     }
 
+    @SuppressWarnings("unchecked")
     private OrcamentoComparacaoDTO toOrcamentoComparacaoDTO(Documento doc) {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         DadosOrcamentoDTO dados = null;
 
         if (doc.getDadosExtraidos() != null) {
             try {
-                dados = mapper.convertValue(doc.getDadosExtraidos(), DadosOrcamentoDTO.class);
+                // Tentar primeiro o sub-objeto dadosOrcamento (formato do PdfExtractionService)
+                Object dadosOrcObj = doc.getDadosExtraidos().get("dadosOrcamento");
+                if (dadosOrcObj instanceof Map) {
+                    dados = mapper.convertValue(dadosOrcObj, DadosOrcamentoDTO.class);
+                } else {
+                    // Fallback: tentar converter o map inteiro (formato manual/antigo)
+                    dados = mapper.convertValue(doc.getDadosExtraidos(), DadosOrcamentoDTO.class);
+                }
             } catch (Exception e) {
                 log.warn("Error converting dadosExtraidos for documento {}: {}", doc.getId(), e.getMessage());
+                // Último fallback: montar manualmente a partir das coberturas no map
+                try {
+                    Object cobs = doc.getDadosExtraidos().get("coberturas");
+                    if (cobs instanceof java.util.List) {
+                        java.util.List<CoberturaDTO> coberturas = mapper.convertValue(cobs,
+                            mapper.getTypeFactory().constructCollectionType(java.util.List.class, CoberturaDTO.class));
+                        String formaPag = (String) doc.getDadosExtraidos().get("formaPagamento");
+                        dados = new DadosOrcamentoDTO(coberturas, null, null, formaPag, null);
+                    }
+                } catch (Exception e2) {
+                    log.warn("Fallback conversion also failed for documento {}: {}", doc.getId(), e2.getMessage());
+                }
             }
         }
 

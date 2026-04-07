@@ -205,10 +205,12 @@ public class DocumentoMessageListener {
         documentoRepository.findById(documentoId).ifPresent(doc -> {
             doc.setDadosExtraidos(dados);
 
-            // Populate seguradora fields from extracted data if orcamento/apolice
+            // Populate seguradora
             if (dados.containsKey("seguradoraNome") && dados.get("seguradoraNome") != null) {
                 doc.setSeguradoraNome((String) dados.get("seguradoraNome"));
             }
+
+            // Populate valor prêmio
             if (dados.containsKey("valorPremio") && dados.get("valorPremio") != null) {
                 try {
                     doc.setValorPremio(new java.math.BigDecimal(dados.get("valorPremio").toString()));
@@ -217,8 +219,36 @@ public class DocumentoMessageListener {
                 }
             }
 
+            // Populate datas de vigência
+            if (dados.containsKey("dataVigenciaInicio") && dados.get("dataVigenciaInicio") != null) {
+                try {
+                    doc.setDataVigenciaInicio(java.time.LocalDate.parse((String) dados.get("dataVigenciaInicio")));
+                } catch (Exception e) {
+                    log.warn("Falha ao converter dataVigenciaInicio: {}", dados.get("dataVigenciaInicio"));
+                }
+            }
+            if (dados.containsKey("dataVigenciaFim") && dados.get("dataVigenciaFim") != null) {
+                try {
+                    doc.setDataVigenciaFim(java.time.LocalDate.parse((String) dados.get("dataVigenciaFim")));
+                } catch (Exception e) {
+                    log.warn("Falha ao converter dataVigenciaFim: {}", dados.get("dataVigenciaFim"));
+                }
+            }
+
+            // Estruturar dadosExtraidos no formato DadosOrcamentoDTO para comparação
+            if (dados.containsKey("coberturas")) {
+                Map<String, Object> dadosOrcamento = new java.util.HashMap<>();
+                dadosOrcamento.put("coberturas", dados.get("coberturas"));
+                if (dados.containsKey("formaPagamento")) {
+                    dadosOrcamento.put("formaPagamento", dados.get("formaPagamento"));
+                }
+                // Salvar no formato que toOrcamentoComparacaoDTO espera
+                dados.put("dadosOrcamento", dadosOrcamento);
+                doc.setDadosExtraidos(dados);
+            }
+
             documentoRepository.save(doc);
-            log.info("Dados extraidos salvos: documentoId={}", documentoId);
+            log.info("Dados extraidos salvos: documentoId={}, campos={}", documentoId, dados.keySet());
         });
     }
 
