@@ -38,11 +38,11 @@ public class DocumentoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<DocumentoResponse> upload(
         @RequestPart("file") MultipartFile file,
-        @RequestPart("condominioId") String condominioId,
-        @RequestPart("tipo") String tipo,
-        @RequestPart("nome") String nome,
-        @RequestPart(value = "observacoes", required = false) String observacoes,
-        @RequestPart(value = "seguradoraNome", required = false) String seguradoraNome
+        @RequestParam("condominioId") String condominioId,
+        @RequestParam("tipo") String tipo,
+        @RequestParam("nome") String nome,
+        @RequestParam(value = "observacoes", required = false) String observacoes,
+        @RequestParam(value = "seguradoraNome", required = false) String seguradoraNome
     ) {
         UploadDocumentoRequest request = new UploadDocumentoRequest(
             UUID.fromString(condominioId),
