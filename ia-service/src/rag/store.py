@@ -12,7 +12,7 @@ from src.config import settings
 
 def get_connection():
     """Get PostgreSQL connection."""
-    url = settings.postgres_url
+    url = settings.db_url
     return psycopg2.connect(url)
 
 

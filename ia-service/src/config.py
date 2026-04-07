@@ -3,8 +3,13 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    # Database
-    postgres_url: str = "postgresql://condocompare:condocompare123@localhost:5432/condocompare"
+    # Database (accepts POSTGRES_URL or DATABASE_URL)
+    postgres_url: str = ""
+    database_url: str = ""
+
+    @property
+    def db_url(self) -> str:
+        return self.postgres_url or self.database_url or "postgresql://condocompare:condocompare123@localhost:5432/condocompare"
 
     # Redis
     redis_url: str = "redis://localhost:6379"
