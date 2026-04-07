@@ -14,7 +14,11 @@ class Settings(BaseSettings):
     claude_model: str = "claude-sonnet-4-20250514"
 
     # CORS - configurable via CORS_ORIGINS env var (comma-separated string or JSON array)
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8080"]
+    cors_origins: List[str] = [
+        "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://localhost:8080",
+        "https://condocompare.vercel.app", "https://condocompare-frontend.vercel.app",
+        "https://condocompare-backend.onrender.com"
+    ]
 
     # Storage (S3-compatible: MinIO local, Supabase Storage in prod)
     minio_endpoint: str = "http://localhost:9000"

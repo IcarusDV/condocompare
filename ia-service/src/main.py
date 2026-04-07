@@ -26,8 +26,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -41,6 +41,7 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 
 
 @app.get("/health")
+@app.get("/api/v1/health")
 async def health_check():
     return {"status": "healthy", "service": "condocompare-ia", "environment": settings.environment}
 
