@@ -218,13 +218,19 @@ public class PdfExtractionService {
     }
 
     private BigDecimal extractValorPremio(String text) {
-        // Priority 1: explicit "prêmio total" or "prêmio líquido" patterns
         Pattern[] premioPatterns = {
+                // "Prêmio Líquido total 4.690,96" (sem R$)
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:l[íi]quido)?\\s*(?:total)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio Total: R$ 5.037,14"
                 Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio Total 5.037,14" (sem R$)
                 Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Valor Total: R$ 5.037,14"
                 Pattern.compile("(?i)(?:valor\\s+(?:total|do\\s+(?:prêmio|premio|seguro)))\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                // "Total geral: R$ 5.037,14" or "Total a pagar: R$ 5.037,14"
                 Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*\\(?R\\$\\)?\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Total geral 5.037,14" (sem R$)
+                Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
         };
 
         for (Pattern p : premioPatterns) {
@@ -242,6 +248,8 @@ public class PdfExtractionService {
 
     private String extractVigenciaInicio(String text) {
         Pattern[] patterns = {
+                // "De 12/12/2025 até 12/12/2026" or "De 12/12/2025 a 12/12/2026"
+                Pattern.compile("(?i)\\bde\\s+(\\d{2}/\\d{2}/\\d{4})\\s*(?:até|ate|a)\\s*\\d{2}/\\d{2}/\\d{4}"),
                 Pattern.compile("(?i)(?:in[íi]cio\\s*(?:da\\s*)?vig[êe]ncia|vig[êe]ncia\\s*(?:de|a\\s*partir\\s*de|in[íi]cio))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)(?:in[íi]cio|vigente\\s+(?:a\\s+partir|desde))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})\\s*(?:a|até|ate|-)\\s*\\d{2}/\\d{2}/\\d{4}"),
@@ -259,6 +267,8 @@ public class PdfExtractionService {
 
     private String extractVigenciaFim(String text) {
         Pattern[] patterns = {
+                // "De 12/12/2025 até 12/12/2026"
+                Pattern.compile("(?i)\\bde\\s+\\d{2}/\\d{2}/\\d{4}\\s*(?:até|ate|a)\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)(?:t[ée]rmino|vencimento|fim)\\s*(?:da\\s*)?(?:vig[êe]ncia)?\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)per[íi]odo\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
@@ -278,74 +288,64 @@ public class PdfExtractionService {
         List<Map<String, Object>> coberturas = new ArrayList<>();
         Set<String> seen = new HashSet<>();
 
-        // Strategy 1: Named coverage followed by R$ value on the same or next line
-        Pattern coverageWithValue = Pattern.compile(
+        // Strategy 1: Named coverage followed by R$ value
+        Pattern coverageWithR$ = Pattern.compile(
                 "(?im)(" + COVERAGE_NAMES_REGEX + "[^\\n]*?)\\s+R\\$\\s*([\\d.]+,[\\d]{2})",
                 Pattern.UNICODE_CHARACTER_CLASS);
 
-        Matcher m = coverageWithValue.matcher(text);
+        Matcher m = coverageWithR$.matcher(text);
         while (m.find()) {
-            String rawName = m.group(1).trim();
-            String rawValue = m.group(m.groupCount());
-
-            String cleanName = cleanCoverageName(rawName);
-            if (cleanName.length() < 3 || cleanName.length() > 120) continue;
-
-            String key = cleanName.toLowerCase();
-            if (seen.contains(key)) continue;
-            seen.add(key);
-
-            BigDecimal valor = parseBrazilianMoney(rawValue);
-            if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) continue;
-
-            Map<String, Object> cobertura = new LinkedHashMap<>();
-            cobertura.put("nome", cleanName);
-            cobertura.put("valorLimite", valor);
-            cobertura.put("franquia", null);
-            cobertura.put("incluido", true);
-
-            // Try to find a franquia value near this coverage
-            BigDecimal franquia = findFranquiaNear(text, m.start(), m.end(), cleanName);
-            if (franquia != null) {
-                cobertura.put("franquia", franquia);
-            }
-
-            coberturas.add(cobertura);
+            addCobertura(coberturas, seen, m.group(1), m.group(m.groupCount()), text, m.start(), m.end());
         }
 
-        // Strategy 2: Table-like format "CoberturaNome | LimiteMax | Franquia"
-        // Some PDFs have tabular layouts where values appear after the coverage name
-        Pattern tablePattern = Pattern.compile(
-                "(?im)(" + COVERAGE_NAMES_REGEX + "[^\\n]{0,60}?)\\s{2,}([\\d.]+,[\\d]{2})\\s{2,}([\\d.]+,[\\d]{2})?",
+        // Strategy 2: Coverage name followed by bare number (no R$) - common in table formats
+        // Pattern: "Incêndio, Raio, Explosão... 22.421.000,00 890,26"
+        Pattern coverageBareNumber = Pattern.compile(
+                "(?im)(" + COVERAGE_NAMES_REGEX + "[^\\n]*?)\\s+(\\d{1,3}(?:\\.\\d{3})*,\\d{2})\\s+(\\d{1,3}(?:\\.\\d{3})*,\\d{2})",
                 Pattern.UNICODE_CHARACTER_CLASS);
 
-        Matcher tm = tablePattern.matcher(text);
-        while (tm.find()) {
-            String rawName = tm.group(1).trim();
-            String cleanName = cleanCoverageName(rawName);
-            String key = cleanName.toLowerCase();
-            if (seen.contains(key) || cleanName.length() < 3) continue;
-            seen.add(key);
+        Matcher m2 = coverageBareNumber.matcher(text);
+        while (m2.find()) {
+            addCobertura(coberturas, seen, m2.group(1), m2.group(2), text, m2.start(), m2.end());
+        }
 
-            BigDecimal valor = parseBrazilianMoney(tm.group(tm.groupCount() - 1));
-            if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) continue;
+        // Strategy 3: Table with multiple columns - just coverage + one number
+        Pattern coverageSingleNumber = Pattern.compile(
+                "(?im)^(" + COVERAGE_NAMES_REGEX + "[^\\n]{0,60}?)\\s{2,}(\\d{1,3}(?:\\.\\d{3})*,\\d{2})",
+                Pattern.UNICODE_CHARACTER_CLASS);
 
-            Map<String, Object> cobertura = new LinkedHashMap<>();
-            cobertura.put("nome", cleanName);
-            cobertura.put("valorLimite", valor);
-            cobertura.put("incluido", true);
-
-            if (tm.group(tm.groupCount()) != null) {
-                BigDecimal franquia = parseBrazilianMoney(tm.group(tm.groupCount()));
-                cobertura.put("franquia", franquia);
-            } else {
-                cobertura.put("franquia", null);
-            }
-
-            coberturas.add(cobertura);
+        Matcher m3 = coverageSingleNumber.matcher(text);
+        while (m3.find()) {
+            addCobertura(coberturas, seen, m3.group(1), m3.group(2), text, m3.start(), m3.end());
         }
 
         return coberturas;
+    }
+
+    private void addCobertura(List<Map<String, Object>> coberturas, Set<String> seen,
+                              String rawName, String rawValue, String text, int matchStart, int matchEnd) {
+        String cleanName = cleanCoverageName(rawName);
+        if (cleanName.length() < 3 || cleanName.length() > 120) return;
+
+        String key = cleanName.toLowerCase();
+        if (seen.contains(key)) return;
+        seen.add(key);
+
+        BigDecimal valor = parseBrazilianMoney(rawValue);
+        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        Map<String, Object> cobertura = new LinkedHashMap<>();
+        cobertura.put("nome", cleanName);
+        cobertura.put("valorLimite", valor);
+        cobertura.put("franquia", null);
+        cobertura.put("incluido", true);
+
+        BigDecimal franquia = findFranquiaNear(text, matchStart, matchEnd, cleanName);
+        if (franquia != null) {
+            cobertura.put("franquia", franquia);
+        }
+
+        coberturas.add(cobertura);
     }
 
     private BigDecimal findFranquiaNear(String text, int matchStart, int matchEnd, String coverageName) {
@@ -441,13 +441,19 @@ public class PdfExtractionService {
             data.put("cep", m.group(1));
         }
 
-        // Address - look for patterns like "Rua/Av/Avenida/Alameda ... , nº ... "
+        // Address: "R 15 DE NOVEMBRO 643" or "Rua XV de Novembro, 643" or "Av. Brasil 1000"
+        // Require the word after R./Rua/Av to be a number or uppercase word (street name)
         Pattern enderecoPattern = Pattern.compile(
-                "(?i)((?:rua|r\\.|av\\.?|avenida|alameda|al\\.|travessa|tv\\.|praça|pça\\.|estrada|rod\\.?)\\s+[^\\n,]{3,80}(?:,\\s*(?:n[ºo°]?\\s*)?\\d+)?)",
+                "(?im)((?:rua|r\\.\\s|av\\.?\\s|avenida|alameda|al\\.\\s|travessa|tv\\.\\s|praça|pça\\.\\s|estrada|rod\\.\\s)\\s*(?:\\d+|[A-ZÀ-Ú])[^\\n]{3,80}?(?:\\s+\\d{1,6})?)",
                 Pattern.UNICODE_CHARACTER_CLASS);
         m = enderecoPattern.matcher(text);
         if (m.find()) {
-            data.put("endereco", m.group(1).trim());
+            String endereco = m.group(1).trim();
+            if (endereco.length() > 8 && !endereco.toLowerCase().contains("este negócio")
+                    && !endereco.toLowerCase().contains("este negocio")
+                    && !endereco.toLowerCase().contains("cobertura")) {
+                data.put("endereco", endereco);
+            }
         }
 
         // City/State - common formats: "Cidade - UF", "Cidade/UF", "Cidade - Estado"
