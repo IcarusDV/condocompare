@@ -125,24 +125,39 @@ public class DocumentoMessageListener {
     private String extractTextFromFile(DocumentoProcessingMessage message) {
         String mimeType = message.getMimeType();
         if (mimeType == null) {
-            log.warn("MimeType nulo para documento: id={}", message.getDocumentoId());
+            log.error("MimeType nulo para documento: id={}", message.getDocumentoId());
             return null;
         }
 
+        log.info("Iniciando extração: id={}, bucket={}, key={}, mime={}",
+                message.getDocumentoId(), message.getBucketName(), message.getObjectKey(), mimeType);
+
         try {
+            // 1. Download do storage
+            log.info("Baixando arquivo do storage...");
             InputStream fileStream = minioService.downloadFile(message.getBucketName(), message.getObjectKey());
             byte[] fileBytes = fileStream.readAllBytes();
             fileStream.close();
+            log.info("Arquivo baixado: {} bytes", fileBytes.length);
 
-            if ("application/pdf".equals(mimeType)) {
-                return pdfExtractionService.extractText(fileBytes);
+            if (fileBytes.length == 0) {
+                log.error("Arquivo vazio após download!");
+                return null;
             }
 
-            // For non-PDF files, native extraction is not supported
-            log.info("Extração nativa suporta apenas PDF. Tipo: {}", mimeType);
+            // 2. Extrair texto
+            if ("application/pdf".equals(mimeType)) {
+                log.info("Extraindo texto do PDF...");
+                String text = pdfExtractionService.extractText(fileBytes);
+                log.info("Texto extraído: {} chars", text != null ? text.length() : 0);
+                return text;
+            }
+
+            log.warn("Extração nativa suporta apenas PDF. Tipo: {}", mimeType);
             return null;
         } catch (Exception e) {
-            log.error("Erro ao extrair texto do documento: {}", e.getMessage());
+            log.error("Erro ao extrair texto do documento id={}: {} - {}",
+                    message.getDocumentoId(), e.getClass().getSimpleName(), e.getMessage(), e);
             return null;
         }
     }

@@ -152,6 +152,7 @@ public class MinioService {
     private InputStream downloadFromSupabase(String bucketName, String objectKey) {
         try {
             String url = getSupabaseStorageUrl() + "/object/" + bucketName + "/" + objectKey;
+            log.info("Supabase download URL: {}", url);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + secretKey);
