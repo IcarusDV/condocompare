@@ -310,7 +310,7 @@ export default function CompararPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const matrixY = (doc as any).lastAutoTable?.finalY || 100
       doc.setFontSize(14)
-      doc.text('Matriz de Coberturas', 14, matrixY + 10)
+      doc.text('Comparação Detalhada', 14, matrixY + 10)
 
       const matrixHeaders = ['Cobertura', ...comparacao.orcamentos.map(o => o.seguradoraNome)]
       const matrixBody = allCob.map(cobNome => {
@@ -1027,7 +1027,7 @@ export default function CompararPage() {
             <Paper sx={{ p: 3, mb: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold">Matriz de Coberturas</Typography>
+                  <Typography variant="h6" fontWeight="bold">Comparação Detalhada</Typography>
                   <Typography variant="body2" color="text.secondary">Comparação detalhada de cada cobertura com limites e franquias</Typography>
                 </Box>
                 <TextField size="small" placeholder="Buscar cobertura..." value={matrixSearch} onChange={(e) => setMatrixSearch(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }} sx={{ width: 240, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />

@@ -384,26 +384,33 @@ public class PdfExtractionService {
     }
 
     private BigDecimal findFranquiaNear(String text, int matchStart, int matchEnd, String coverageName) {
-        // Look within ~300 chars after the coverage match for a franquia value
-        int searchEnd = Math.min(text.length(), matchEnd + 300);
+        // Look within ~500 chars after the coverage match
+        int searchEnd = Math.min(text.length(), matchEnd + 500);
         String nearby = text.substring(matchEnd, searchEnd);
 
-        // Look for "franquia" keyword followed by a value
-        Pattern franquiaPattern = Pattern.compile(
-                "(?i)franquia\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"
-        );
-        Matcher fm = franquiaPattern.matcher(nearby);
+        // Strategy 1: "franquia" followed by R$ value
+        Pattern franquiaR$ = Pattern.compile("(?i)franquia\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})");
+        Matcher fm = franquiaR$.matcher(nearby);
         if (fm.find()) {
             return parseBrazilianMoney(fm.group(1));
         }
 
-        // Also check for percentage-based franquia
-        Pattern pctPattern = Pattern.compile("(?i)franquia\\s*:?\\s*(\\d+)\\s*%");
-        Matcher pm = pctPattern.matcher(nearby);
-        if (pm.find()) {
-            // Store as negative to indicate percentage (convention)
-            // Actually, just return null - let the user handle percentage franquias
-            return null;
+        // Strategy 2: "franquia" followed by bare number
+        Pattern franquiaBare = Pattern.compile("(?i)franquia\\s*:?\\s*(\\d{1,3}(?:\\.\\d{3})*,\\d{2})");
+        fm = franquiaBare.matcher(nearby);
+        if (fm.find()) {
+            return parseBrazilianMoney(fm.group(1));
+        }
+
+        // Strategy 3: Look in global franquia section
+        String firstWord = coverageName.toLowerCase().split("[,\\s]+")[0];
+        if (firstWord.length() >= 4) {
+            Pattern globalFranquia = Pattern.compile(
+                    "(?i)" + Pattern.quote(firstWord) + "[^\\n]*?(?:franquia|FR)[^\\n]*?R\\$\\s*([\\d.]+,[\\d]{2})");
+            Matcher gm = globalFranquia.matcher(text);
+            if (gm.find()) {
+                return parseBrazilianMoney(gm.group(1));
+            }
         }
 
         return null;
