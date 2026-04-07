@@ -945,27 +945,6 @@ export default function CompararPage() {
             </Paper>
           )}
 
-          {/* === RADAR CHART === */}
-          {radarData.length > 0 && (
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Visual de Coberturas</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Percentual de coberturas contratadas por categoria</Typography>
-              <Box sx={{ width: '100%', height: 380 }}>
-                <ResponsiveContainer>
-                  <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
-                    <PolarGrid strokeDasharray="3 3" />
-                    <PolarAngleAxis dataKey="category" tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10 }} />
-                    {comparacao.orcamentos.map((orc, idx) => (
-                      <Radar key={orc.id} name={orc.seguradoraNome} dataKey={orc.seguradoraNome} stroke={RADAR_COLORS[idx]} fill={RADAR_COLORS[idx]} fillOpacity={0.15} strokeWidth={2} />
-                    ))}
-                    <Legend />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </Box>
-            </Paper>
-          )}
-
           {/* === COMPARACAO DE PRECOS === */}
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação de Preços</Typography>
@@ -995,7 +974,7 @@ export default function CompararPage() {
 
           {/* === TABELA DETALHADA (with franchise totals) === */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Detalhada</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Resumida</Typography>
             <TableContainer>
               <Table size="small">
                 <TableHead>
@@ -1018,7 +997,7 @@ export default function CompararPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Forma de Pagamento</TableCell>
-                    {enriched.map((orc) => <TableCell key={orc.id} align="center">{orc.formaPagamento || '-'}</TableCell>)}
+                    {enriched.map((orc) => <TableCell key={orc.id} align="center">{orc.formaPagamento && orc.formaPagamento !== 'À vista' ? orc.formaPagamento : '-'}</TableCell>)}
                   </TableRow>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>Qtd. Coberturas</TableCell>
@@ -1037,17 +1016,6 @@ export default function CompararPage() {
                       const isBest = orc.totalFranquias > 0 && orc.totalFranquias === minFranquias
                       return <TableCell key={orc.id} align="center" sx={{ bgcolor: isBest ? '#dcfce7' : undefined, fontWeight: isBest ? 700 : 400 }}>{formatCurrency(orc.totalFranquias)}{isBest && <Chip size="small" label="Menor" color="success" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}</TableCell>
                     })}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Completude</TableCell>
-                    {enriched.map((orc) => (
-                      <TableCell key={orc.id} align="center">
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                          <LinearProgress variant="determinate" value={orc.coberturaPercent} sx={{ width: 60, height: 6, borderRadius: 3, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { borderRadius: 3, bgcolor: orc.coberturaPercent >= 80 ? '#22c55e' : orc.coberturaPercent >= 50 ? '#f59e0b' : '#ef4444' } }} />
-                          <Typography variant="caption" fontWeight={600}>{Math.round(orc.coberturaPercent)}%</Typography>
-                        </Box>
-                      </TableCell>
-                    ))}
                   </TableRow>
                 </TableBody>
               </Table>
