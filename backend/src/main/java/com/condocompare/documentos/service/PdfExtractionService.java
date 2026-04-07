@@ -248,6 +248,8 @@ public class PdfExtractionService {
 
     private String extractVigenciaInicio(String text) {
         Pattern[] patterns = {
+                // "Vigência: das 24h do dia 12/12/2024 às 24h do dia 12/12/2025"
+                Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*(?:das\\s*)?(?:\\d+h\\s*)?(?:do\\s*)?dia\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 // "De 12/12/2025 até 12/12/2026" or "De 12/12/2025 a 12/12/2026"
                 Pattern.compile("(?i)\\bde\\s+(\\d{2}/\\d{2}/\\d{4})\\s*(?:até|ate|a)\\s*\\d{2}/\\d{2}/\\d{4}"),
                 Pattern.compile("(?i)(?:in[íi]cio\\s*(?:da\\s*)?vig[êe]ncia|vig[êe]ncia\\s*(?:de|a\\s*partir\\s*de|in[íi]cio))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
@@ -267,6 +269,8 @@ public class PdfExtractionService {
 
     private String extractVigenciaFim(String text) {
         Pattern[] patterns = {
+                // "das 24h do dia DD/MM/YYYY às 24h do dia DD/MM/YYYY"
+                Pattern.compile("(?i)das\\s*\\d+h\\s*do\\s*dia\\s*\\d{2}/\\d{2}/\\d{4}\\s*[àa]s\\s*\\d+h\\s*do\\s*dia\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 // "De 12/12/2025 até 12/12/2026"
                 Pattern.compile("(?i)\\bde\\s+\\d{2}/\\d{2}/\\d{4}\\s*(?:até|ate|a)\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)(?:t[ée]rmino|vencimento|fim)\\s*(?:da\\s*)?(?:vig[êe]ncia)?\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
@@ -327,12 +331,43 @@ public class PdfExtractionService {
         String cleanName = cleanCoverageName(rawName);
         if (cleanName.length() < 3 || cleanName.length() > 120) return;
 
-        String key = cleanName.toLowerCase();
-        if (seen.contains(key)) return;
-        seen.add(key);
+        // Skip entries that look like franquia descriptions, not coverages
+        if (cleanName.toLowerCase().contains("% dos prejuízos") || cleanName.toLowerCase().contains("% dos prejuizos")
+                || cleanName.toLowerCase().contains("limitado ao mínimo") || cleanName.toLowerCase().contains("limitado ao minimo")) {
+            return;
+        }
 
         BigDecimal valor = parseBrazilianMoney(rawValue);
         if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) return;
+
+        // Normalize key: remove numbers, extra spaces, and common suffixes for dedup
+        String normalizedName = cleanName.toLowerCase()
+                .replaceAll("\\d[\\d.,]*", "").trim()  // remove inline numbers
+                .replaceAll("\\s+", " ");
+        // Further simplify: take first few words as the key
+        String[] words = normalizedName.split("\\s+");
+        String key = String.join(" ", Arrays.copyOf(words, Math.min(words.length, 4)));
+
+        if (seen.contains(key)) {
+            // Already have this coverage - keep the one with the LARGER value (that's the limit, not premium)
+            for (int i = 0; i < coberturas.size(); i++) {
+                Map<String, Object> existing = coberturas.get(i);
+                String existingKey = ((String) existing.get("nome")).toLowerCase()
+                        .replaceAll("\\d[\\d.,]*", "").trim().replaceAll("\\s+", " ");
+                String[] ew = existingKey.split("\\s+");
+                String ek = String.join(" ", Arrays.copyOf(ew, Math.min(ew.length, 4)));
+                if (ek.equals(key)) {
+                    BigDecimal existingVal = (BigDecimal) existing.get("valorLimite");
+                    if (valor.compareTo(existingVal) > 0) {
+                        existing.put("valorLimite", valor);
+                        existing.put("nome", cleanName);
+                    }
+                    break;
+                }
+            }
+            return;
+        }
+        seen.add(key);
 
         Map<String, Object> cobertura = new LinkedHashMap<>();
         cobertura.put("nome", cleanName);
