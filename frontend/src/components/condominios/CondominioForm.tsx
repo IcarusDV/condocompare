@@ -199,6 +199,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
   // Document extraction states
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [extracting, setExtracting] = useState(false)
   const [extractionSuccess, setExtractionSuccess] = useState(false)
   const [extractionError, setExtractionError] = useState<string | null>(null)
@@ -283,61 +284,76 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file && file.type === 'application/pdf') {
-      setUploadedFile(file)
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf')
+    if (files.length > 0) {
+      setUploadedFiles(prev => [...prev, ...files])
+      setUploadedFile(files[0])
       setExtractionSuccess(false)
       setExtractionError(null)
     } else {
-      setExtractionError('Por favor, selecione um arquivo PDF.')
+      setExtractionError('Por favor, selecione arquivos PDF.')
     }
   }, [])
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setUploadedFile(file)
+    const files = Array.from(e.target.files || []).filter(f => f.type === 'application/pdf')
+    if (files.length > 0) {
+      setUploadedFiles(prev => [...prev, ...files])
+      setUploadedFile(files[0])
       setExtractionSuccess(false)
       setExtractionError(null)
     }
   }, [])
 
   const handleExtractData = async () => {
-    if (!uploadedFile) return
+    const filesToProcess = uploadedFiles.length > 0 ? uploadedFiles : (uploadedFile ? [uploadedFile] : [])
+    if (filesToProcess.length === 0) return
 
     setExtracting(true)
     setExtractionError(null)
 
     try {
-      const result = await iaService.extractCondominioData(uploadedFile)
+      let successCount = 0
+      for (const file of filesToProcess) {
+        try {
+          const result = await iaService.extractCondominioData(file)
 
-      if (result.success && result.dados_extraidos) {
-        const dados = result.dados_extraidos
+          if (result.success && result.dados_extraidos) {
+            const dados = result.dados_extraidos
 
-        setFormData(prev => ({
-          ...prev,
-          nome: dados.nome || prev.nome,
-          cnpj: dados.cnpj || prev.cnpj,
-          endereco: dados.endereco || prev.endereco,
-          numero: dados.numero ? String(dados.numero) : prev.numero,
-          bairro: dados.bairro || prev.bairro,
-          cidade: dados.cidade || prev.cidade,
-          estado: dados.estado || prev.estado,
-          cep: dados.cep || prev.cep,
-          areaConstruida: dados.areaConstruida || prev.areaConstruida,
-          numeroUnidades: dados.numeroUnidades || prev.numeroUnidades,
-          numeroBlocos: dados.numeroBlocos || prev.numeroBlocos,
-          seguradoraAtual: dados.seguradoraAtual || prev.seguradoraAtual,
-          vencimentoApolice: dados.vencimentoApolice || prev.vencimentoApolice,
-        }))
+            // Merge data - only fill empty fields (don't overwrite existing)
+            setFormData(prev => ({
+              ...prev,
+              nome: prev.nome || dados.nome || '',
+              cnpj: prev.cnpj || dados.cnpj || '',
+              endereco: prev.endereco || dados.endereco || '',
+              numero: prev.numero || (dados.numero ? String(dados.numero) : ''),
+              bairro: prev.bairro || dados.bairro || '',
+              cidade: prev.cidade || dados.cidade || '',
+              estado: prev.estado || dados.estado || '',
+              cep: prev.cep || dados.cep || '',
+              areaConstruida: prev.areaConstruida || dados.areaConstruida || prev.areaConstruida,
+              numeroUnidades: prev.numeroUnidades || dados.numeroUnidades || prev.numeroUnidades,
+              numeroBlocos: prev.numeroBlocos || dados.numeroBlocos || prev.numeroBlocos,
+              seguradoraAtual: prev.seguradoraAtual || dados.seguradoraAtual || prev.seguradoraAtual,
+              vencimentoApolice: prev.vencimentoApolice || dados.vencimentoApolice || prev.vencimentoApolice,
+            }))
 
+            successCount++
+          }
+        } catch (fileErr) {
+          console.error(`Error extracting from ${file.name}:`, fileErr)
+        }
+      }
+
+      if (successCount > 0) {
         setExtractionSuccess(true)
       } else {
-        setExtractionError(result.message || 'Não foi possível extrair os dados do documento.')
+        setExtractionError('Não foi possível extrair os dados dos documentos.')
       }
     } catch (err) {
       console.error('Error extracting data:', err)
-      setExtractionError('Erro ao processar o documento. Tente novamente.')
+      setExtractionError('Erro ao processar os documentos. Tente novamente.')
     } finally {
       setExtracting(false)
     }
@@ -414,23 +430,29 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                   id="file-upload"
                   type="file"
                   accept=".pdf"
+                  multiple
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
-                {!uploadedFile ? (
+                {uploadedFiles.length === 0 && !uploadedFile ? (
                   <>
                     <CloudUploadIcon sx={{ fontSize: 40, color: '#a5b4fc', mb: 1 }} />
                     <Typography variant="body2" fontWeight={500} color="text.secondary">
-                      Arraste uma apólice/orçamento para preencher automaticamente
+                      Arraste apólices/orçamentos para preencher automaticamente
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Aceita múltiplos PDFs
                     </Typography>
                   </>
                 ) : (
                   <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 1 }}>
-                      <DescriptionIcon sx={{ color: extractionSuccess ? '#22c55e' : '#6366f1', fontSize: 20 }} />
-                      <Typography variant="body2" fontWeight={500}>{uploadedFile.name}</Typography>
-                      {extractionSuccess && <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 18 }} />}
-                    </Box>
+                    {uploadedFiles.map((file, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.5 }}>
+                        <DescriptionIcon sx={{ color: extractionSuccess ? '#22c55e' : '#6366f1', fontSize: 18 }} />
+                        <Typography variant="body2" fontWeight={500} sx={{ fontSize: '0.8rem' }}>{file.name}</Typography>
+                        {extractionSuccess && <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 16 }} />}
+                      </Box>
+                    ))}
                     {extracting && <LinearProgress sx={{ borderRadius: 1, mb: 1 }} />}
                     {extractionError && <Alert severity="warning" sx={{ mb: 1, textAlign: 'left' }}>{extractionError}</Alert>}
                     {extractionSuccess && <Alert severity="success" sx={{ mb: 1, textAlign: 'left' }}>Dados extraídos! Verifique abaixo.</Alert>}
@@ -450,7 +472,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setExtractionSuccess(false); setExtractionError(null) }}
+                        onClick={(e) => { e.stopPropagation(); setUploadedFile(null); setUploadedFiles([]); setExtractionSuccess(false); setExtractionError(null) }}
                         sx={{ borderColor: '#c7d2fe', color: '#6366f1' }}
                       >
                         Remover
