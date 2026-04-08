@@ -102,6 +102,43 @@ const STEPS = [
 
 const RADAR_COLORS = ['#6366f1', '#f43f5e', '#06b6d4', '#f59e0b', '#10b981']
 
+const SEGURADORA_COLORS: Record<string, string> = {
+  'HDI': '#22c55e',
+  'Allianz': '#3b82f6',
+  'Tokio Marine': '#166534',
+  'Tokio': '#166534',
+  'Chubb': '#1e293b',
+  'AXA': '#6b7280',
+}
+
+const getSeguradoraGradient = (seguradoraNome: string): string => {
+  const name = seguradoraNome?.trim() || ''
+  for (const [key, color] of Object.entries(SEGURADORA_COLORS)) {
+    if (name.toLowerCase().includes(key.toLowerCase())) {
+      return `linear-gradient(135deg, ${color} 0%, ${color}dd 100%)`
+    }
+  }
+  return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+}
+
+// Fields for "Analise de Informacoes" comparison
+const INFO_FIELDS: { key: string; label: string; format?: (v: unknown) => string }[] = [
+  { key: 'enquadramento', label: 'Enquadramento / Tipo' },
+  { key: 'numeroElevadores', label: 'N. de Elevadores' },
+  { key: 'anoConstrucao', label: 'Idade / Ano de Construcao' },
+  { key: 'numeroUnidades', label: 'N. de Unidades' },
+  { key: 'numeroBlocos', label: 'N. de Blocos' },
+  { key: 'numeroPavimentos', label: 'N. de Pavimentos' },
+  { key: 'quantidadeFuncionarios', label: 'Qtd. Funcionarios' },
+  { key: 'placaSolar', label: 'Placa Solar', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+  { key: 'bensAoArLivre', label: 'Bens ao Ar Livre', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+  { key: 'bonus', label: 'Bonus' },
+  { key: 'protecaoExtintores', label: 'Extintores', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+  { key: 'protecaoHidrantes', label: 'Hidrantes', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+  { key: 'protecaoAlarmes', label: 'Alarmes', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+  { key: 'clausulaValorDeNovo', label: 'Clausula Valor de Novo', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+]
+
 // Coverage categories for radar chart
 const COVERAGE_CATEGORIES: Record<string, string[]> = {
   'Incêndio/Básicas': ['Incêndio, Raio e Explosão', 'Queda de Aeronaves', 'Fumaça'],
@@ -725,46 +762,25 @@ export default function CompararPage() {
       {/* === COMPARISON RESULTS === */}
       {comparacao && (() => {
         const allCoberturas = getAllCoberturas(comparacao.orcamentos)
-        const maxPreco = Math.max(...comparacao.orcamentos.map((o) => o.valorPremio || 0))
-        const minPreco = Math.min(...comparacao.orcamentos.filter((o) => o.valorPremio > 0).map((o) => o.valorPremio))
 
         const enriched = comparacao.orcamentos.map((orc) => {
           const coberturasIncluidas = orc.coberturas.filter((c) => c.incluido)
           const coberturaPercent = allCoberturas.length > 0 ? (coberturasIncluidas.length / allCoberturas.length) * 100 : 0
-          const precoBar = maxPreco > 0 ? ((orc.valorPremio || 0) / maxPreco) * 100 : 0
-          const totalFranquias = coberturasIncluidas.reduce((sum, c) => sum + (c.franquia || 0), 0)
-
           let medals = 0
           if (orc.id === comparacao.resumo.menorPrecoId) medals++
           if (orc.id === comparacao.resumo.maiorCoberturaId) medals++
           const mCBRec = comparacao.resumo.recomendacoes.find((r) => r.tipo === 'MELHOR_CUSTO_BENEFICIO')
           if (mCBRec && mCBRec.orcamentoId === orc.id) medals++
 
-          return { ...orc, coberturasIncluidas: coberturasIncluidas.length, coberturaPercent, precoBar, medals, totalFranquias }
+          return { ...orc, coberturasIncluidas: coberturasIncluidas.length, coberturaPercent, medals }
         })
 
-        const bestCobCount = Math.max(...enriched.map((e) => e.coberturasIncluidas))
         const melhorCBRec = comparacao.resumo.recomendacoes.find((r) => r.tipo === 'MELHOR_CUSTO_BENEFICIO')
-        const CARD_GRADIENTS = [
-          'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-          'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-          'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-        ]
         const hasCoberturas = allCoberturas.length > 0
-
-        const coberturasAusentes: Record<string, string[]> = {}
-        comparacao.orcamentos.forEach((orc) => {
-          const incluidas = new Set(orc.coberturas.filter(c => c.incluido).map(c => c.nome))
-          coberturasAusentes[orc.id] = allCoberturas.filter(c => !incluidas.has(c))
-        })
 
         const filteredCoberturas = allCoberturas.filter(c =>
           matrixSearch ? c.toLowerCase().includes(matrixSearch.toLowerCase()) : true
         )
-
-        const minFranquias = Math.min(...enriched.filter(e => e.totalFranquias > 0).map(e => e.totalFranquias))
 
         return (
         <>
@@ -781,7 +797,7 @@ export default function CompararPage() {
               size="small"
               sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
             >
-              {pdfLoading ? 'Gerando...' : 'Exportar PDF'}
+              {pdfLoading ? 'Gerando...' : 'Gerar Relatorio PDF'}
             </Button>
           </Box>
 
@@ -804,7 +820,7 @@ export default function CompararPage() {
                 return (
                   <Grid item xs={12} md={comparacao.orcamentos.length <= 2 ? 6 : comparacao.orcamentos.length === 3 ? 4 : 3} key={orc.id}>
                     <Card sx={{ borderRadius: 3, overflow: 'hidden', border: orc.medals > 0 ? '2px solid #FFD700' : '1px solid #e2e8f0' }}>
-                      <Box sx={{ background: CARD_GRADIENTS[idx], p: 2.5, color: 'white', textAlign: 'center' }}>
+                      <Box sx={{ background: getSeguradoraGradient(orc.seguradoraNome), p: 2.5, color: 'white', textAlign: 'center' }}>
                         <Typography variant="h5" fontWeight="800">{orc.seguradoraNome}</Typography>
                         <Typography variant="h4" fontWeight="900" sx={{ mt: 1 }}>{formatCurrency(orc.valorPremio)}</Typography>
                       </Box>
@@ -823,11 +839,7 @@ export default function CompararPage() {
                           </Box>
                           <LinearProgress variant="determinate" value={orc.coberturaPercent} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: orc.coberturaPercent >= 80 ? '#22c55e' : orc.coberturaPercent >= 50 ? '#f59e0b' : '#ef4444' } }} />
                         </Box>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                          <Box sx={{ p: 1, borderRadius: 1, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                            <Typography variant="caption" color="text.secondary" display="block">Vigência</Typography>
-                            <Typography variant="body2" fontWeight={700}>{orc.vigenciaDias} dias</Typography>
-                          </Box>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1 }}>
                           <Box sx={{ p: 1, borderRadius: 1, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <Typography variant="caption" color="text.secondary" display="block">Pagamento</Typography>
                             <Typography variant="body2" fontWeight={700} sx={{ fontSize: '0.75rem' }}>{orc.formaPagamento || '-'}</Typography>
@@ -840,7 +852,6 @@ export default function CompararPage() {
                         </Box>
                         {hasCoberturas && orc.coberturas.length > 0 && (
                           <Box sx={{ mt: 1.5 }}>
-                            <Typography variant="caption" fontWeight={600} color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>Coberturas incluídas:</Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3 }}>
                               {orc.coberturas.filter((c) => c.incluido).map((c) => (
                                 <Chip key={c.nome} label={c.nome} size="small" sx={{ height: 20, fontSize: '0.6rem', bgcolor: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#dcfce7' : '#e0f2fe', color: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#166534' : '#0c4a6e' }} />
@@ -883,144 +894,68 @@ export default function CompararPage() {
             </Paper>
           )}
 
-          {/* === ANALISE DE COBERTURAS === */}
-          {hasCoberturas && (
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>Análise de Coberturas</Typography>
-              {comparacao.resumo.coberturasComuns.length > 0 && (
-                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <CheckCircleIcon sx={{ color: '#16a34a' }} />
-                    <Typography variant="subtitle1" fontWeight={700} color="#166534">Coberturas em Comum ({comparacao.resumo.coberturasComuns.length})</Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes em todos os orçamentos comparados</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {comparacao.resumo.coberturasComuns.map((cob) => (
-                      <Chip key={cob} label={cob} size="small" sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 500 }} />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-              {Object.entries(coberturasAusentes).some(([, cobs]) => cobs.length > 0) && (
-                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fef2f2', border: '1px solid #fecaca', mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <CancelIcon sx={{ color: '#ef4444' }} />
-                    <Typography variant="subtitle1" fontWeight={700} color="#991b1b">Coberturas Ausentes por Orçamento</Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Coberturas que existem em outros orçamentos mas não neste</Typography>
-                  {Object.entries(coberturasAusentes).map(([orcId, cobs]) => {
-                    if (cobs.length === 0) return null
-                    const orc = comparacao.orcamentos.find((o) => o.id === orcId)
-                    return (
-                      <Box key={orcId} sx={{ mb: 1.5 }}>
-                        <Typography variant="caption" fontWeight={700} color="#991b1b">{orc?.seguradoraNome}:</Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.3 }}>
-                          {cobs.map((cob) => <Chip key={cob} label={cob} size="small" sx={{ bgcolor: '#fee2e2', color: '#991b1b', fontWeight: 500 }} />)}
-                        </Box>
-                      </Box>
-                    )
-                  })}
-                </Box>
-              )}
-              {Object.keys(comparacao.resumo.coberturasExclusivas || {}).length > 0 && (
-                <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fefce8', border: '1px solid #fde68a' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                    <StarIcon sx={{ color: '#ca8a04' }} />
-                    <Typography variant="subtitle1" fontWeight={700} color="#854d0e">Coberturas Únicas</Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: 'block' }}>Presentes apenas em um orçamento específico</Typography>
-                  {Object.entries(comparacao.resumo.coberturasExclusivas || {}).map(([orcId, cobs]) => {
-                    const orc = comparacao.orcamentos.find((o) => o.id === orcId)
-                    return (
-                      <Box key={orcId} sx={{ mb: 1 }}>
-                        <Typography variant="caption" fontWeight={700} color="#92400e">{orc?.seguradoraNome}:</Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.3 }}>
-                          {(cobs as string[]).map((cob) => <Chip key={cob} label={cob} size="small" sx={{ bgcolor: '#fef9c3', color: '#854d0e', fontWeight: 500 }} />)}
-                        </Box>
-                      </Box>
-                    )
-                  })}
-                </Box>
-              )}
-            </Paper>
-          )}
-
-          {/* === COMPARACAO DE PRECOS === */}
+          {/* === ANALISE DE INFORMACOES === */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação de Preços</Typography>
-            <Box sx={{ mt: 2 }}>
-              {enriched.sort((a, b) => (a.valorPremio || 0) - (b.valorPremio || 0)).map((orc, idx) => {
-                const isBest = orc.id === comparacao.resumo.menorPrecoId
-                return (
-                  <Box key={orc.id} sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {idx === 0 && <EmojiEventsIcon sx={{ color: '#ca8a04', fontSize: 20 }} />}
-                        <Typography variant="body2" fontWeight={isBest ? 700 : 500}>{orc.seguradoraNome}</Typography>
-                      </Box>
-                      <Typography variant="body2" fontWeight={700}>{formatCurrency(orc.valorPremio)}</Typography>
-                    </Box>
-                    <LinearProgress variant="determinate" value={orc.precoBar} sx={{ height: 28, borderRadius: 2, bgcolor: '#f1f5f9', '& .MuiLinearProgress-bar': { borderRadius: 2, background: isBest ? 'linear-gradient(90deg, #22c55e 0%, #16a34a 100%)' : idx === enriched.length - 1 ? 'linear-gradient(90deg, #f87171 0%, #ef4444 100%)' : 'linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%)' } }} />
-                    {minPreco > 0 && orc.valorPremio > minPreco && (
-                      <Typography variant="caption" color="error.main" sx={{ mt: 0.3, display: 'block' }}>
-                        +{formatCurrency(orc.valorPremio - minPreco)} a mais ({(((orc.valorPremio - minPreco) / minPreco) * 100).toFixed(1)}%)
-                      </Typography>
-                    )}
-                  </Box>
-                )
-              })}
-            </Box>
-          </Paper>
-
-          {/* === TABELA DETALHADA (with franchise totals) === */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Comparação Resumida</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Analise de Informacoes</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Comparacao das informacoes do imovel e da apolice extraidas de cada orcamento
+            </Typography>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#0f172a' }}>
-                    <TableCell sx={{ fontWeight: 600, color: 'white', width: 200 }}>Métrica</TableCell>
-                    {enriched.map((orc) => <TableCell key={orc.id} align="center" sx={{ fontWeight: 600, color: 'white' }}>{orc.seguradoraNome}</TableCell>)}
+                    <TableCell sx={{ fontWeight: 600, color: 'white', minWidth: 200 }}>Informacao</TableCell>
+                    {comparacao.orcamentos.map((orc) => (
+                      <TableCell key={orc.id} align="center" sx={{ fontWeight: 600, color: 'white', minWidth: 140 }}>{orc.seguradoraNome}</TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>Valor do Prêmio (anual)</TableCell>
-                    {enriched.map((orc) => {
-                      const best = orc.id === comparacao.resumo.menorPrecoId
-                      return <TableCell key={orc.id} align="center" sx={{ bgcolor: best ? '#dcfce7' : undefined, fontWeight: best ? 700 : 400 }}>{formatCurrency(orc.valorPremio)}{best && <Chip size="small" label="Menor" color="success" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}</TableCell>
-                    })}
+                  {/* Vigencia row */}
+                  <TableRow sx={{ bgcolor: '#fafafa' }}>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>Vigencia</TableCell>
+                    {comparacao.orcamentos.map((orc) => (
+                      <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0' }}>
+                        {formatDate(orc.dataVigenciaInicio)} a {formatDate(orc.dataVigenciaFim)}
+                        {orc.vigenciaDias > 0 && <Typography variant="caption" display="block" color="text.secondary">({orc.vigenciaDias} dias)</Typography>}
+                      </TableCell>
+                    ))}
                   </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Vigência</TableCell>
-                    {enriched.map((orc) => <TableCell key={orc.id} align="center">{formatDate(orc.dataVigenciaInicio)} a {formatDate(orc.dataVigenciaFim)}<Typography variant="caption" display="block" color="text.secondary">({orc.vigenciaDias} dias)</Typography></TableCell>)}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 500, bgcolor: '#f8fafc' }}>Forma de Pagamento</TableCell>
-                    {enriched.map((orc) => <TableCell key={orc.id} align="center">{orc.formaPagamento && orc.formaPagamento !== 'À vista' ? orc.formaPagamento : '-'}</TableCell>)}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>Qtd. Coberturas</TableCell>
-                    {enriched.map((orc) => {
-                      const best = orc.coberturasIncluidas === bestCobCount
-                      return <TableCell key={orc.id} align="center" sx={{ bgcolor: best ? '#dbeafe' : undefined, fontWeight: best ? 700 : 400 }}>{orc.coberturasIncluidas}/{allCoberturas.length}{best && allCoberturas.length > 0 && <Chip size="small" label="Mais" color="primary" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}</TableCell>
-                    })}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc' }}>
-                      <Tooltip title="Soma de todas as franquias das coberturas contratadas" arrow>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>Total Franquias<HelpOutlineIcon sx={{ fontSize: 14, color: '#94a3b8' }} /></Box>
-                      </Tooltip>
-                    </TableCell>
-                    {enriched.map((orc) => {
-                      const isBest = orc.totalFranquias > 0 && orc.totalFranquias === minFranquias
-                      return <TableCell key={orc.id} align="center" sx={{ bgcolor: isBest ? '#dcfce7' : undefined, fontWeight: isBest ? 700 : 400 }}>{formatCurrency(orc.totalFranquias)}{isBest && <Chip size="small" label="Menor" color="success" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}</TableCell>
-                    })}
-                  </TableRow>
+                  {INFO_FIELDS.map((field, rowIdx) => {
+                    const values = comparacao.orcamentos.map((orc) => {
+                      const dados = orc.dadosExtraidos || {}
+                      return dados[field.key]
+                    })
+                    const hasAnyValue = values.some((v) => v !== undefined && v !== null)
+                    if (!hasAnyValue) return null
+                    const allSame = values.every((v) => JSON.stringify(v) === JSON.stringify(values[0]))
+                    return (
+                      <TableRow key={field.key} sx={{ bgcolor: rowIdx % 2 === 0 ? 'white' : '#fafafa', '&:hover': { bgcolor: '#f1f5f9' } }}>
+                        <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>{field.label}</TableCell>
+                        {comparacao.orcamentos.map((orc) => {
+                          const dados = orc.dadosExtraidos || {}
+                          const val = dados[field.key]
+                          const formatted = val === undefined || val === null ? '-' : field.format ? field.format(val) : String(val)
+                          return (
+                            <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: !allSame && val !== undefined && val !== null ? '#fef3c7' : undefined }}>
+                              <Typography variant="body2" fontWeight={!allSame ? 600 : 400}>{formatted}</Typography>
+                            </TableCell>
+                          )
+                        })}
+                      </TableRow>
+                    )
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
+            {comparacao.orcamentos.every((orc) => !orc.dadosExtraidos || Object.keys(orc.dadosExtraidos).length === 0) && (
+              <Box sx={{ textAlign: 'center', py: 3 }}>
+                <Typography variant="body2" color="text.secondary">Nenhuma informacao adicional extraida dos orcamentos. Reprocesse os documentos para extrair dados do imovel.</Typography>
+              </Box>
+            )}
           </Paper>
+
+
 
           {/* === MATRIZ DE COBERTURAS (sticky header, search, % diff) === */}
           {allCoberturas.length > 0 && (
@@ -1067,15 +1002,19 @@ export default function CompararPage() {
                                 {tem ? (
                                   <Box>
                                     <CheckCircleIcon fontSize="small" sx={{ color: '#22c55e', verticalAlign: 'middle' }} />
-                                    {cob?.valorLimite !== undefined && cob.valorLimite > 0 && (
+                                    {cob?.valorLimite !== undefined && cob.valorLimite > 0 ? (
                                       <Box>
-                                        <Typography variant="caption" display="block" fontWeight={isBestLimite ? 700 : 400} color={isBestLimite ? '#166534' : 'text.primary'}>{formatCurrency(cob.valorLimite)}</Typography>
+                                        <Typography variant="caption" display="block" fontWeight={isBestLimite ? 700 : 400} color={isBestLimite ? '#166534' : 'text.primary'}>
+                                          {formatCurrency(cob.valorLimite)}
+                                          {cob?.franquia !== undefined && cob.franquia > 0 && (
+                                            <Typography component="span" variant="caption" sx={{ color: isBestFranquia ? '#166534' : 'text.secondary', fontWeight: isBestFranquia ? 600 : 400 }}> / Fr: {formatCurrency(cob.franquia)}</Typography>
+                                          )}
+                                        </Typography>
                                         {limiteDiffText && <Typography variant="caption" display="block" sx={{ color: limiteDiffText.startsWith('-') ? '#ef4444' : '#94a3b8', fontSize: '0.65rem' }}>{limiteDiffText} vs melhor</Typography>}
                                       </Box>
-                                    )}
-                                    {cob?.franquia !== undefined && cob.franquia > 0 && (
+                                    ) : cob?.franquia !== undefined && cob.franquia > 0 ? (
                                       <Typography variant="caption" display="block" color={isBestFranquia ? '#166534' : 'text.secondary'} fontWeight={isBestFranquia ? 600 : 400}>Fr: {formatCurrency(cob.franquia)} {isBestFranquia && '(menor)'}</Typography>
-                                    )}
+                                    ) : null}
                                   </Box>
                                 ) : (
                                   <Box>
@@ -1134,6 +1073,32 @@ export default function CompararPage() {
               </Grid>
             </Paper>
           )}
+
+          {/* === SUGESTOES DE SEGUROS === */}
+          <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <SecurityIcon sx={{ color: '#6366f1' }} />
+              <Typography variant="h6" fontWeight="700">Sugestoes de Seguros</Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Seguros complementares recomendados para protecao completa do condominio
+            </Typography>
+            <Grid container spacing={2}>
+              {[
+                { nome: 'Seguro Residencial', motivo: 'Protege as unidades individuais dos condaminos contra incendio, roubo, danos eletricos e responsabilidade civil familiar. Complementa o seguro condominial que cobre apenas areas comuns.' },
+                { nome: 'RC Sindico Profissional', motivo: 'Protege o sindico contra acoes judiciais por erros de gestao, decisoes administrativas e omissoes no exercicio da funcao. Essencial para sindicos profissionais e voluntarios.' },
+                { nome: 'Seguro de Obras', motivo: 'Cobre riscos durante reformas e obras no condominio, incluindo danos a terceiros, desabamentos e acidentes de trabalho. Obrigatorio para obras de maior porte.' },
+                { nome: 'Seguro Prestamista', motivo: 'Garante a quitacao de dividas condominiais em caso de falecimento ou invalidez do condamino, evitando inadimplencia e protegendo o fluxo de caixa do condominio.' },
+              ].map((seguro) => (
+                <Grid item xs={12} md={6} key={seguro.nome}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', height: '100%' }}>
+                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#1e293b', mb: 0.5 }}>{seguro.nome}</Typography>
+                    <Typography variant="body2" color="text.secondary">{seguro.motivo}</Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
 
           {/* === ANALISE IA === */}
           <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(135deg, #667eea08 0%, #764ba208 100%)', border: '1px solid #e2e8f0' }}>

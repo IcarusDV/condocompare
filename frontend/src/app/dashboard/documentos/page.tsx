@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Box,
@@ -29,8 +29,6 @@ import {
   CircularProgress,
   Alert,
   Checkbox,
-  Card,
-  CardContent,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import UploadIcon from '@mui/icons-material/Upload'
@@ -49,9 +47,7 @@ import SyncIcon from '@mui/icons-material/Sync'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import FolderIcon from '@mui/icons-material/Folder'
-import AssignmentIcon from '@mui/icons-material/Assignment'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import StorageIcon from '@mui/icons-material/Storage'
 import EditIcon from '@mui/icons-material/Edit'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import {
@@ -211,6 +207,11 @@ export default function DocumentosPage() {
   }, [])
 
   const fetchData = useCallback(async () => {
+    if (!filters.condominioId) {
+      setData(null)
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       setError(null)
@@ -381,24 +382,6 @@ export default function DocumentosPage() {
     })
   }
 
-  // Stats
-  const stats = useMemo(() => {
-    if (!data?.content) return { total: 0, orcamentos: 0, apolices: 0, totalSize: 0, vencendo: 0 }
-    const total = data.totalElements
-    const content = data.content
-    const orcamentos = content.filter(d => d.tipo === 'ORCAMENTO').length
-    const apolices = content.filter(d => d.tipo === 'APOLICE').length
-    const totalSize = content.reduce((sum, d) => sum + (d.tamanhoBytes || 0), 0)
-    const now = new Date()
-    const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    const vencendo = content.filter(d => {
-      if (!d.dataVigenciaFim) return false
-      const fim = new Date(d.dataVigenciaFim)
-      return fim > now && fim <= thirtyDays
-    }).length
-    return { total, orcamentos, apolices, totalSize, vencendo }
-  }, [data])
-
   const isVencendo = (doc: DocumentoListResponse) => {
     if (!doc.dataVigenciaFim || doc.tipo !== 'APOLICE') return false
     const fim = new Date(doc.dataVigenciaFim)
@@ -484,67 +467,6 @@ export default function DocumentosPage() {
           )}
         </Box>
       </Box>
-
-      {/* Stats Cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6} md={2}>
-          <Card sx={{ bgcolor: '#f0f9ff', border: '1px solid #bae6fd' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <FolderIcon sx={{ color: '#0284c7', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Total</Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="#0284c7">{stats.total}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={2}>
-          <Card sx={{ bgcolor: '#faf5ff', border: '1px solid #e9d5ff' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AssignmentIcon sx={{ color: '#7c3aed', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Apólices</Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="#7c3aed">{stats.apolices}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={6} md={2}>
-          <Card sx={{ bgcolor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <DescriptionIcon sx={{ color: '#2563eb', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Orçamentos</Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="#2563eb">{stats.orcamentos}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        {stats.vencendo > 0 && (
-          <Grid item xs={6} md={2}>
-            <Card sx={{ bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
-              <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <WarningAmberIcon sx={{ color: '#dc2626', fontSize: 20 }} />
-                  <Typography variant="caption" color="text.secondary">Vencendo</Typography>
-                </Box>
-                <Typography variant="h5" fontWeight="bold" color="#dc2626">{stats.vencendo}</Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-        <Grid item xs={6} md={2}>
-          <Card sx={{ bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <StorageIcon sx={{ color: '#64748b', fontSize: 20 }} />
-                <Typography variant="caption" color="text.secondary">Tamanho</Typography>
-              </Box>
-              <Typography variant="h5" fontWeight="bold" color="#64748b">{formatFileSize(stats.totalSize)}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
@@ -698,8 +620,21 @@ export default function DocumentosPage() {
         </Alert>
       )}
 
+      {/* No condominio selected message */}
+      {!filters.condominioId && (
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <FolderIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
+          <Typography variant="h6" color="text.secondary">
+            Selecione um condominio para ver os documentos
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Use o filtro acima para escolher o condominio desejado.
+          </Typography>
+        </Paper>
+      )}
+
       {/* Table */}
-      <Paper>
+      {filters.condominioId && <Paper>
         <TableContainer>
           <Table>
             <TableHead>
@@ -733,7 +668,6 @@ export default function DocumentosPage() {
                     Tipo
                   </TableSortLabel>
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Seguradora</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>
                   <TableSortLabel
                     active={sortField === 'tamanhoBytes'}
@@ -767,13 +701,13 @@ export default function DocumentosPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={canDelete ? 9 : 8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={canDelete ? 8 : 7} align="center" sx={{ py: 4 }}>
                     <CircularProgress size={32} />
                   </TableCell>
                 </TableRow>
               ) : data?.content.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canDelete ? 9 : 8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={canDelete ? 8 : 7} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       Nenhum documento encontrado
                     </Typography>
@@ -855,9 +789,6 @@ export default function DocumentosPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        {doc.seguradoraNome || '-'}
-                      </TableCell>
-                      <TableCell>
                         {formatFileSize(doc.tamanhoBytes)}
                       </TableCell>
                       <TableCell>
@@ -935,7 +866,7 @@ export default function DocumentosPage() {
             `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
           }
         />
-      </Paper>
+      </Paper>}
 
       {/* Actions Menu */}
       <Menu

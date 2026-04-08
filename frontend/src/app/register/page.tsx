@@ -193,10 +193,7 @@ export default function RegisterPage() {
             </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.01em' }}>
-                IRC Corretora
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.6rem', letterSpacing: 1 }}>
-                DE SEGUROS
+                CondoCompare
               </Typography>
             </Box>
           </Stack>
@@ -359,10 +356,7 @@ export default function RegisterPage() {
             </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.1, color: 'text.primary', fontSize: '1rem' }}>
-                IRC Corretora
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.55rem', letterSpacing: 0.8 }}>
-                DE SEGUROS
+                CondoCompare
               </Typography>
             </Box>
           </Box>

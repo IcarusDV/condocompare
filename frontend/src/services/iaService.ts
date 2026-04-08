@@ -38,6 +38,8 @@ export interface DiagnosticoRequest {
     franquia?: number
     incluido?: boolean
   }>
+  dados_condominio?: Record<string, unknown>
+  dados_orcamentos?: Array<Record<string, unknown>>
 }
 
 export interface Recomendacao {

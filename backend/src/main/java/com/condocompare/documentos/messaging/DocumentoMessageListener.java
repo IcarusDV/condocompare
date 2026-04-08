@@ -242,7 +242,7 @@ public class DocumentoMessageListener {
         // 3. Final fallback: PDFBox regex extraction
         if (extractedData == null) {
             try {
-                extractedData = pdfExtractionService.extractData(texto, tipo);
+                extractedData = pdfExtractionService.extractData(texto, tipo, nomeArquivo);
             } catch (Exception e) {
                 log.warn("Extracao PDFBox tambem falhou: {}", e.getMessage());
                 return null;

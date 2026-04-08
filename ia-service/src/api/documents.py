@@ -67,6 +67,20 @@ Para ORCAMENTOS de seguro, extraia:
   - valorLimite: Limite de cobertura (numerico)
   - franquia: Valor da franquia (numerico)
   - incluido: true/false
+- enquadramento: Tipo/enquadramento do condominio (ex: "Residencial", "Comercial", "Misto")
+- numeroElevadores: Quantidade de elevadores (numerico)
+- anoConstrucao: Ano de construcao do predio (numerico)
+- numeroUnidades: Quantidade de unidades/apartamentos (numerico)
+- numeroBlocos: Quantidade de blocos/torres (numerico)
+- numeroPavimentos: Quantidade de pavimentos/andares (numerico)
+- quantidadeFuncionarios: Quantidade de funcionarios (numerico)
+- placaSolar: Se possui placa solar (true/false)
+- bensAoArLivre: Se possui bens ao ar livre (true/false)
+- bonus: Percentual de bonus ou classe de bonus (texto, ex: "Classe 5 - 25%")
+- protecaoExtintores: Se possui extintores (true/false)
+- protecaoHidrantes: Se possui hidrantes (true/false)
+- protecaoAlarmes: Se possui alarme de incendio (true/false)
+- clausulaValorDeNovo: Se possui clausula de valor de novo (true/false)
 
 IMPORTANTE:
 - Extraia APENAS informacoes que estao explicitamente no texto

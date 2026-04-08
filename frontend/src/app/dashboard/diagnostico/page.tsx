@@ -348,9 +348,10 @@ export default function DiagnosticoPage() {
       setCostEstimate(null)
 
       let coberturas: CoberturaDTO[] = []
+      const dadosOrcamentos: Array<Record<string, unknown>> = []
       for (const orcId of selectedOrcamentos) {
         const doc = await documentoService.getById(orcId)
-        const dados = doc.dadosExtraidos as { coberturas?: CoberturaDTO[] } | undefined
+        const dados = doc.dadosExtraidos as { coberturas?: CoberturaDTO[]; condicoesEspeciais?: string[]; descontos?: number; formaPagamento?: string; observacoesInternas?: string } | undefined
         const orcCoberturas = dados?.coberturas || []
         orcCoberturas.forEach((c) => {
           const existing = coberturas.find((e) => e.nome === c.nome)
@@ -360,14 +361,72 @@ export default function DiagnosticoPage() {
             coberturas.push({ ...c })
           }
         })
+        // Collect full orcamento data for IA context
+        dadosOrcamentos.push({
+          id: doc.id,
+          seguradora: doc.seguradoraNome,
+          valorPremio: doc.valorPremio,
+          dataVigenciaInicio: doc.dataVigenciaInicio,
+          dataVigenciaFim: doc.dataVigenciaFim,
+          coberturas: orcCoberturas.map((c) => ({
+            nome: c.nome, valorLimite: c.valorLimite, franquia: c.franquia, incluido: c.incluido,
+          })),
+          condicoesEspeciais: dados?.condicoesEspeciais,
+          formaPagamento: dados?.formaPagamento,
+          descontos: dados?.descontos,
+          observacoes: dados?.observacoesInternas,
+        })
       }
       setAggregatedCoberturas(coberturas)
+
+      // Build comprehensive condominio data for IA analysis
+      const dadosCondominio: Record<string, unknown> = condominioDetails ? {
+        nome: condominioDetails.nome,
+        cnpj: condominioDetails.cnpj,
+        endereco: condominioDetails.endereco ? `${condominioDetails.endereco.endereco || ''}, ${condominioDetails.endereco.numero || ''} - ${condominioDetails.endereco.bairro || ''}, ${condominioDetails.endereco.cidade || ''}/${condominioDetails.endereco.estado || ''}` : undefined,
+        // Caracteristicas do edificio
+        tipoConstrucao: condominioDetails.caracteristicas?.tipoConstrucao,
+        numeroUnidades: condominioDetails.caracteristicas?.numeroUnidades,
+        numeroBlocos: condominioDetails.caracteristicas?.numeroBlocos,
+        numeroAndares: condominioDetails.caracteristicas?.numeroAndares,
+        numeroElevadores: condominioDetails.caracteristicas?.numeroElevadores,
+        areaConstruida: condominioDetails.caracteristicas?.areaConstruida,
+        areaTotal: condominioDetails.caracteristicas?.areaTotal,
+        anoConstrucao: condominioDetails.caracteristicas?.anoConstrucao,
+        numeroFuncionarios: condominioDetails.caracteristicas?.numeroFuncionarios,
+        // Estrutura e amenidades
+        temPiscina: condominioDetails.amenidades?.temPiscina,
+        temAcademia: condominioDetails.amenidades?.temAcademia,
+        temSalaoFestas: condominioDetails.amenidades?.temSalaoFestas,
+        temPlayground: condominioDetails.amenidades?.temPlayground,
+        temChurrasqueira: condominioDetails.amenidades?.temChurrasqueira,
+        temQuadra: condominioDetails.amenidades?.temQuadra,
+        temPortaria24h: condominioDetails.amenidades?.temPortaria24h,
+        temPlacasSolares: condominioDetails.amenidades?.temPlacasSolares,
+        possuiAreaComercial: condominioDetails.amenidades?.possuiAreaComercial,
+        tamanhoAreaComercial: condominioDetails.amenidades?.tamanhoAreaComercial,
+        numPavimentos: condominioDetails.amenidades?.numPavimentos,
+        possuiGaragem: condominioDetails.amenidades?.possuiGaragem,
+        vagasGaragem: condominioDetails.amenidades?.vagasGaragem,
+        espacosConveniencia: condominioDetails.amenidades?.espacosConveniencia,
+        sistemaProtecaoIncendio: condominioDetails.amenidades?.sistemaProtecaoIncendio,
+        possuiRecargaEletricos: condominioDetails.amenidades?.possuiRecargaEletricos,
+        possuiBicicletario: condominioDetails.amenidades?.possuiBicicletario,
+        numFuncionariosRegistrados: condominioDetails.amenidades?.numFuncionariosRegistrados,
+        idadeFuncionariosRegistrados: condominioDetails.amenidades?.idadeFuncionariosRegistrados,
+        // Seguro atual
+        seguradoraAtual: condominioDetails.seguro?.seguradoraAtual,
+        vencimentoApolice: condominioDetails.seguro?.vencimentoApolice,
+        diasParaVencimento: condominioDetails.seguro?.diasParaVencimento,
+      } : {}
 
       const result = await iaService.analyzeDiagnostico({
         condominio_id: selectedCondominio,
         coberturas: coberturas.map((c) => ({
           nome: c.nome, valorLimite: c.valorLimite, franquia: c.franquia, incluido: c.incluido,
         })),
+        dados_condominio: dadosCondominio,
+        dados_orcamentos: dadosOrcamentos.length > 0 ? dadosOrcamentos : undefined,
       })
       setDiagnostico(result)
 
@@ -416,7 +475,19 @@ export default function DiagnosticoPage() {
           tipo: condominioDetails.caracteristicas?.tipoConstrucao,
           unidades: condominioDetails.caracteristicas?.numeroUnidades,
           blocos: condominioDetails.caracteristicas?.numeroBlocos,
+          andares: condominioDetails.caracteristicas?.numeroAndares,
+          elevadores: condominioDetails.caracteristicas?.numeroElevadores,
           area: condominioDetails.caracteristicas?.areaConstruida,
+          anoConstrucao: condominioDetails.caracteristicas?.anoConstrucao,
+          piscina: condominioDetails.amenidades?.temPiscina,
+          academia: condominioDetails.amenidades?.temAcademia,
+          portaria24h: condominioDetails.amenidades?.temPortaria24h,
+          areaComercial: condominioDetails.amenidades?.possuiAreaComercial,
+          garagem: condominioDetails.amenidades?.possuiGaragem,
+          vagasGaragem: condominioDetails.amenidades?.vagasGaragem,
+          protecaoIncendio: condominioDetails.amenidades?.sistemaProtecaoIncendio,
+          seguradoraAtual: condominioDetails.seguro?.seguradoraAtual,
+          vencimentoApolice: condominioDetails.seguro?.vencimentoApolice,
         } : {},
       })
       if (!reportData.success || !reportData.relatorio_markdown) {
@@ -552,12 +623,21 @@ export default function DiagnosticoPage() {
 
   // ─── Derived data ────────────────────────────────────────────────
 
-  const amenidadesList = condominioDetails ? [
+  const estruturaList = condominioDetails ? [
     { label: 'Piscina', active: condominioDetails.amenidades?.temPiscina },
     { label: 'Academia', active: condominioDetails.amenidades?.temAcademia },
     { label: 'Salão', active: condominioDetails.amenidades?.temSalaoFestas },
     { label: 'Elevadores', active: (condominioDetails.caracteristicas?.numeroElevadores || 0) > 0 },
     { label: 'Portaria 24h', active: condominioDetails.amenidades?.temPortaria24h },
+    { label: 'Playground', active: condominioDetails.amenidades?.temPlayground },
+    { label: 'Churrasqueira', active: condominioDetails.amenidades?.temChurrasqueira },
+    { label: 'Quadra', active: condominioDetails.amenidades?.temQuadra },
+    { label: 'Placas Solares', active: condominioDetails.amenidades?.temPlacasSolares },
+    { label: 'Área Comercial', active: condominioDetails.amenidades?.possuiAreaComercial },
+    { label: 'Garagem', active: condominioDetails.amenidades?.possuiGaragem },
+    { label: 'Recarga Elétricos', active: condominioDetails.amenidades?.possuiRecargaEletricos },
+    { label: 'Bicicletário', active: condominioDetails.amenidades?.possuiBicicletario },
+    { label: 'Proteção Incêndio', active: (condominioDetails.amenidades?.sistemaProtecaoIncendio || []).length > 0 },
   ] : []
 
   // Compliance: coberturas obrigatorias ausentes
@@ -760,7 +840,7 @@ export default function DiagnosticoPage() {
             </FormControl>
           </Grid>
           <Grid item xs={12} md={5}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Orçamentos para análise (até 4)</Typography>
+            <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Orçamentos para análise (até 5)</Typography>
             {loadingOrcamentos ? <Skeleton variant="rounded" height={40} /> : orcamentos.length === 0 ? (
               <Alert severity="info" sx={{ py: 0.5 }}>{selectedCondominio ? 'Nenhum orçamento preenchido encontrado' : 'Selecione um condomínio'}</Alert>
             ) : (
@@ -771,7 +851,7 @@ export default function DiagnosticoPage() {
                     <Chip key={o.id} label={o.seguradoraNome || o.nome}
                       onClick={() => {
                         if (isSelected) setSelectedOrcamentos((prev) => prev.filter((id) => id !== o.id))
-                        else if (selectedOrcamentos.length < 4) setSelectedOrcamentos((prev) => [...prev, o.id])
+                        else if (selectedOrcamentos.length < 5) setSelectedOrcamentos((prev) => [...prev, o.id])
                       }}
                       color={isSelected ? 'primary' : 'default'} variant={isSelected ? 'filled' : 'outlined'}
                       icon={<Checkbox checked={isSelected} size="small" sx={{ p: 0, '& .MuiSvgIcon-root': { fontSize: 18 } }} />}
@@ -826,7 +906,10 @@ export default function DiagnosticoPage() {
                   { label: 'Tipo', value: condominioDetails.caracteristicas?.tipoConstrucao || 'Não informado' },
                   { label: 'Unidades', value: condominioDetails.caracteristicas?.numeroUnidades || '-' },
                   { label: 'Blocos', value: condominioDetails.caracteristicas?.numeroBlocos || '-' },
+                  { label: 'Andares', value: condominioDetails.caracteristicas?.numeroAndares || '-' },
+                  { label: 'Elevadores', value: condominioDetails.caracteristicas?.numeroElevadores || '-' },
                   { label: 'Área', value: condominioDetails.caracteristicas?.areaConstruida ? `${condominioDetails.caracteristicas.areaConstruida} m²` : '-' },
+                  { label: 'Ano Construção', value: condominioDetails.caracteristicas?.anoConstrucao || '-' },
                 ].map((item, i) => (
                   <Grid item xs={6} md={i === 0 ? 3 : 2} key={item.label}>
                     <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
@@ -837,13 +920,13 @@ export default function DiagnosticoPage() {
                 ))}
                 <Grid item xs={12} md={3}>
                   <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
-                    <Typography variant="caption" color="text.secondary">Amenidades</Typography>
+                    <Typography variant="caption" color="text.secondary">Estrutura</Typography>
                     <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
-                      {amenidadesList.filter(a => a.active).slice(0, 3).map((a, idx) => (
+                      {estruturaList.filter(a => a.active).slice(0, 3).map((a, idx) => (
                         <Chip key={idx} label={a.label} size="small" sx={{ fontSize: 10 }} />
                       ))}
-                      {amenidadesList.filter(a => a.active).length > 3 && (
-                        <Chip label={`+${amenidadesList.filter(a => a.active).length - 3}`} size="small" sx={{ fontSize: 10 }} />
+                      {estruturaList.filter(a => a.active).length > 3 && (
+                        <Chip label={`+${estruturaList.filter(a => a.active).length - 3}`} size="small" sx={{ fontSize: 10 }} />
                       )}
                     </Box>
                   </Box>

@@ -137,6 +137,15 @@ public class PdfExtractionService {
      * Returns a Map in the format expected by the existing system.
      */
     public Map<String, Object> extractData(String text, String tipo) {
+        return extractData(text, tipo, null);
+    }
+
+    /**
+     * Extract structured data from the text based on the document type.
+     * Returns a Map in the format expected by the existing system.
+     * @param filename original filename (used to improve seguradora detection)
+     */
+    public Map<String, Object> extractData(String text, String tipo, String filename) {
         if (text == null || text.isBlank()) {
             return Collections.emptyMap();
         }
@@ -144,7 +153,7 @@ public class PdfExtractionService {
         Map<String, Object> result = new HashMap<>();
 
         // Extract seguradora
-        String seguradoraNome = extractSeguradora(text);
+        String seguradoraNome = extractSeguradora(text, filename);
         if (seguradoraNome != null) {
             result.put("seguradoraNome", seguradoraNome);
         }
@@ -196,41 +205,69 @@ public class PdfExtractionService {
     // Private extraction methods
     // ============================
 
-    private String extractSeguradora(String text) {
+    private String extractSeguradora(String text, String filename) {
+        // Priority 1: Check filename (users often name files like "Allianz - R$5.028,80.pdf")
+        if (filename != null) {
+            String lowerFilename = filename.toLowerCase();
+            for (String seg : SEGURADORAS) {
+                if (lowerFilename.contains(seg.toLowerCase())) {
+                    return seg;
+                }
+            }
+        }
+
+        // Priority 2: Look for seguradora near explicit labels like "Seguradora:", "Cia de Seguros:", SUSEP
+        Pattern labelPattern = Pattern.compile(
+                "(?i)(?:seguradora|companhia de seguros|cia\\.? de seguros|seguros s[./]a|c[óo]digo\\s*susep)\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s&.]+)",
+                Pattern.UNICODE_CHARACTER_CLASS);
+        Matcher m = labelPattern.matcher(text);
+        if (m.find()) {
+            String found = m.group(1).trim().replaceAll("\\s+", " ");
+            if (found.length() > 3 && found.length() < 80) {
+                // Check if the found text contains a known seguradora name
+                String lowerFound = found.toLowerCase();
+                for (String seg : SEGURADORAS) {
+                    if (lowerFound.contains(seg.toLowerCase())) {
+                        return seg;
+                    }
+                }
+                return found;
+            }
+        }
+
+        // Priority 3: Check full text for known seguradoras (first match)
         String lowerText = text.toLowerCase();
         for (String seg : SEGURADORAS) {
             if (lowerText.contains(seg.toLowerCase())) {
                 return seg;
             }
         }
-        // Try to find via CNPJ-based patterns or "Seguradora:" label
-        Pattern segPattern = Pattern.compile(
-                "(?i)(?:seguradora|companhia de seguros|cia\\. de seguros|seguros s[./]a)\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s&.]+)",
-                Pattern.UNICODE_CHARACTER_CLASS);
-        Matcher m = segPattern.matcher(text);
-        if (m.find()) {
-            String found = m.group(1).trim();
-            if (found.length() > 3 && found.length() < 80) {
-                return found.replaceAll("\\s+", " ").trim();
-            }
-        }
+
         return null;
     }
 
     private BigDecimal extractValorPremio(String text) {
+        // IMPORTANT: Order matters! We prioritize "total" patterns (includes IOF/taxes)
+        // over "líquido" patterns (net premium without taxes).
         Pattern[] premioPatterns = {
-                // "Prêmio Líquido total 4.690,96" (sem R$)
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:l[íi]quido)?\\s*(?:total)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio Total: R$ 5.037,14"
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio Total 5.037,14" (sem R$)
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:total|l[íi]quido|anual|do seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
-                // "Valor Total: R$ 5.037,14"
-                Pattern.compile("(?i)(?:valor\\s+(?:total|do\\s+(?:prêmio|premio|seguro)))\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Total geral: R$ 5.037,14" or "Total a pagar: R$ 5.037,14"
+                // "Total a pagar: R$ 5.037,14" or "Total geral: R$ 5.037,14"
                 Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Total geral 5.037,14" (sem R$)
+                // "Total a pagar 5.037,14" or "Total geral 5.037,14" (sem R$)
                 Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio Total: R$ 5.037,14"
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio Total 5.037,14" (sem R$)
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Valor Total: R$ 5.037,14" or "Valor do Seguro: R$ 5.037,14"
+                Pattern.compile("(?i)(?:valor\\s+(?:total|do\\s+(?:prêmio|premio|seguro)))\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                // "Valor Total do Seguro 5.037,14" (sem R$)
+                Pattern.compile("(?i)(?:valor\\s+total\\s+do\\s+seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio anual: R$ 5.037,14" or "Prêmio do seguro: R$ 5.037,14"
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:anual|do seguro)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio anual 5.037,14" (sem R$)
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:anual|do seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
+                // "Prêmio Líquido total 4.690,96" - only as last resort
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*l[íi]quido\\s*(?:total)?\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
         };
 
         for (Pattern p : premioPatterns) {

@@ -3,6 +3,7 @@ package com.condocompare.documentos.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public record OrcamentoComparacaoDTO(
@@ -17,5 +18,6 @@ public record OrcamentoComparacaoDTO(
     List<String> condicoesEspeciais,
     BigDecimal descontos,
     String formaPagamento,
-    String observacoes
+    String observacoes,
+    Map<String, Object> dadosExtraidos
 ) {}

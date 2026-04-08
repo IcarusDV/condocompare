@@ -38,8 +38,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorIcon from '@mui/icons-material/Error'
 import { documentoService, formatFileSize } from '@/services/documentoService'
 import { condominioService } from '@/services/condominioService'
-import { seguradoraService } from '@/services/seguradoraService'
-import { TipoDocumento, CondominioListResponse, SeguradoraResponse } from '@/types'
+import { TipoDocumento, CondominioListResponse } from '@/types'
 
 interface DocumentoUploadDialogProps {
   open: boolean
@@ -87,7 +86,6 @@ export function DocumentoUploadDialog({
   const [seguradoraNome, setSeguradoraNome] = useState('')
   const [condominioId, setCondominioId] = useState(initialCondominioId || '')
   const [condominios, setCondominios] = useState<CondominioListResponse[]>([])
-  const [seguradoras, setSeguradoras] = useState<SeguradoraResponse[]>([])
   const [loadingCondominios, setLoadingCondominios] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -99,9 +97,6 @@ export function DocumentoUploadDialog({
     if (open && !initialCondominioId) {
       loadCondominios()
     }
-    if (open) {
-      loadSeguradoras()
-    }
   }, [open, initialCondominioId])
 
   useEffect(() => {
@@ -110,14 +105,7 @@ export function DocumentoUploadDialog({
     }
   }, [initialCondominioId])
 
-  const loadSeguradoras = async () => {
-    try {
-      const response = await seguradoraService.list()
-      setSeguradoras(response)
-    } catch (err) {
-      console.error('Error loading seguradoras:', err)
-    }
-  }
+  const SEGURADORAS_OPTIONS = ['Allianz', 'AXA', 'Chubb', 'HDI', 'Tokio Marine']
 
   const loadCondominios = async () => {
     try {
@@ -539,37 +527,19 @@ export function DocumentoUploadDialog({
               </Select>
             </FormControl>
 
-            <Autocomplete
-              options={seguradoras}
-              getOptionLabel={(option) => typeof option === 'string' ? option : option.nome}
-              freeSolo
-              value={seguradoras.find(s => s.nome === seguradoraNome) || null}
-              inputValue={seguradoraNome}
-              onInputChange={(_, newValue) => setSeguradoraNome(newValue)}
-              onChange={(_, newValue) => {
-                if (typeof newValue === 'string') {
-                  setSeguradoraNome(newValue)
-                } else if (newValue) {
-                  setSeguradoraNome(newValue.nome)
-                } else {
-                  setSeguradoraNome('')
-                }
-              }}
-              disabled={uploading}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Seguradora"
-                  size="small"
-                  placeholder="Selecione ou digite a seguradora"
-                />
-              )}
-              renderOption={(props, option) => (
-                <li {...props} key={option.id}>
-                  <Typography variant="body2">{option.nome}</Typography>
-                </li>
-              )}
-            />
+            <FormControl fullWidth size="small" disabled={uploading}>
+              <InputLabel>Seguradora</InputLabel>
+              <Select
+                value={seguradoraNome}
+                label="Seguradora"
+                onChange={(e) => setSeguradoraNome(e.target.value)}
+              >
+                <MenuItem value="">Nenhuma</MenuItem>
+                {SEGURADORAS_OPTIONS.map((nome) => (
+                  <MenuItem key={nome} value={nome}>{nome}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
             <TextField
               label="Observações"

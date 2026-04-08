@@ -345,6 +345,7 @@ export interface OrcamentoComparacaoDTO {
   descontos?: number
   formaPagamento?: string
   observacoes?: string
+  dadosExtraidos?: Record<string, unknown>
 }
 
 export interface RecomendacaoComparacaoDTO {

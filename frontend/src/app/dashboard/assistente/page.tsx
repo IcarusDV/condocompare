@@ -107,7 +107,7 @@ const suggestedQuestionsByContext: Record<ContextType, string[]> = {
   condominio: [
     'Que informações do condomínio afetam o seguro?',
     'Condomínios antigos pagam mais caro?',
-    'Amenidades como piscina aumentam o prêmio?',
+    'Estruturas como piscina aumentam o prêmio?',
     'Elevadores influenciam no valor do seguro?',
   ],
 }

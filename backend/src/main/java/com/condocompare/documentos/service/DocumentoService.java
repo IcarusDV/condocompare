@@ -511,7 +511,8 @@ public class DocumentoService {
             dados != null && dados.condicoesEspeciais() != null ? dados.condicoesEspeciais() : List.of(),
             dados != null ? dados.descontos() : null,
             dados != null ? dados.formaPagamento() : null,
-            doc.getObservacoes()
+            doc.getObservacoes(),
+            doc.getDadosExtraidos()
         );
     }
 
