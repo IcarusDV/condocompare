@@ -469,35 +469,49 @@ public class PdfExtractionService {
     }
 
     private String extractFormaPagamento(String text) {
-        Pattern[] patterns = {
-                Pattern.compile("(?i)(?:forma\\s*(?:de)?\\s*pagamento|pagamento)\\s*:?\\s*([^\\n]{3,60})"),
-                Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?)\\s*(?:de)?\\s*R\\$\\s*[\\d.,]+"),
-                Pattern.compile("(?i)(?:parcelamento|parcelas?)\\s*:?\\s*(\\d+)\\s*(?:x|vezes|parcelas?)"),
+        String lowerText = text.toLowerCase();
+
+        // Priority 1: Look for installment info "Xx sem juros no boleto"
+        Pattern[] parcelaPatterns = {
+                // "até 6x sem juros" or "ate 06x sem juros"
+                Pattern.compile("(?i)(?:até|ate)\\s*(\\d+)\\s*(?:x|parcelas?)\\s*(?:sem juros)"),
+                // "6x sem juros no boleto"
+                Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?)\\s*(?:sem juros)\\s*(?:no boleto)?"),
+                // "parcelamento em até 6x"
+                Pattern.compile("(?i)parcelamento\\s*(?:em)?\\s*(?:até|ate)?\\s*(\\d+)\\s*(?:x|parcelas?|vezes)"),
+                // "6 parcelas sem juros"
+                Pattern.compile("(?i)(\\d+)\\s*parcelas?\\s*(?:sem juros|s/juros)"),
+                // "pagar em 6x"
+                Pattern.compile("(?i)pagar\\s*(?:em)?\\s*(\\d+)\\s*(?:x|parcelas?|vezes)"),
         };
 
-        // Check for specific payment method keywords
-        String lowerText = text.toLowerCase();
-        if (lowerText.contains("à vista") || lowerText.contains("a vista")) {
-            return "À vista";
+        for (Pattern p : parcelaPatterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                String parcelas = m.group(1);
+                return "Até " + parcelas + "x sem juros no boleto";
+            }
         }
 
-        Matcher m = patterns[0].matcher(text);
-        if (m.find()) {
-            String forma = m.group(1).trim();
-            if (forma.length() > 3 && forma.length() < 60) {
+        // Priority 2: Look for "forma de pagamento" section
+        Pattern formaPattern = Pattern.compile(
+                "(?i)(?:forma\\s*(?:de)?\\s*pagamento|condi[çc][ãa]o\\s*(?:de)?\\s*pagamento)\\s*:?\\s*([^\\n]{3,80})");
+        Matcher fm = formaPattern.matcher(text);
+        if (fm.find()) {
+            String forma = fm.group(1).trim();
+            // Check if the found text mentions parcelas
+            Matcher parcM = Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?|vezes)").matcher(forma);
+            if (parcM.find()) {
+                return "Até " + parcM.group(1) + "x sem juros no boleto";
+            }
+            if (forma.length() > 3 && forma.length() < 80) {
                 return forma;
             }
         }
 
-        // Check for installments
-        m = patterns[1].matcher(text);
-        if (m.find()) {
-            return m.group(0).trim();
-        }
-
-        m = patterns[2].matcher(text);
-        if (m.find()) {
-            return m.group(0).trim();
+        // Priority 3: À vista
+        if (lowerText.contains("à vista") || lowerText.contains("a vista")) {
+            return "À vista";
         }
 
         return null;

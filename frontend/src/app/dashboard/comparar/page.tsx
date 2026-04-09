@@ -299,8 +299,8 @@ export default function CompararPage() {
       setIaLoading(true)
       const dados = {
         orcamentos: comparacao.orcamentos.map((orc) => ({
-          seguradora: orc.seguradoraNome,
-          valorPremio: orc.valorPremio,
+          seguradora: orc.seguradoraNome || 'Não identificada',
+          valorPremio: orc.valorPremio || 0,
           coberturas: orc.coberturas.map((c) => ({
             nome: c.nome,
             valorLimite: c.valorLimite,
@@ -1031,14 +1031,14 @@ export default function CompararPage() {
                                       <Box>
                                         <Typography variant="caption" display="block" fontWeight={isBestLimite ? 700 : 400} color={isBestLimite ? '#166534' : 'text.primary'}>
                                           {formatCurrency(cob.valorLimite)}
-                                          {cob?.franquia !== undefined && cob.franquia > 0 && (
-                                            <Typography component="span" variant="caption" sx={{ color: isBestFranquia ? '#166534' : 'text.secondary', fontWeight: isBestFranquia ? 600 : 400 }}> / Fr: {formatCurrency(cob.franquia)}</Typography>
-                                          )}
                                         </Typography>
+                                        {cob?.franquia !== undefined && cob.franquia > 0 && (
+                                          <Typography variant="caption" display="block" sx={{ color: isBestFranquia ? '#166534' : 'text.secondary', fontWeight: isBestFranquia ? 600 : 400 }}>Fr: {formatCurrency(cob.franquia)}{isBestFranquia ? ' (menor)' : ''}</Typography>
+                                        )}
                                         {limiteDiffText && <Typography variant="caption" display="block" sx={{ color: limiteDiffText.startsWith('-') ? '#ef4444' : '#94a3b8', fontSize: '0.65rem' }}>{limiteDiffText} vs melhor</Typography>}
                                       </Box>
                                     ) : cob?.franquia !== undefined && cob.franquia > 0 ? (
-                                      <Typography variant="caption" display="block" color={isBestFranquia ? '#166534' : 'text.secondary'} fontWeight={isBestFranquia ? 600 : 400}>Fr: {formatCurrency(cob.franquia)} {isBestFranquia && '(menor)'}</Typography>
+                                      <Typography variant="caption" display="block" color={isBestFranquia ? '#166534' : 'text.secondary'} fontWeight={isBestFranquia ? 600 : 400}>Fr: {formatCurrency(cob.franquia)}{isBestFranquia ? ' (menor)' : ''}</Typography>
                                     ) : null}
                                   </Box>
                                 ) : (

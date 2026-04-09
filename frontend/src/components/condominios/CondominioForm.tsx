@@ -152,6 +152,10 @@ const initialFormData: FormData = {
   sindicoEmail: '',
   sindicoTelefone: '',
   vencimentoApolice: '',
+  bonusAnosSemSinistro: '',
+  quantidadeSinistros: '',
+  numeroCasas: '',
+  numeroSalas: '',
   seguradoraAtual: '',
   observacoes: '',
 }
@@ -509,13 +513,38 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                   onChange={(e) => handleChange('tipoConstrucao', e.target.value as TipoConstrucao)}
                 >
                   <MenuItem value="">Selecione</MenuItem>
-                  <MenuItem value="RESIDENCIAL">Residencial</MenuItem>
-                  <MenuItem value="COMERCIAL">Comercial</MenuItem>
+                  <MenuItem value="RESIDENCIAL">Apenas Residencial</MenuItem>
+                  <MenuItem value="RESIDENCIAL_HORIZONTAL">Apenas Residencial - Horizontal</MenuItem>
+                  <MenuItem value="RESIDENCIAL_COM_ESCRITORIOS">Residencial com escritórios e/ou consultórios</MenuItem>
+                  <MenuItem value="COMERCIAL_VERTICAL">Apenas Comercial - Vertical</MenuItem>
+                  <MenuItem value="COMERCIAL_HORIZONTAL">Apenas Comercial - Horizontal</MenuItem>
+                  <MenuItem value="ESCRITORIOS_CONSULTORIOS">Apenas Escritórios e Consultórios</MenuItem>
+                  <MenuItem value="ESCRITORIOS_COM_COMERCIO">Escritórios e Consultórios com Comércio no Térreo</MenuItem>
+                  <MenuItem value="LOGISTICO_INDUSTRIAL">Logístico / Industrial</MenuItem>
+                  <MenuItem value="CENTRO_COMERCIAL">Centro Comercial</MenuItem>
+                  <MenuItem value="GALERIA_COMERCIAL">Galeria Comercial</MenuItem>
+                  <MenuItem value="SHOPPING_CENTER">Shopping Center</MenuItem>
+                  <MenuItem value="EDIFICIO_GARAGEM">Edifício Garagem</MenuItem>
                   <MenuItem value="MISTO">Misto</MenuItem>
+                  <MenuItem value="FLAT_APART_HOTEL">Flat / Apart-hotel</MenuItem>
+                  <MenuItem value="FLAT_COM_COMERCIO">Flat / Apart-hotel com comércio</MenuItem>
+                  <MenuItem value="HOTEL">Hotel</MenuItem>
+                  <MenuItem value="EM_CONSTRUCAO">Em construção</MenuItem>
+                  <MenuItem value="DESOCUPADO">Desocupado</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
                 </Select>
+                <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block' }}>
+                  💡 Dúvidas no TIPO? Solicite auxílio para a IA no Assistente.
+                </Typography>
               </FormControl>
             </Box>
+            {/* Campos condicionais por tipo */}
+            {(formData.tipoConstrucao === 'RESIDENCIAL_HORIZONTAL') && (
+              <TextField fullWidth type="number" label="N° de Casas" value={formData.numeroCasas || ''} onChange={(e) => handleChange('numeroCasas', e.target.value)} />
+            )}
+            {(formData.tipoConstrucao === 'COMERCIAL_HORIZONTAL') && (
+              <TextField fullWidth type="number" label="N° de Salas" value={formData.numeroSalas || ''} onChange={(e) => handleChange('numeroSalas', e.target.value)} />
+            )}
             <TextField
               fullWidth
               multiline
@@ -975,6 +1004,24 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               value={formData.vencimentoApolice || ''}
               onChange={(e) => handleChange('vencimentoApolice', e.target.value)}
               InputLabelProps={{ shrink: true }}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Bônus / Anos sem sinistro"
+              value={formData.bonusAnosSemSinistro || ''}
+              onChange={(e) => handleChange('bonusAnosSemSinistro', e.target.value)}
+              placeholder="Ex: 5"
+            />
+            <TextField
+              fullWidth
+              type="number"
+              label="Quantidade de sinistros"
+              value={formData.quantidadeSinistros || ''}
+              onChange={(e) => handleChange('quantidadeSinistros', e.target.value)}
+              placeholder="Ex: 0"
             />
           </Box>
         )

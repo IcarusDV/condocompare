@@ -922,12 +922,9 @@ export default function DiagnosticoPage() {
                   <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
                     <Typography variant="caption" color="text.secondary">Estrutura</Typography>
                     <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
-                      {estruturaList.filter(a => a.active).slice(0, 3).map((a, idx) => (
+                      {estruturaList.filter(a => a.active).map((a, idx) => (
                         <Chip key={idx} label={a.label} size="small" sx={{ fontSize: 10 }} />
                       ))}
-                      {estruturaList.filter(a => a.active).length > 3 && (
-                        <Chip label={`+${estruturaList.filter(a => a.active).length - 3}`} size="small" sx={{ fontSize: 10 }} />
-                      )}
                     </Box>
                   </Box>
                 </Grid>
