@@ -422,6 +422,7 @@ export default function CondominiosPage() {
             placeholder="Buscar por nome, CNPJ ou cidade..."
             value={search}
             onChange={handleSearchChange}
+            onFocus={() => setHasSearched(true)}
             sx={{ flex: 1, minWidth: 250 }}
             InputProps={{
               startAdornment: (
