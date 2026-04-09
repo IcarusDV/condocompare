@@ -111,6 +111,24 @@ const SEGURADORA_COLORS: Record<string, string> = {
   'AXA': '#6b7280',
 }
 
+const KNOWN_SEGURADORAS = ['Allianz', 'AXA', 'Chubb', 'HDI', 'Tokio Marine', 'Tokio', 'Porto Seguro']
+
+/**
+ * Extrai seguradora real do nome do documento (ex: "Allianz - R$5.028,80")
+ * Fallback para seguradoraNome do banco se não encontrar
+ */
+const getSeguradoraFromNome = (docNome: string, seguradoraNome?: string): string => {
+  if (docNome) {
+    const lower = docNome.toLowerCase()
+    for (const seg of KNOWN_SEGURADORAS) {
+      if (lower.includes(seg.toLowerCase())) {
+        return seg === 'Tokio' ? 'Tokio Marine' : seg
+      }
+    }
+  }
+  return seguradoraNome || 'Não identificada'
+}
+
 const getSeguradoraGradient = (seguradoraNome: string): string => {
   const name = seguradoraNome?.trim() || ''
   for (const [key, color] of Object.entries(SEGURADORA_COLORS)) {
@@ -254,6 +272,13 @@ export default function CompararPage() {
       setError(null)
       setIaAnalise(null)
       const result = await documentoService.compararOrcamentos(selectedCondominio, selectedOrcamentos)
+      // Corrigir seguradora baseado no nome do documento (mais confiável que extração)
+      if (result.orcamentos) {
+        result.orcamentos = result.orcamentos.map(orc => ({
+          ...orc,
+          seguradoraNome: getSeguradoraFromNome(orc.nome, orc.seguradoraNome),
+        }))
+      }
       setComparacao(result)
     } catch (err: unknown) {
       console.error('Error comparing:', err)
@@ -701,8 +726,8 @@ export default function CompararPage() {
                               <Typography variant="subtitle2" fontWeight="bold" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {orc.nome}
                               </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {orc.seguradoraNome || 'Seguradora não informada'}
+                              <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                Seguradora: {getSeguradoraFromNome(orc.nome, orc.seguradoraNome)}
                               </Typography>
                             </Box>
                             {isPreenchido && (
