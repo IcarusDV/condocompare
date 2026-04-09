@@ -61,8 +61,23 @@ const statusConfig: Record<StatusApolice, { label: string; color: string; bgColo
 
 const tipoConstrucaoLabels: Record<TipoConstrucao, string> = {
   RESIDENCIAL: 'Residencial',
-  COMERCIAL: 'Comercial',
+  RESIDENCIAL_HORIZONTAL: 'Residencial Horizontal',
+  RESIDENCIAL_COM_ESCRITORIOS: 'Residencial c/ Escritórios',
+  COMERCIAL_VERTICAL: 'Comercial Vertical',
+  COMERCIAL_HORIZONTAL: 'Comercial Horizontal',
+  ESCRITORIOS_CONSULTORIOS: 'Escritórios/Consultórios',
+  ESCRITORIOS_COM_COMERCIO: 'Escritórios c/ Comércio',
+  LOGISTICO_INDUSTRIAL: 'Logístico/Industrial',
+  CENTRO_COMERCIAL: 'Centro Comercial',
+  GALERIA_COMERCIAL: 'Galeria Comercial',
+  SHOPPING_CENTER: 'Shopping Center',
+  EDIFICIO_GARAGEM: 'Edifício Garagem',
   MISTO: 'Misto',
+  FLAT_APART_HOTEL: 'Flat/Apart-hotel',
+  FLAT_COM_COMERCIO: 'Flat c/ Comércio',
+  HOTEL: 'Hotel',
+  EM_CONSTRUCAO: 'Em Construção',
+  DESOCUPADO: 'Desocupado',
   OUTROS: 'Outros',
 }
 

@@ -162,6 +162,10 @@ export interface CreateCondominioRequest {
   sindicoEmail?: string
   sindicoTelefone?: string
   vencimentoApolice?: string
+  bonusAnosSemSinistro?: string
+  quantidadeSinistros?: string
+  numeroCasas?: string
+  numeroSalas?: string
   seguradoraAtual?: string
   observacoes?: string
 }

@@ -990,40 +990,42 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
       case 4:
         return (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            <TextField
-              fullWidth
-              label="Seguradora Atual"
-              value={formData.seguradoraAtual || ''}
-              onChange={(e) => handleChange('seguradoraAtual', e.target.value)}
-            />
-            <TextField
-              fullWidth
-              type="date"
-              label="Vencimento da Apólice"
-              value={formData.vencimentoApolice || ''}
-              onChange={(e) => handleChange('vencimentoApolice', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-            />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Bônus / Anos sem sinistro"
-              value={formData.bonusAnosSemSinistro || ''}
-              onChange={(e) => handleChange('bonusAnosSemSinistro', e.target.value)}
-              placeholder="Ex: 5"
-            />
-            <TextField
-              fullWidth
-              type="number"
-              label="Quantidade de sinistros"
-              value={formData.quantidadeSinistros || ''}
-              onChange={(e) => handleChange('quantidadeSinistros', e.target.value)}
-              placeholder="Ex: 0"
-            />
-          </Box>
+          <>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Seguradora Atual"
+                value={formData.seguradoraAtual || ''}
+                onChange={(e) => handleChange('seguradoraAtual', e.target.value)}
+              />
+              <TextField
+                fullWidth
+                type="date"
+                label="Vencimento da Apólice"
+                value={formData.vencimentoApolice || ''}
+                onChange={(e) => handleChange('vencimentoApolice', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Bônus / Anos sem sinistro"
+                value={formData.bonusAnosSemSinistro || ''}
+                onChange={(e) => handleChange('bonusAnosSemSinistro', e.target.value)}
+                placeholder="Ex: 5"
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Quantidade de sinistros"
+                value={formData.quantidadeSinistros || ''}
+                onChange={(e) => handleChange('quantidadeSinistros', e.target.value)}
+                placeholder="Ex: 0"
+              />
+            </Box>
+          </>
         )
 
       default:
