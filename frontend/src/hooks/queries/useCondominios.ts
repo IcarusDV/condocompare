@@ -18,10 +18,11 @@ export const condominioKeys = {
   detail: (id: string) => [...condominioKeys.details(), id] as const,
 }
 
-export function useCondominios(filter?: CondominioFilter, pagination?: PaginationParams) {
+export function useCondominios(filter?: CondominioFilter, pagination?: PaginationParams, enabled: boolean = true) {
   return useQuery<Page<CondominioListResponse>>({
     queryKey: condominioKeys.list(filter, pagination),
     queryFn: () => condominioService.list(filter, pagination),
+    enabled,
   })
 }
 
