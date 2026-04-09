@@ -220,7 +220,10 @@ export default function CondominiosPage() {
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(event.target.value)
     setPage(0)
-    if (event.target.value.trim()) setHasSearched(true)
+  }
+
+  const handleSearchSubmit = () => {
+    if (search.trim()) setHasSearched(true)
   }
 
   const handleFilterChange = (key: keyof CondominioFilter, value: unknown) => {
@@ -422,7 +425,7 @@ export default function CondominiosPage() {
             placeholder="Buscar por nome, CNPJ ou cidade..."
             value={search}
             onChange={handleSearchChange}
-            onFocus={() => setHasSearched(true)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit() }}
             sx={{ flex: 1, minWidth: 250 }}
             InputProps={{
               startAdornment: (
@@ -432,6 +435,14 @@ export default function CondominiosPage() {
               ),
             }}
           />
+          <Button
+            variant="contained"
+            size="small"
+            onClick={handleSearchSubmit}
+            disabled={!search.trim()}
+          >
+            Buscar
+          </Button>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               variant={showFilters ? 'contained' : 'outlined'}
