@@ -870,18 +870,9 @@ export default function CompararPage() {
                             <Typography variant="body2" fontWeight={700} sx={{ fontSize: '0.75rem' }}>{orc.formaPagamento || '-'}</Typography>
                           </Box>
                         </Box>
-                        <Box sx={{ mt: 1.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          {orc.condicoesEspeciais && orc.condicoesEspeciais.length > 0 && (
+                        {orc.condicoesEspeciais && orc.condicoesEspeciais.length > 0 && (
+                          <Box sx={{ mt: 1.5, display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                             <Chip label={`${orc.condicoesEspeciais.length} condição(ões)`} size="small" variant="outlined" color="info" sx={{ height: 22 }} />
-                          )}
-                        </Box>
-                        {hasCoberturas && orc.coberturas.length > 0 && (
-                          <Box sx={{ mt: 1.5 }}>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.3 }}>
-                              {orc.coberturas.filter((c) => c.incluido).map((c) => (
-                                <Chip key={c.nome} label={c.nome} size="small" sx={{ height: 20, fontSize: '0.6rem', bgcolor: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#dcfce7' : '#e0f2fe', color: comparacao.resumo.coberturasComuns.includes(c.nome) ? '#166534' : '#0c4a6e' }} />
-                              ))}
-                            </Box>
                           </Box>
                         )}
                       </CardContent>

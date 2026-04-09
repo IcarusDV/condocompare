@@ -470,46 +470,80 @@ public class PdfExtractionService {
 
     private String extractFormaPagamento(String text) {
         String lowerText = text.toLowerCase();
+        int maxParcelasSemJuros = 0;
 
-        // Priority 1: Look for installment info "Xx sem juros no boleto"
-        Pattern[] parcelaPatterns = {
-                // "até 6x sem juros" or "ate 06x sem juros"
-                Pattern.compile("(?i)(?:até|ate)\\s*(\\d+)\\s*(?:x|parcelas?)\\s*(?:sem juros)"),
-                // "6x sem juros no boleto"
-                Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?)\\s*(?:sem juros)\\s*(?:no boleto)?"),
-                // "parcelamento em até 6x"
-                Pattern.compile("(?i)parcelamento\\s*(?:em)?\\s*(?:até|ate)?\\s*(\\d+)\\s*(?:x|parcelas?|vezes)"),
-                // "6 parcelas sem juros"
-                Pattern.compile("(?i)(\\d+)\\s*parcelas?\\s*(?:sem juros|s/juros)"),
-                // "pagar em 6x"
-                Pattern.compile("(?i)pagar\\s*(?:em)?\\s*(\\d+)\\s*(?:x|parcelas?|vezes)"),
-        };
+        // Strategy 1: HDI style "6x - 1.053,20" - take the FIRST Nx (sem juros row)
+        // HDI shows: 6x sem juros, then 10x com juros
+        Pattern hdiPattern = Pattern.compile("(?i)(\\d+)x\\s*-\\s*[\\d.,]+");
+        Matcher hm = hdiPattern.matcher(text);
+        if (hm.find()) {
+            int n = Integer.parseInt(hm.group(1));
+            if (n >= 2 && n <= 12) maxParcelasSemJuros = n;
+        }
 
-        for (Pattern p : parcelaPatterns) {
-            Matcher m = p.matcher(text);
-            if (m.find()) {
-                String parcelas = m.group(1);
-                return "Até " + parcelas + "x sem juros no boleto";
+        // Strategy 2: AXA style "0 + N boleto" - count how many unique "boleto" options
+        // AXA shows plans: "1 + 5 boleto" = 6 parcelas. Take first block (sem juros)
+        Pattern axaPattern = Pattern.compile("(?i)(\\d+)\\s*\\+\\s*(\\d+)\\s*boleto");
+        Matcher am = axaPattern.matcher(text);
+        int axaFirstBlock = 0;
+        int axaCount = 0;
+        while (am.find()) {
+            int entry = Integer.parseInt(am.group(1));
+            int remaining = Integer.parseInt(am.group(2));
+            int total = entry + remaining;
+            axaCount++;
+            if (axaCount <= 6 && total >= 2 && total <= 12 && total > axaFirstBlock) {
+                axaFirstBlock = total;
+            }
+        }
+        // If AXA has 2 blocks (sem/com juros), first half is sem juros
+        if (axaCount > 6) axaFirstBlock = 0; // reset, recalc
+        if (axaCount > 6) {
+            int half = axaCount / 2;
+            am = axaPattern.matcher(text);
+            int idx = 0;
+            while (am.find()) {
+                idx++;
+                if (idx <= half) {
+                    int t = Integer.parseInt(am.group(1)) + Integer.parseInt(am.group(2));
+                    if (t >= 2 && t <= 12 && t > axaFirstBlock) axaFirstBlock = t;
+                }
+            }
+        }
+        if (axaFirstBlock > maxParcelasSemJuros) maxParcelasSemJuros = axaFirstBlock;
+
+        // Strategy 3: Tokio - count "sem juros" lines (each = 1 parcela option)
+        if (lowerText.contains("sem juros")) {
+            int semJurosCount = 0;
+            Matcher sjm = Pattern.compile("(?i)sem juros").matcher(text);
+            while (sjm.find()) semJurosCount++;
+            // Tokio duplicates tables, divide by 2
+            if (semJurosCount > 6) semJurosCount = semJurosCount / 2;
+            if (semJurosCount >= 2 && semJurosCount <= 12 && semJurosCount > maxParcelasSemJuros) {
+                maxParcelasSemJuros = semJurosCount;
             }
         }
 
-        // Priority 2: Look for "forma de pagamento" section
-        Pattern formaPattern = Pattern.compile(
-                "(?i)(?:forma\\s*(?:de)?\\s*pagamento|condi[çc][ãa]o\\s*(?:de)?\\s*pagamento)\\s*:?\\s*([^\\n]{3,80})");
-        Matcher fm = formaPattern.matcher(text);
-        if (fm.find()) {
-            String forma = fm.group(1).trim();
-            // Check if the found text mentions parcelas
-            Matcher parcM = Pattern.compile("(?i)(\\d+)\\s*(?:x|parcelas?|vezes)").matcher(forma);
-            if (parcM.find()) {
-                return "Até " + parcM.group(1) + "x sem juros no boleto";
-            }
-            if (forma.length() > 3 && forma.length() < 80) {
-                return forma;
-            }
+        // Strategy 4: Allianz/Chubb - look for "N parcelas" or parcelamento table
+        Pattern parcelaPattern = Pattern.compile("(?i)(?:parcelamento|parcelas?)[\\s\\S]{0,300}?(\\d+)\\s*(?:x|parcelas?)");
+        Matcher ptm = parcelaPattern.matcher(text);
+        while (ptm.find()) {
+            int n = Integer.parseInt(ptm.group(1));
+            if (n >= 2 && n <= 12 && n > maxParcelasSemJuros) maxParcelasSemJuros = n;
         }
 
-        // Priority 3: À vista
+        // Strategy 5: Chubb - "plano" followed by installment counts
+        Pattern chubbPattern = Pattern.compile("(?i)plano[\\s\\S]{0,500}?(\\d+)\\s*(?:x|parcelas?)");
+        Matcher cm = chubbPattern.matcher(text);
+        while (cm.find()) {
+            int n = Integer.parseInt(cm.group(1));
+            if (n >= 2 && n <= 12 && n > maxParcelasSemJuros) maxParcelasSemJuros = n;
+        }
+
+        if (maxParcelasSemJuros >= 2) {
+            return "Até " + String.format("%02d", maxParcelasSemJuros) + "x sem juros no boleto";
+        }
+
         if (lowerText.contains("à vista") || lowerText.contains("a vista")) {
             return "À vista";
         }
