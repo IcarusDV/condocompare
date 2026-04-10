@@ -51,44 +51,82 @@ class DocumentAnalysisRequest(BaseModel):
     tipo_analise: str = "completa"
 
 
-EXTRACTION_PROMPT_ORCAMENTO = """Voce e um assistente especializado em extrair dados estruturados de documentos de seguro de condominio.
+EXTRACTION_PROMPT_ORCAMENTO = """Voce e um especialista em seguros de condominio analisando uma cotacao/orcamento de seguradora.
 
-Analise o texto abaixo e extraia as seguintes informacoes em formato JSON:
+Sua tarefa: extrair TODOS os dados estruturados do documento abaixo em formato JSON.
 
-Para ORCAMENTOS de seguro, extraia:
-- seguradoraNome: Nome da seguradora
-- valorPremio: Valor total do premio (numerico, sem R$)
-- dataVigenciaInicio: Data de inicio da vigencia (formato YYYY-MM-DD)
-- dataVigenciaFim: Data de fim da vigencia (formato YYYY-MM-DD)
-- formaPagamento: Forma de pagamento (ex: "12x sem juros", "A vista", etc)
-- descontos: Percentual de desconto se houver (numerico)
-- coberturas: Lista de coberturas com:
-  - nome: Nome da cobertura
-  - valorLimite: Limite de cobertura (numerico)
-  - franquia: Valor da franquia (numerico)
-  - incluido: true/false
-- enquadramento: Tipo/enquadramento do condominio (ex: "Residencial", "Comercial", "Misto")
-- numeroElevadores: Quantidade de elevadores (numerico)
-- anoConstrucao: Ano de construcao do predio (numerico)
-- numeroUnidades: Quantidade de unidades/apartamentos (numerico)
-- numeroBlocos: Quantidade de blocos/torres (numerico)
-- numeroPavimentos: Quantidade de pavimentos/andares (numerico)
-- quantidadeFuncionarios: Quantidade de funcionarios (numerico)
-- placaSolar: Se possui placa solar (true/false)
-- bensAoArLivre: Se possui bens ao ar livre (true/false)
-- bonus: Percentual de bonus ou classe de bonus (texto, ex: "Classe 5 - 25%")
-- protecaoExtintores: Se possui extintores (true/false)
-- protecaoHidrantes: Se possui hidrantes (true/false)
-- protecaoAlarmes: Se possui alarme de incendio (true/false)
-- clausulaValorDeNovo: Se possui clausula de valor de novo (true/false)
+REGRAS CRITICAS:
+
+1. **valorPremio**: SEMPRE o PREMIO TOTAL (com IOF/taxas), NUNCA o premio liquido.
+   - Procure: "Total a Pagar", "Premio Total", "Valor Total", "Total Geral"
+   - Se so encontrar "Premio Liquido", some com IOF: liquido + iof = total
+   - Exemplo: Liquido R$ 4.683,17 + IOF R$ 345,63 = valorPremio: 5028.80
+
+2. **formaPagamento**: A QUANTIDADE MAXIMA DE PARCELAS SEM JUROS no boleto.
+   - Procure tabelas de "Opcoes de Pagamento", "Parcelamento", "Plano de Pagamento"
+   - Identifique APENAS as opcoes SEM JUROS (juros = 0% ou "sem juros")
+   - Pegue o NUMERO MAXIMO de parcelas sem juros disponivel
+   - Formato: "Ate XXx sem juros no boleto" (ex: "Ate 06x sem juros no boleto")
+   - HDI normalmente: 6x sem juros / Allianz: 6x / AXA: 6x / Tokio: 6x / Chubb: 10x
+   - Se for so a vista, use "A vista"
+
+3. **coberturas**: Lista DETALHADA de TODAS as coberturas contratadas, com:
+   - nome: Nome exato como esta no PDF (ex: "Incendio, Raio e Explosao")
+   - valorLimite: Limite Maximo de Indenizacao (LMI) - numerico
+   - franquia: Valor da franquia em REAIS - numerico (ou null se "Sem Franquia")
+     * IMPORTANTE: procure na MESMA LINHA ou linhas proximas a cobertura
+     * "Sem franquia" ou "Nao ha" = null
+     * "20% dos prejuizos com minimo de R$ 5.000" = 5000
+     * "Franquia: R$ 1.500" = 1500
+   - incluido: true (so liste as contratadas)
+
+4. **dadosImovel**: Dados do imovel/condominio segurado:
+   - tipoCondominio: Residencial/Comercial/Misto/etc
+   - numeroElevadores: numerico
+   - anoConstrucao: ano (ex: 2010) ou idade ("De 06 a 10 anos")
+   - numeroUnidades: numerico
+   - numeroBlocos: numerico
+   - numeroPavimentos: numerico ou faixa ("Acima de 15 andares")
+   - areaConstruida: m2 (numerico)
+   - numeroFuncionarios: numerico
+   - placaSolar: true/false
+   - bensAoArLivre: true/false
+   - bonus: texto (ex: "Classe 5", "Sem sinistro 5 anos")
+   - protecionais: lista (["Extintores", "Hidrantes", "Alarme"])
+
+FORMATO DO JSON DE RESPOSTA:
+{{
+  "seguradoraNome": "...",
+  "valorPremio": 5028.80,
+  "dataVigenciaInicio": "2025-12-12",
+  "dataVigenciaFim": "2026-12-12",
+  "formaPagamento": "Ate 06x sem juros no boleto",
+  "coberturas": [
+    {{"nome": "Incendio, Raio e Explosao", "valorLimite": 22421000.00, "franquia": null, "incluido": true}},
+    {{"nome": "Danos Eletricos", "valorLimite": 100000.00, "franquia": 1500.00, "incluido": true}}
+  ],
+  "dadosImovel": {{
+    "tipoCondominio": "Residencial",
+    "numeroElevadores": 1,
+    "anoConstrucao": "De 06 a 10 anos",
+    "numeroUnidades": 80,
+    "numeroBlocos": 1,
+    "numeroPavimentos": 16,
+    "areaConstruida": 6000,
+    "numeroFuncionarios": null,
+    "placaSolar": false,
+    "bensAoArLivre": false,
+    "bonus": null,
+    "protecionais": ["Extintores"]
+  }}
+}}
 
 IMPORTANTE:
-- Extraia APENAS informacoes que estao explicitamente no texto
+- Extraia APENAS o que esta EXPLICITAMENTE no texto
 - Use null para campos nao encontrados
-- Para valores monetarios, remova R$, pontos de milhar e use ponto para decimais
-- Seja preciso com os nomes das coberturas
-
-Responda APENAS com o JSON, sem explicacoes.
+- Valores monetarios: numericos sem R$, sem pontos de milhar, ponto como decimal
+- Seja PRECISO com franquias - leia com atencao a tabela de coberturas
+- Responda APENAS com o JSON, SEM markdown, SEM ```, SEM explicacoes
 
 TEXTO DO DOCUMENTO:
 {texto}
