@@ -299,60 +299,41 @@ async def index_and_extract(request: IndexAndExtractRequest):
 
         chunks_count = store_chunks(chunks)
 
-        # 2. Extract structured data based on tipo
-        from src.api.documents import EXTRACTION_PROMPT_ORCAMENTO, EXTRACTION_PROMPT_CONDOMINIO
+        # 2. Extract structured data - ALWAYS run orcamento prompt (handles any insurance doc)
+        from src.api.documents import EXTRACTION_PROMPT_ORCAMENTO
 
-        tipo_lower = request.tipo_documento.lower()
         dados_extraidos = {}
+        texto_truncado = request.texto[:80000]
+        prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
 
-        # Extract orcamento/apolice data with NEW unified prompt (includes dadosImovel)
-        if tipo_lower in ("orcamento", "apolice"):
-            texto_truncado = request.texto[:80000]
-            prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
-            raw_response = await chat_completion(
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
-                max_tokens=4000,
-            )
-            try:
-                json_str = raw_response.strip()
-                if json_str.startswith("```json"):
-                    json_str = json_str[7:]
-                elif json_str.startswith("```"):
-                    json_str = json_str[3:]
-                if json_str.endswith("```"):
-                    json_str = json_str[:-3]
-                dados_extraidos = json.loads(json_str.strip())
+        logger.info(f"Calling Claude for extraction: doc={request.documento_id}, tipo={request.tipo_documento}, text_len={len(texto_truncado)}")
 
-                # Move dadosImovel -> condominio_data for frontend compatibility
-                if "dadosImovel" in dados_extraidos:
-                    dados_extraidos["condominio_data"] = dados_extraidos.pop("dadosImovel")
-            except json.JSONDecodeError as e:
-                logger.error(f"JSON parse error in extraction. Raw response: {raw_response[:1000]}")
-                dados_extraidos = {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response[:500]}
+        raw_response = await chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=4000,
+        )
 
-        # For CONDOMINIO type docs, use specific condominio prompt
-        else:
-            try:
-                texto_truncado = request.texto[:50000]
-                prompt_condo = EXTRACTION_PROMPT_CONDOMINIO.format(texto=texto_truncado)
-                raw_response_condo = await chat_completion(
-                    messages=[{"role": "user", "content": prompt_condo}],
-                    temperature=0.0,
-                    max_tokens=2000,
-                )
-                json_str = raw_response_condo.strip()
-                if json_str.startswith("```json"):
-                    json_str = json_str[7:]
-                elif json_str.startswith("```"):
-                    json_str = json_str[3:]
-                if json_str.endswith("```"):
-                    json_str = json_str[:-3]
-                condominio_data = json.loads(json_str.strip())
-                if condominio_data:
-                    dados_extraidos["condominio_data"] = condominio_data
-            except Exception as e:
-                logger.error(f"Falha ao extrair dados do condominio: {e}")
+        logger.info(f"Claude response received: {len(raw_response)} chars")
+
+        try:
+            json_str = raw_response.strip()
+            if json_str.startswith("```json"):
+                json_str = json_str[7:]
+            elif json_str.startswith("```"):
+                json_str = json_str[3:]
+            if json_str.endswith("```"):
+                json_str = json_str[:-3]
+            dados_extraidos = json.loads(json_str.strip())
+
+            # Move dadosImovel -> condominio_data for frontend compatibility
+            if "dadosImovel" in dados_extraidos:
+                dados_extraidos["condominio_data"] = dados_extraidos.pop("dadosImovel")
+
+            logger.info(f"Extraction success: doc={request.documento_id}, fields={list(dados_extraidos.keys())}")
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parse error in extraction. Raw response: {raw_response[:1000]}")
+            dados_extraidos = {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response[:500]}
 
         return IndexAndExtractResponse(
             documento_id=request.documento_id,
