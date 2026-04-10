@@ -279,38 +279,39 @@ class IndexAndExtractResponse(BaseModel):
 @router.post("/index-and-extract", response_model=IndexAndExtractResponse)
 async def index_and_extract(request: IndexAndExtractRequest):
     """
-    Pipeline completo: indexa documento no RAG e extrai dados estruturados.
-    Usado pelo pipeline automatico de processamento de documentos.
+    Pipeline completo: indexa documento no RAG (se possivel) e extrai dados via Claude.
+    A extracao Claude SEMPRE roda, mesmo se o DB estiver offline.
     """
+    if not request.texto.strip():
+        raise HTTPException(status_code=400, detail="Texto vazio")
+
+    # ===== STEP 1: RAG INDEXING (best-effort, never blocks extraction) =====
+    chunks_count = 0
     try:
-        if not request.texto.strip():
-            raise HTTPException(status_code=400, detail="Texto vazio")
+        delete_chunks_by_documento(request.documento_id)
+        chunks = chunk_document(
+            text=request.texto,
+            documento_id=request.documento_id,
+            condominio_id=request.condominio_id,
+            tipo_documento=request.tipo_documento,
+            metadata=request.metadata,
+        )
+        chunks_count = store_chunks(chunks)
+        logger.info(f"RAG indexing OK: doc={request.documento_id}, chunks={chunks_count}")
+    except Exception as e:
+        logger.warning(f"RAG indexing failed (skipping, will still extract): {type(e).__name__}: {e}")
 
-        # 1. Index in RAG (OPTIONAL - if DB fails, continue with extraction)
-        chunks_count = 0
-        try:
-            delete_chunks_by_documento(request.documento_id)
+    # ===== STEP 2: CLAUDE EXTRACTION (must always run) =====
+    from src.api.documents import EXTRACTION_PROMPT_ORCAMENTO
 
-            chunks = chunk_document(
-                text=request.texto,
-                documento_id=request.documento_id,
-                condominio_id=request.condominio_id,
-                tipo_documento=request.tipo_documento,
-                metadata=request.metadata,
-            )
+    dados_extraidos: Dict[str, Any] = {}
+    raw_response = ""
 
-            chunks_count = store_chunks(chunks)
-        except Exception as e:
-            logger.warning(f"RAG indexing failed (continuing with extraction): {e}")
-
-        # 2. Extract structured data - ALWAYS run orcamento prompt (handles any insurance doc)
-        from src.api.documents import EXTRACTION_PROMPT_ORCAMENTO
-
-        dados_extraidos = {}
+    try:
         texto_truncado = request.texto[:80000]
         prompt = EXTRACTION_PROMPT_ORCAMENTO.format(texto=texto_truncado)
 
-        logger.info(f"Calling Claude for extraction: doc={request.documento_id}, tipo={request.tipo_documento}, text_len={len(texto_truncado)}")
+        logger.info(f"Calling Claude: doc={request.documento_id}, tipo={request.tipo_documento}, text_len={len(texto_truncado)}")
 
         raw_response = await chat_completion(
             messages=[{"role": "user", "content": prompt}],
@@ -318,40 +319,37 @@ async def index_and_extract(request: IndexAndExtractRequest):
             max_tokens=4000,
         )
 
-        logger.info(f"Claude response received: {len(raw_response)} chars")
+        logger.info(f"Claude responded: {len(raw_response)} chars")
 
-        try:
-            json_str = raw_response.strip()
-            if json_str.startswith("```json"):
-                json_str = json_str[7:]
-            elif json_str.startswith("```"):
-                json_str = json_str[3:]
-            if json_str.endswith("```"):
-                json_str = json_str[:-3]
-            dados_extraidos = json.loads(json_str.strip())
+        json_str = raw_response.strip()
+        if json_str.startswith("```json"):
+            json_str = json_str[7:]
+        elif json_str.startswith("```"):
+            json_str = json_str[3:]
+        if json_str.endswith("```"):
+            json_str = json_str[:-3]
+        dados_extraidos = json.loads(json_str.strip())
 
-            # Move dadosImovel -> condominio_data for frontend compatibility
-            if "dadosImovel" in dados_extraidos:
-                dados_extraidos["condominio_data"] = dados_extraidos.pop("dadosImovel")
+        # Move dadosImovel -> condominio_data for frontend compatibility
+        if "dadosImovel" in dados_extraidos:
+            dados_extraidos["condominio_data"] = dados_extraidos.pop("dadosImovel")
 
-            logger.info(f"Extraction success: doc={request.documento_id}, fields={list(dados_extraidos.keys())}")
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON parse error in extraction. Raw response: {raw_response[:1000]}")
-            dados_extraidos = {"erro": f"Falha ao interpretar resposta da IA: {str(e)}", "raw_response": raw_response[:500]}
-
-        return IndexAndExtractResponse(
-            documento_id=request.documento_id,
-            chunks_created=chunks_count,
-            dados_extraidos=dados_extraidos,
-            tipo_classificado=request.tipo_documento,
-            success=True,
-            message=f"{chunks_count} chunks indexados e dados extraidos",
-        )
-
-    except HTTPException:
-        raise
+        logger.info(f"Extraction SUCCESS: doc={request.documento_id}, fields={list(dados_extraidos.keys())}")
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parse error. Raw response: {raw_response[:2000]}")
+        dados_extraidos = {"erro": f"JSON inválido: {str(e)}", "raw": raw_response[:500]}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro no pipeline: {str(e)}")
+        logger.error(f"Claude extraction failed: {type(e).__name__}: {e}", exc_info=True)
+        dados_extraidos = {"erro": f"Falha na extração: {type(e).__name__}: {str(e)}"}
+
+    return IndexAndExtractResponse(
+        documento_id=request.documento_id,
+        chunks_created=chunks_count,
+        dados_extraidos=dados_extraidos,
+        tipo_classificado=request.tipo_documento,
+        success=True,
+        message=f"{chunks_count} chunks indexados, {len(dados_extraidos)} campos extraidos",
+    )
 
 
 @router.delete("/document/{documento_id}")
