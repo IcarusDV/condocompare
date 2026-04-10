@@ -46,6 +46,8 @@ public class DocumentoService {
     private final CondominioRepository condominioRepository;
     private final UserRepository userRepository;
     private final DocumentoMessagePublisher messagePublisher;
+    private final PdfExtractionService pdfExtractionService;
+    private final org.springframework.web.reactive.function.client.WebClient iaServiceWebClient;
 
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
         "application/pdf",
@@ -248,35 +250,120 @@ public class DocumentoService {
         User currentUser = getCurrentUser();
         Documento documento = findDocumentoWithAccessCheck(id, currentUser);
 
-        // Permite reprocessar qualquer documento (exceto os que estão sendo processados agora)
         if (documento.getStatus() == StatusProcessamento.PROCESSANDO) {
             throw new BusinessException("Documento já está em processamento");
         }
 
-        documento.setStatus(StatusProcessamento.PENDENTE);
-        documento.setErroProcessamento(null);
-        documentoRepository.save(documento);
+        log.info("=== REPROCESS SÍNCRONO INICIADO: id={}, arquivo={} ===", id, documento.getNomeArquivo());
 
         try {
-            DocumentoProcessingMessage message = new DocumentoProcessingMessage(
-                    documento.getId(),
-                    documento.getCondominioId(),
-                    documento.getTipo().name(),
-                    documento.getObjectKey(),
-                    documento.getBucketName(),
-                    documento.getMimeType(),
-                    documento.getNomeArquivo()
-            );
-            messagePublisher.publishDocumentoUploaded(message);
-            log.info("Documento re-enfileirado para reprocessamento: id={}", id);
-        } catch (Exception e) {
-            documento.setStatus(StatusProcessamento.ERRO);
-            documento.setErroProcessamento("Fila de processamento indisponivel. Tente novamente mais tarde.");
-            documentoRepository.save(documento);
-            throw new BusinessException("Servico de processamento indisponivel. Tente novamente mais tarde.");
-        }
+            // 1. Download do storage
+            log.info("Baixando arquivo: bucket={}, key={}", documento.getBucketName(), documento.getObjectKey());
+            InputStream fileStream = minioService.downloadFile(documento.getBucketName(), documento.getObjectKey());
+            byte[] fileBytes = fileStream.readAllBytes();
+            fileStream.close();
+            log.info("Arquivo baixado: {} bytes", fileBytes.length);
 
-        return documentoMapper.toResponse(documento);
+            // 2. Extrair texto do PDF
+            String texto = pdfExtractionService.extractText(fileBytes);
+            if (texto == null || texto.isBlank()) {
+                throw new BusinessException("Não foi possível extrair texto do PDF");
+            }
+            log.info("Texto extraído: {} chars", texto.length());
+
+            // 3. Chamar Claude DIRETO via /rag/index-and-extract
+            Map<String, Object> ragBody = new HashMap<>();
+            ragBody.put("documento_id", documento.getId().toString());
+            ragBody.put("condominio_id", documento.getCondominioId() != null ? documento.getCondominioId().toString() : null);
+            ragBody.put("tipo_documento", documento.getTipo().name());
+            ragBody.put("texto", texto);
+            ragBody.put("metadata", Map.of("filename", documento.getNomeArquivo() != null ? documento.getNomeArquivo() : ""));
+
+            log.info("Chamando Claude via ia-service...");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = iaServiceWebClient.post()
+                .uri("/rag/index-and-extract")
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .bodyValue(ragBody)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .timeout(java.time.Duration.ofSeconds(180))
+                .block();
+
+            if (response == null) {
+                throw new BusinessException("ia-service retornou resposta vazia");
+            }
+            log.info("Resposta do ia-service: chunks={}, success={}", response.get("chunks_created"), response.get("success"));
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> dadosExtraidos = (Map<String, Object>) response.get("dados_extraidos");
+            if (dadosExtraidos == null || dadosExtraidos.isEmpty() || dadosExtraidos.containsKey("erro")) {
+                String erro = dadosExtraidos != null ? String.valueOf(dadosExtraidos.get("erro")) : "vazio";
+                throw new BusinessException("Claude não conseguiu extrair dados: " + erro);
+            }
+
+            log.info("Dados extraídos pelo Claude: campos={}", dadosExtraidos.keySet());
+
+            // 4. Salvar dados extraídos no documento
+            documento.setDadosExtraidos(dadosExtraidos);
+
+            if (dadosExtraidos.containsKey("seguradoraNome") && dadosExtraidos.get("seguradoraNome") != null) {
+                documento.setSeguradoraNome(String.valueOf(dadosExtraidos.get("seguradoraNome")));
+            }
+            if (dadosExtraidos.containsKey("valorPremio") && dadosExtraidos.get("valorPremio") != null) {
+                try {
+                    documento.setValorPremio(new BigDecimal(dadosExtraidos.get("valorPremio").toString()));
+                } catch (Exception e) {
+                    log.warn("Falha ao converter valorPremio: {}", dadosExtraidos.get("valorPremio"));
+                }
+            }
+            if (dadosExtraidos.containsKey("dataVigenciaInicio") && dadosExtraidos.get("dataVigenciaInicio") != null) {
+                try {
+                    documento.setDataVigenciaInicio(java.time.LocalDate.parse(String.valueOf(dadosExtraidos.get("dataVigenciaInicio"))));
+                } catch (Exception e) {
+                    log.warn("Falha ao converter dataVigenciaInicio: {}", dadosExtraidos.get("dataVigenciaInicio"));
+                }
+            }
+            if (dadosExtraidos.containsKey("dataVigenciaFim") && dadosExtraidos.get("dataVigenciaFim") != null) {
+                try {
+                    documento.setDataVigenciaFim(java.time.LocalDate.parse(String.valueOf(dadosExtraidos.get("dataVigenciaFim"))));
+                } catch (Exception e) {
+                    log.warn("Falha ao converter dataVigenciaFim: {}", dadosExtraidos.get("dataVigenciaFim"));
+                }
+            }
+
+            // Estrutura dadosOrcamento para a comparação
+            if (dadosExtraidos.containsKey("coberturas")) {
+                Map<String, Object> dadosOrcamento = new HashMap<>();
+                dadosOrcamento.put("coberturas", dadosExtraidos.get("coberturas"));
+                if (dadosExtraidos.containsKey("formaPagamento")) {
+                    dadosOrcamento.put("formaPagamento", dadosExtraidos.get("formaPagamento"));
+                }
+                dadosExtraidos.put("dadosOrcamento", dadosOrcamento);
+                documento.setDadosExtraidos(dadosExtraidos);
+            }
+
+            documento.setStatus(StatusProcessamento.CONCLUIDO);
+            documento.setErroProcessamento(null);
+            documentoRepository.save(documento);
+
+            log.info("=== REPROCESS CONCLUÍDO: id={}, premio={}, coberturas={} ===",
+                id, documento.getValorPremio(),
+                dadosExtraidos.get("coberturas") != null ? ((List<?>)dadosExtraidos.get("coberturas")).size() : 0);
+
+            return documentoMapper.toResponse(documento);
+        } catch (BusinessException e) {
+            documento.setStatus(StatusProcessamento.ERRO);
+            documento.setErroProcessamento(e.getMessage());
+            documentoRepository.save(documento);
+            throw e;
+        } catch (Exception e) {
+            log.error("Erro no reprocess: id={}", id, e);
+            documento.setStatus(StatusProcessamento.ERRO);
+            documento.setErroProcessamento("Erro: " + e.getMessage());
+            documentoRepository.save(documento);
+            throw new BusinessException("Erro ao reprocessar: " + e.getMessage());
+        }
     }
 
     // === Métodos auxiliares ===
