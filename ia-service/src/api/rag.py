@@ -286,18 +286,22 @@ async def index_and_extract(request: IndexAndExtractRequest):
         if not request.texto.strip():
             raise HTTPException(status_code=400, detail="Texto vazio")
 
-        # 1. Index in RAG
-        delete_chunks_by_documento(request.documento_id)
+        # 1. Index in RAG (OPTIONAL - if DB fails, continue with extraction)
+        chunks_count = 0
+        try:
+            delete_chunks_by_documento(request.documento_id)
 
-        chunks = chunk_document(
-            text=request.texto,
-            documento_id=request.documento_id,
-            condominio_id=request.condominio_id,
-            tipo_documento=request.tipo_documento,
-            metadata=request.metadata,
-        )
+            chunks = chunk_document(
+                text=request.texto,
+                documento_id=request.documento_id,
+                condominio_id=request.condominio_id,
+                tipo_documento=request.tipo_documento,
+                metadata=request.metadata,
+            )
 
-        chunks_count = store_chunks(chunks)
+            chunks_count = store_chunks(chunks)
+        except Exception as e:
+            logger.warning(f"RAG indexing failed (continuing with extraction): {e}")
 
         # 2. Extract structured data - ALWAYS run orcamento prompt (handles any insurance doc)
         from src.api.documents import EXTRACTION_PROMPT_ORCAMENTO
