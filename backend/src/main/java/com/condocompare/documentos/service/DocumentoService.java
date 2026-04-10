@@ -248,8 +248,9 @@ public class DocumentoService {
         User currentUser = getCurrentUser();
         Documento documento = findDocumentoWithAccessCheck(id, currentUser);
 
-        if (documento.getStatus() != StatusProcessamento.ERRO && documento.getStatus() != StatusProcessamento.PENDENTE) {
-            throw new BusinessException("Apenas documentos com status ERRO ou PENDENTE podem ser reprocessados");
+        // Permite reprocessar qualquer documento (exceto os que estão sendo processados agora)
+        if (documento.getStatus() == StatusProcessamento.PROCESSANDO) {
+            throw new BusinessException("Documento já está em processamento");
         }
 
         documento.setStatus(StatusProcessamento.PENDENTE);
