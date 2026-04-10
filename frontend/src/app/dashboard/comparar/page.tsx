@@ -952,9 +952,21 @@ export default function CompararPage() {
                       <TableRow key={field.key} sx={{ bgcolor: rowIdx % 2 === 0 ? 'white' : '#fafafa', '&:hover': { bgcolor: '#f1f5f9' } }}>
                         <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>{field.label}</TableCell>
                         {comparacao.orcamentos.map((orc) => {
-                          const dados = orc.dadosExtraidos || {}
-                          const val = dados[field.key]
-                          const formatted = val === undefined || val === null ? '-' : field.format ? field.format(val) : String(val)
+                          let val: unknown
+                          if (field.path === 'root') {
+                            val = (orc as unknown as Record<string, unknown>)[field.key]
+                          } else {
+                            const dados = orc.dadosExtraidos || {}
+                            const condoData = (dados.condominio_data || {}) as Record<string, unknown>
+                            val = condoData[field.key] ?? dados[field.key]
+                          }
+                          const formatVal = (v: unknown): string => {
+                            if (v === undefined || v === null || v === '') return '-'
+                            if (Array.isArray(v)) return v.length > 0 ? v.join(', ') : '-'
+                            if (field.format) return field.format(v)
+                            return String(v)
+                          }
+                          const formatted = formatVal(val)
                           return (
                             <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: !allSame && val !== undefined && val !== null ? '#fef3c7' : undefined }}>
                               <Typography variant="body2" fontWeight={!allSame ? 600 : 400}>{formatted}</Typography>
