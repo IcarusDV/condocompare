@@ -140,21 +140,21 @@ const getSeguradoraGradient = (seguradoraNome: string): string => {
 }
 
 // Fields for "Analise de Informacoes" comparison
-const INFO_FIELDS: { key: string; label: string; format?: (v: unknown) => string }[] = [
-  { key: 'enquadramento', label: 'Enquadramento / Tipo' },
-  { key: 'numeroElevadores', label: 'N. de Elevadores' },
-  { key: 'anoConstrucao', label: 'Idade / Ano de Construcao' },
-  { key: 'numeroUnidades', label: 'N. de Unidades' },
-  { key: 'numeroBlocos', label: 'N. de Blocos' },
-  { key: 'numeroPavimentos', label: 'N. de Pavimentos' },
-  { key: 'quantidadeFuncionarios', label: 'Qtd. Funcionarios' },
-  { key: 'placaSolar', label: 'Placa Solar', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
-  { key: 'bensAoArLivre', label: 'Bens ao Ar Livre', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
-  { key: 'bonus', label: 'Bonus' },
-  { key: 'protecaoExtintores', label: 'Extintores', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
-  { key: 'protecaoHidrantes', label: 'Hidrantes', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
-  { key: 'protecaoAlarmes', label: 'Alarmes', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
-  { key: 'clausulaValorDeNovo', label: 'Clausula Valor de Novo', format: (v) => v === true ? 'Sim' : v === false ? 'Nao' : '-' },
+// Keys match backend PdfExtractionService.extractCondominioData() output inside condominio_data
+const INFO_FIELDS: { key: string; label: string; path?: string; format?: (v: unknown) => string }[] = [
+  { key: 'tipoCondominio', label: 'Enquadramento / Tipo' },
+  { key: 'numeroElevadores', label: 'Nº de Elevadores' },
+  { key: 'anoConstrucao', label: 'Ano de Construção' },
+  { key: 'idadeConstrucao', label: 'Idade do Condomínio' },
+  { key: 'numeroUnidades', label: 'Nº de Unidades' },
+  { key: 'numeroBlocos', label: 'Nº de Blocos' },
+  { key: 'numeroPavimentos', label: 'Nº de Pavimentos' },
+  { key: 'areaConstruida', label: 'Área Construída', format: (v) => v ? `${v} m²` : '-' },
+  { key: 'numeroFuncionarios', label: 'Qtd. Funcionários' },
+  { key: 'placaSolar', label: 'Placa Solar', format: (v) => v === true ? 'Sim' : v === false ? 'Não' : '-' },
+  { key: 'bonus', label: 'Bônus / Sinistro' },
+  { key: 'protecionais', label: 'Protecionais' },
+  { key: 'formaPagamento', label: 'Forma de Pagamento', path: 'root' },
 ]
 
 // Coverage categories for radar chart
@@ -939,8 +939,11 @@ export default function CompararPage() {
                   </TableRow>
                   {INFO_FIELDS.map((field, rowIdx) => {
                     const values = comparacao.orcamentos.map((orc) => {
+                      if (field.path === 'root') return (orc as unknown as Record<string, unknown>)[field.key]
                       const dados = orc.dadosExtraidos || {}
-                      return dados[field.key]
+                      const condoData = (dados.condominio_data || {}) as Record<string, unknown>
+                      // Check condominio_data first, then top-level dadosExtraidos
+                      return condoData[field.key] ?? dados[field.key]
                     })
                     const hasAnyValue = values.some((v) => v !== undefined && v !== null)
                     if (!hasAnyValue) return null

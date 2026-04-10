@@ -247,34 +247,61 @@ public class PdfExtractionService {
     }
 
     private BigDecimal extractValorPremio(String text) {
-        // IMPORTANT: Order matters! We prioritize "total" patterns (includes IOF/taxes)
-        // over "líquido" patterns (net premium without taxes).
-        Pattern[] premioPatterns = {
-                // "Total a pagar: R$ 5.037,14" or "Total geral: R$ 5.037,14"
-                Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Total a pagar 5.037,14" or "Total geral 5.037,14" (sem R$)
-                Pattern.compile("(?i)total\\s+(?:geral|a\\s+pagar)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio Total: R$ 5.037,14"
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio Total 5.037,14" (sem R$)
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*([\\d.]+,[\\d]{2})"),
-                // "Valor Total: R$ 5.037,14" or "Valor do Seguro: R$ 5.037,14"
-                Pattern.compile("(?i)(?:valor\\s+(?:total|do\\s+(?:prêmio|premio|seguro)))\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Valor Total do Seguro 5.037,14" (sem R$)
-                Pattern.compile("(?i)(?:valor\\s+total\\s+do\\s+seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio anual: R$ 5.037,14" or "Prêmio do seguro: R$ 5.037,14"
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:anual|do seguro)\\s*:?\\s*R\\$\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio anual 5.037,14" (sem R$)
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:anual|do seguro)\\s*:?\\s*([\\d.]+,[\\d]{2})"),
-                // "Prêmio Líquido total 4.690,96" - only as last resort
-                Pattern.compile("(?i)(?:prêmio|premio)\\s*l[íi]quido\\s*(?:total)?\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+        // Strategy 1: Look for explicit "Total a pagar" or "Prêmio Total" (includes IOF)
+        Pattern[] totalPatterns = {
+                Pattern.compile("(?i)total\\s+a\\s+pagar\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)total\\s+geral\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)valor\\s+total\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)valor\\s+total\\s+do\\s+seguro\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
         };
 
-        for (Pattern p : premioPatterns) {
+        for (Pattern p : totalPatterns) {
             Matcher m = p.matcher(text);
             if (m.find()) {
                 BigDecimal value = parseBrazilianMoney(m.group(1));
-                if (value != null && value.compareTo(BigDecimal.ZERO) > 0) {
+                if (value != null && value.compareTo(new BigDecimal("100")) > 0) {
+                    return value;
+                }
+            }
+        }
+
+        // Strategy 2: Líquido + IOF = Total
+        BigDecimal liquido = null;
+        BigDecimal iof = null;
+
+        Pattern liqPattern = Pattern.compile("(?i)(?:prêmio|premio)\\s*l[íi]quido\\s*(?:total|do local)?\\s*(?:-\\s*R\\$)?\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})");
+        Matcher lm = liqPattern.matcher(text);
+        if (lm.find()) {
+            liquido = parseBrazilianMoney(lm.group(1));
+        }
+
+        Pattern iofPattern = Pattern.compile("(?i)(?:IOF|valor\\s+do\\s+IOF)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})");
+        Matcher im = iofPattern.matcher(text);
+        if (im.find()) {
+            iof = parseBrazilianMoney(im.group(1));
+        }
+
+        if (liquido != null && iof != null) {
+            return liquido.add(iof);
+        }
+
+        // Strategy 3: Prêmio líquido alone (with markup estimate for IOF ~7.38%)
+        if (liquido != null) {
+            // IOF seguro é 7.38% do líquido
+            BigDecimal iofEstimado = liquido.multiply(new BigDecimal("0.0738")).setScale(2, java.math.RoundingMode.HALF_UP);
+            return liquido.add(iofEstimado);
+        }
+
+        // Strategy 4: Try "Prêmio anual" or "Prêmio do seguro"
+        Pattern[] fallbackPatterns = {
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*(?:anual|do\\s+seguro)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+        };
+        for (Pattern p : fallbackPatterns) {
+            Matcher m = p.matcher(text);
+            if (m.find()) {
+                BigDecimal value = parseBrazilianMoney(m.group(1));
+                if (value != null && value.compareTo(new BigDecimal("100")) > 0) {
                     return value;
                 }
             }
@@ -632,6 +659,98 @@ public class PdfExtractionService {
                     data.put("areaConstruida", area);
                 }
             } catch (Exception ignored) {}
+        }
+
+        // Number of elevators
+        Pattern elevadorPattern = Pattern.compile("(?i)(?:quantidade\\s*(?:de\\s*)?elevador(?:es)?|n[°º]?\\s*(?:de\\s*)?elevador(?:es)?)\\s*:?\\s*(\\d+)");
+        m = elevadorPattern.matcher(text);
+        if (m.find()) {
+            data.put("numeroElevadores", Integer.parseInt(m.group(1)));
+        } else {
+            // "1 Elevador" or "01" after "elevadores?"
+            Pattern elevSimple = Pattern.compile("(?i)(\\d+)\\s*elevador");
+            m = elevSimple.matcher(text);
+            if (m.find()) {
+                data.put("numeroElevadores", Integer.parseInt(m.group(1)));
+            }
+        }
+
+        // Number of pavimentos/andares
+        Pattern pavPattern = Pattern.compile("(?i)(?:quantidade\\s*(?:de\\s*)?pavimentos?|n[°º]?\\s*(?:de\\s*)?pavimentos?)\\s*(?:[:(].*?)?\\s*(\\d+)");
+        m = pavPattern.matcher(text);
+        if (m.find()) {
+            data.put("numeroPavimentos", Integer.parseInt(m.group(1)));
+        } else {
+            // "16 a 20" andares or "Acima de 15 andares"
+            Pattern andPattern = Pattern.compile("(?i)(?:quantidade\\s*(?:de\\s*)?andar(?:es)?|n[°º]?\\s*andares?)\\s*:?\\s*(\\d+)");
+            m = andPattern.matcher(text);
+            if (m.find()) {
+                data.put("numeroPavimentos", Integer.parseInt(m.group(1)));
+            } else {
+                Pattern andRange = Pattern.compile("(?i)(\\d+)\\s*(?:a\\s*\\d+)?\\s*andar");
+                m = andRange.matcher(text);
+                if (m.find()) {
+                    data.put("numeroPavimentos", m.group(0).trim());
+                }
+            }
+        }
+
+        // Year/Age of construction
+        Pattern anoConstrucaoPattern = Pattern.compile("(?i)(?:ano\\s*(?:de\\s*)?(?:constru[çc][ãa]o|fabrica[çc][ãa]o)|constru[íi]do\\s*(?:em)?)\\s*:?\\s*(\\d{4})");
+        m = anoConstrucaoPattern.matcher(text);
+        if (m.find()) {
+            data.put("anoConstrucao", m.group(1));
+        } else {
+            // "Idade do Condomínio: De 06 a 10 anos"
+            Pattern idadePattern = Pattern.compile("(?i)idade\\s*(?:do\\s*)?(?:condom[íi]nio|im[óo]vel)\\s*:?\\s*([^\\n]{3,40})");
+            m = idadePattern.matcher(text);
+            if (m.find()) {
+                data.put("idadeConstrucao", m.group(1).trim());
+            }
+        }
+
+        // Tipo/Enquadramento do condomínio
+        Pattern tipoPattern = Pattern.compile("(?i)(?:tipo|enquadramento|classe|atividade)\\s*(?:do\\s*)?(?:condom[íi]nio|im[óo]vel|risco|edif[íi]cio)\\s*:?\\s*([^\\n]{3,60})");
+        m = tipoPattern.matcher(text);
+        if (m.find()) {
+            data.put("tipoCondominio", m.group(1).trim());
+        } else {
+            String lt = text.toLowerCase();
+            if (lt.contains("residencial") && lt.contains("comercial")) data.put("tipoCondominio", "Misto");
+            else if (lt.contains("residencial")) data.put("tipoCondominio", "Residencial");
+            else if (lt.contains("comercial")) data.put("tipoCondominio", "Comercial");
+        }
+
+        // Placas solares
+        Pattern solarPattern = Pattern.compile("(?i)(?:placa|painel)\\s*solar");
+        m = solarPattern.matcher(text);
+        if (m.find()) {
+            data.put("placaSolar", true);
+        }
+
+        // Bônus
+        Pattern bonusPattern = Pattern.compile("(?i)(?:b[ôo]nus|sem\\s*sinistro)\\s*(?::)?\\s*([^\\n]{0,40})");
+        m = bonusPattern.matcher(text);
+        if (m.find()) {
+            data.put("bonus", m.group(0).trim());
+        }
+
+        // Protecionais (extintores, hidrantes, alarmes)
+        List<String> protecionais = new java.util.ArrayList<>();
+        if (text.toLowerCase().contains("extintor")) protecionais.add("Extintores");
+        if (text.toLowerCase().contains("hidrante")) protecionais.add("Hidrantes");
+        if (text.toLowerCase().contains("alarme")) protecionais.add("Alarme");
+        if (text.toLowerCase().contains("sprinkler")) protecionais.add("Sprinklers");
+        if (text.toLowerCase().contains("detector")) protecionais.add("Detectores de Fumaça");
+        if (!protecionais.isEmpty()) {
+            data.put("protecionais", String.join(", ", protecionais));
+        }
+
+        // Funcionários
+        Pattern funcPattern = Pattern.compile("(?i)(?:quantidade\\s*(?:de\\s*)?funcion[áa]rios?|n[°º]?\\s*(?:de\\s*)?funcion[áa]rios?)\\s*:?\\s*(\\d+)");
+        m = funcPattern.matcher(text);
+        if (m.find()) {
+            data.put("numeroFuncionarios", Integer.parseInt(m.group(1)));
         }
 
         return data;
