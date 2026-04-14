@@ -81,6 +81,12 @@ public class ApoliceService {
         if (StringUtils.hasText(request.numeroApolice())) {
             apolice.setNumeroApolice(request.numeroApolice());
         }
+        if (request.condominioId() != null) {
+            Condominio novoCondominio = condominioRepository.findById(request.condominioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Condomínio não encontrado"));
+            condominioService.validateCondominioAccess(novoCondominio.getId());
+            apolice.setCondominio(novoCondominio);
+        }
         if (request.seguradoraId() != null) {
             apolice.setSeguradora(seguradoraService.findEntityById(request.seguradoraId()));
         }
@@ -224,7 +230,11 @@ public class ApoliceService {
         apoliceAntiga.setStatus(StatusApolice.VENCIDA);
         apoliceRepository.save(apoliceAntiga);
 
+        // Gera novo número de apólice baseado no antigo
+        String novoNumero = gerarNovoNumeroRenovacao(apoliceAntiga.getNumeroApolice());
+
         Apolice novaApolice = Apolice.builder()
+            .numeroApolice(novoNumero)
             .condominio(apoliceAntiga.getCondominio())
             .seguradora(apoliceAntiga.getSeguradora())
             .status(StatusApolice.EM_RENOVACAO)
@@ -267,6 +277,31 @@ public class ApoliceService {
     @Transactional(readOnly = true)
     public long countVencendoEmDias(int dias) {
         return apoliceRepository.countVencendoEmDias(LocalDate.now(), LocalDate.now().plusDays(dias));
+    }
+
+    /**
+     * Gera novo número de apólice na renovação.
+     * Estratégias:
+     * 1. Se o número antigo terminar em "-RNN" (ex: ABC123-R02), incrementa a renovação
+     * 2. Se terminar em /YYYY, incrementa o ano
+     * 3. Caso contrário, adiciona "-R02" ao número antigo
+     */
+    private String gerarNovoNumeroRenovacao(String numeroAntigo) {
+        if (numeroAntigo == null || numeroAntigo.isBlank()) {
+            return "REN-" + System.currentTimeMillis();
+        }
+
+        // Padrão "-R02", "-R03", etc.
+        java.util.regex.Pattern renPattern = java.util.regex.Pattern.compile("^(.*)-R(\\d+)$");
+        java.util.regex.Matcher matcher = renPattern.matcher(numeroAntigo);
+        if (matcher.matches()) {
+            String base = matcher.group(1);
+            int versao = Integer.parseInt(matcher.group(2)) + 1;
+            return String.format("%s-R%02d", base, versao);
+        }
+
+        // Caso contrário, adiciona -R02 (segunda versão da apólice)
+        return numeroAntigo + "-R02";
     }
 
     private Apolice findEntityById(UUID id) {

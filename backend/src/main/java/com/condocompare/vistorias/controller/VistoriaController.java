@@ -29,28 +29,15 @@ public class VistoriaController {
 
     private final VistoriaService vistoriaService;
 
+    // ============================================================
+    // ROTAS LITERAIS E DE CRIAÇÃO
+    // ============================================================
+
     @PostMapping
     @Operation(summary = "Criar nova vistoria")
     @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA')")
     public ResponseEntity<VistoriaResponse> create(@Valid @RequestBody CreateVistoriaRequest request) {
         return ResponseEntity.ok(vistoriaService.create(request));
-    }
-
-    @PutMapping("/{id}")
-    @Operation(summary = "Atualizar vistoria")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA')")
-    public ResponseEntity<VistoriaResponse> update(
-        @PathVariable UUID id,
-        @Valid @RequestBody UpdateVistoriaRequest request
-    ) {
-        return ResponseEntity.ok(vistoriaService.update(id, request));
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Buscar vistoria por ID")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
-    public ResponseEntity<VistoriaResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(vistoriaService.findById(id));
     }
 
     @GetMapping
@@ -65,21 +52,6 @@ public class VistoriaController {
         return ResponseEntity.ok(vistoriaService.findAll(condominioId, tipo, status, pageable));
     }
 
-    @GetMapping("/condominio/{condominioId}")
-    @Operation(summary = "Listar vistorias de um condomínio")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
-    public ResponseEntity<List<VistoriaListResponse>> findByCondominio(@PathVariable UUID condominioId) {
-        return ResponseEntity.ok(vistoriaService.findByCondominio(condominioId));
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar vistoria (soft delete)")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        vistoriaService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping("/tipos")
     @Operation(summary = "Listar tipos de vistoria")
     public ResponseEntity<TipoVistoria[]> getTipos() {
@@ -92,7 +64,47 @@ public class VistoriaController {
         return ResponseEntity.ok(StatusVistoria.values());
     }
 
-    // ===== External Link Sharing =====
+    @GetMapping("/condominio/{condominioId}")
+    @Operation(summary = "Listar vistorias de um condomínio")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
+    public ResponseEntity<List<VistoriaListResponse>> findByCondominio(@PathVariable UUID condominioId) {
+        return ResponseEntity.ok(vistoriaService.findByCondominio(condominioId));
+    }
+
+    @GetMapping("/external/{token}")
+    @Operation(summary = "Acesso externo a vistoria (publico, sem autenticacao)")
+    public ResponseEntity<ExternalVistoriaResponse> findByExternalToken(@PathVariable String token) {
+        return ResponseEntity.ok(vistoriaService.findBySharedToken(token));
+    }
+
+    // ============================================================
+    // ROTAS COM PATH VARIABLE /{id}
+    // ============================================================
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar vistoria por ID")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
+    public ResponseEntity<VistoriaResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(vistoriaService.findById(id));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Atualizar vistoria")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA')")
+    public ResponseEntity<VistoriaResponse> update(
+        @PathVariable UUID id,
+        @Valid @RequestBody UpdateVistoriaRequest request
+    ) {
+        return ResponseEntity.ok(vistoriaService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar vistoria (soft delete)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        vistoriaService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @PostMapping("/{id}/generate-link")
     @Operation(summary = "Gerar link externo para vistoria")
@@ -107,12 +119,6 @@ public class VistoriaController {
     public ResponseEntity<Void> revokeLink(@PathVariable UUID id) {
         vistoriaService.revokeSharedLink(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/external/{token}")
-    @Operation(summary = "Acesso externo a vistoria (publico, sem autenticacao)")
-    public ResponseEntity<ExternalVistoriaResponse> findByExternalToken(@PathVariable String token) {
-        return ResponseEntity.ok(vistoriaService.findBySharedToken(token));
     }
 
     // ===== Checklist Items =====

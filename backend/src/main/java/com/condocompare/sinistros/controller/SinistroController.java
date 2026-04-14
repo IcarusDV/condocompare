@@ -54,12 +54,9 @@ public class SinistroController {
         return ResponseEntity.ok(sinistroService.addHistorico(id, request));
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Buscar sinistro por ID")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
-    public ResponseEntity<SinistroResponse> findById(@PathVariable UUID id) {
-        return ResponseEntity.ok(sinistroService.findById(id));
-    }
+    // ============================================================
+    // ROTAS LITERAIS (devem vir ANTES das rotas com path variable)
+    // ============================================================
 
     @GetMapping
     @Operation(summary = "Listar sinistros com filtros")
@@ -71,21 +68,6 @@ public class SinistroController {
         @PageableDefault(size = 20) Pageable pageable
     ) {
         return ResponseEntity.ok(sinistroService.findAll(condominioId, tipo, status, pageable));
-    }
-
-    @GetMapping("/condominio/{condominioId}")
-    @Operation(summary = "Listar sinistros de um condomínio")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
-    public ResponseEntity<List<SinistroListResponse>> findByCondominio(@PathVariable UUID condominioId) {
-        return ResponseEntity.ok(sinistroService.findByCondominio(condominioId));
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar sinistro (soft delete)")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        sinistroService.delete(id);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/stats")
@@ -105,5 +87,31 @@ public class SinistroController {
     @Operation(summary = "Listar status de sinistro")
     public ResponseEntity<StatusSinistro[]> getStatus() {
         return ResponseEntity.ok(StatusSinistro.values());
+    }
+
+    @GetMapping("/condominio/{condominioId}")
+    @Operation(summary = "Listar sinistros de um condomínio")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
+    public ResponseEntity<List<SinistroListResponse>> findByCondominio(@PathVariable UUID condominioId) {
+        return ResponseEntity.ok(sinistroService.findByCondominio(condominioId));
+    }
+
+    // ============================================================
+    // ROTAS COM PATH VARIABLE (devem vir DEPOIS das literais)
+    // ============================================================
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar sinistro por ID")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
+    public ResponseEntity<SinistroResponse> findById(@PathVariable UUID id) {
+        return ResponseEntity.ok(sinistroService.findById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar sinistro (soft delete)")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        sinistroService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

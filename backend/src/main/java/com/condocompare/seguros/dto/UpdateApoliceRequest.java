@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public record UpdateApoliceRequest(
     String numeroApolice,
+    UUID condominioId,
     UUID seguradoraId,
     StatusApolice status,
     LocalDate dataInicio,
