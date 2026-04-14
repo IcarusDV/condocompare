@@ -11,11 +11,11 @@ import java.util.UUID;
 @Repository
 public interface CoberturaRepository extends JpaRepository<Cobertura, UUID> {
 
-    List<Cobertura> findByApoliceId(UUID apoliceId);
+    List<Cobertura> findByApoliceIdAndActiveTrue(UUID apoliceId);
 
-    List<Cobertura> findByApoliceIdAndContratadaTrue(UUID apoliceId);
+    List<Cobertura> findByApoliceIdAndContratadaTrueAndActiveTrue(UUID apoliceId);
 
-    List<Cobertura> findByApoliceIdAndTipo(UUID apoliceId, TipoCobertura tipo);
+    List<Cobertura> findByApoliceIdAndTipoAndActiveTrue(UUID apoliceId, TipoCobertura tipo);
 
     void deleteByApoliceId(UUID apoliceId);
 }

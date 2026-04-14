@@ -59,7 +59,6 @@ import WindowIcon from '@mui/icons-material/Window'
 import GroupsIcon from '@mui/icons-material/Groups'
 import ShieldIcon from '@mui/icons-material/Shield'
 import BuildIcon from '@mui/icons-material/Build'
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
 import { parceiroService } from '@/services/parceiroService'
 import {
   ParceiroResponse,
@@ -424,17 +423,6 @@ export default function ParceiroDetalhePage() {
                 <Typography variant="body2" color="text.secondary">{parceiro.areaAtuacao}</Typography>
               </Box>
             )}
-          </Paper>
-
-          {/* Benefício */}
-          <Paper sx={{ p: 3, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none', borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <CardGiftcardIcon sx={{ color: '#6366f1' }} />
-              <Typography variant="h6" fontWeight={700}>Benefício</Typography>
-            </Box>
-            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: parceiro.beneficio ? '#374151' : '#94a3b8', lineHeight: 1.8 }}>
-              {parceiro.beneficio || 'Nenhum benefício cadastrado'}
-            </Typography>
           </Paper>
 
           {/* Dados Cadastrais */}

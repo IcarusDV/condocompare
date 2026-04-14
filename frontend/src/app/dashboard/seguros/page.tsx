@@ -289,7 +289,7 @@ export default function SegurosPage() {
       dataInicio: formatDate(a.dataInicio),
       dataFim: formatDate(a.dataFim),
       premioTotal: a.premioTotal ? formatCurrency(a.premioTotal) : '-',
-      coberturas: String(a.totalCoberturas || 0),
+      coberturas: String(a.quantidadeCoberturas || 0),
     }))
     exportToCsv(csvData, `apolices_${new Date().toISOString().split('T')[0]}`, columns)
     setExportAnchor(null)
@@ -628,7 +628,7 @@ export default function SegurosPage() {
                       {/* Coberturas */}
                       <TableCell align="center">
                         <Chip
-                          label={apolice.totalCoberturas || 0}
+                          label={apolice.quantidadeCoberturas || 0}
                           size="small"
                           variant="outlined"
                           sx={{

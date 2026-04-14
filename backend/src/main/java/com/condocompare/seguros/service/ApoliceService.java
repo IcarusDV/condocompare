@@ -1,5 +1,6 @@
 package com.condocompare.seguros.service;
 
+import com.condocompare.common.exception.BusinessException;
 import com.condocompare.common.exception.ResourceNotFoundException;
 import com.condocompare.condominios.entity.Condominio;
 import com.condocompare.condominios.repository.CondominioRepository;
@@ -32,6 +33,8 @@ public class ApoliceService {
 
     @Transactional
     public ApoliceResponse create(CreateApoliceRequest request) {
+        validateDatas(request.dataInicio(), request.dataFim());
+
         Condominio condominio = condominioRepository.findById(request.condominioId())
             .orElseThrow(() -> new ResourceNotFoundException("Condomínio não encontrado"));
 
@@ -77,6 +80,10 @@ public class ApoliceService {
     @Transactional
     public ApoliceResponse update(UUID id, UpdateApoliceRequest request) {
         Apolice apolice = findEntityById(id);
+
+        LocalDate novoInicio = request.dataInicio() != null ? request.dataInicio() : apolice.getDataInicio();
+        LocalDate novoFim = request.dataFim() != null ? request.dataFim() : apolice.getDataFim();
+        validateDatas(novoInicio, novoFim);
 
         if (StringUtils.hasText(request.numeroApolice())) {
             apolice.setNumeroApolice(request.numeroApolice());
@@ -212,7 +219,7 @@ public class ApoliceService {
 
     @Transactional(readOnly = true)
     public List<CoberturaResponse> findCoberturasByApolice(UUID apoliceId) {
-        return coberturaRepository.findByApoliceId(apoliceId).stream()
+        return coberturaRepository.findByApoliceIdAndActiveTrue(apoliceId).stream()
             .map(seguroMapper::toCoberturaResponse)
             .toList();
     }
@@ -307,5 +314,11 @@ public class ApoliceService {
     private Apolice findEntityById(UUID id) {
         return apoliceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Apólice não encontrada"));
+    }
+
+    private void validateDatas(LocalDate dataInicio, LocalDate dataFim) {
+        if (dataInicio != null && dataFim != null && !dataFim.isAfter(dataInicio)) {
+            throw new BusinessException("Data fim deve ser posterior à data início");
+        }
     }
 }

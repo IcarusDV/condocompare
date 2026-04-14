@@ -361,7 +361,7 @@ export default function SeguradoraDetailPage() {
                           <Typography variant="body2" fontWeight={500}>{formatCurrency(apolice.premioTotal)}</Typography>
                         </TableCell>
                         <TableCell align="center">
-                          <Chip label={apolice.totalCoberturas} size="small" variant="outlined" />
+                          <Chip label={apolice.quantidadeCoberturas || 0} size="small" variant="outlined" />
                         </TableCell>
                       </TableRow>
                     ))}

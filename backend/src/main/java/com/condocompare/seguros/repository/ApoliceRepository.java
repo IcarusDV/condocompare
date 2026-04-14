@@ -16,7 +16,7 @@ import java.util.UUID;
 @Repository
 public interface ApoliceRepository extends JpaRepository<Apolice, UUID>, JpaSpecificationExecutor<Apolice> {
 
-    Optional<Apolice> findByNumeroApolice(String numeroApolice);
+    Optional<Apolice> findByNumeroApoliceAndActiveTrue(String numeroApolice);
 
     List<Apolice> findByCondominioIdAndActiveTrue(UUID condominioId);
 

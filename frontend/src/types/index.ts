@@ -786,7 +786,6 @@ export interface ParceiroResponse {
   contatoNome?: string
   contatoCargo?: string
   observacoes?: string
-  beneficio?: string
   logoUrl?: string
   createdAt: string
   updatedAt?: string
@@ -1046,6 +1045,7 @@ export interface ApoliceResponse {
 export interface ApoliceListResponse {
   id: string
   numeroApolice?: string
+  condominioId?: string
   condominioNome?: string
   seguradoraNome?: string
   status: StatusApoliceType
@@ -1053,7 +1053,9 @@ export interface ApoliceListResponse {
   dataFim?: string
   premioTotal?: number
   importanciaSeguradaTotal?: number
-  totalCoberturas: number
+  quantidadeCoberturas: number
+  diasParaVencimento: number
+  vigente: boolean
 }
 
 export interface ApoliceFilter {
