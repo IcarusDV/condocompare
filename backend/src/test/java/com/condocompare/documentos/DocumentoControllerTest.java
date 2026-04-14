@@ -82,7 +82,14 @@ class DocumentoControllerTest extends BaseIntegrationTest {
                 null, // tipoConstrucao
                 null, null, null, // sindico
                 null, null, // seguro
-                null  // observacoes
+                null, // observacoes
+                // estrutura estendida
+                null, null, null, null, null, null, null,
+                null, null, null, null, null, null,
+                // seguro estendido
+                null, null,
+                // campos condicionais
+                null, null
         );
 
         MvcResult condResult = mockMvc.perform(post("/api/v1/condominios")
