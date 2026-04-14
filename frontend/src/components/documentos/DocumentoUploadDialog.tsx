@@ -523,6 +523,15 @@ export function DocumentoUploadDialog({
                 <MenuItem value="CONDICOES_GERAIS">Condições Gerais</MenuItem>
                 <MenuItem value="LAUDO_VISTORIA">Laudo de Vistoria</MenuItem>
                 <MenuItem value="SINISTRO">Sinistro</MenuItem>
+                <MenuItem value="CONVENCAO">Convenção</MenuItem>
+                <MenuItem value="REGIMENTO_INTERNO">Regimento Interno</MenuItem>
+                <MenuItem value="ATA_ASSEMBLEIA">Ata de Assembleia</MenuItem>
+                <MenuItem value="HABITE_SE">Habite-se</MenuItem>
+                <MenuItem value="AVCB">AVCB (Bombeiros)</MenuItem>
+                <MenuItem value="ALVARA">Alvará</MenuItem>
+                <MenuItem value="LAUDO_TECNICO">Laudo Técnico</MenuItem>
+                <MenuItem value="PLANTA">Planta</MenuItem>
+                <MenuItem value="CONTRATO">Contrato</MenuItem>
                 <MenuItem value="OUTRO">Outro</MenuItem>
               </Select>
             </FormControl>

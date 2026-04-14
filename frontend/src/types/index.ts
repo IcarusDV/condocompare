@@ -80,6 +80,8 @@ export interface CaracteristicasResponse {
   numeroFuncionarios?: number
   anoConstrucao?: number
   tipoConstrucao?: TipoConstrucao
+  numeroCasas?: number
+  numeroSalas?: number
 }
 
 export interface AmenidadesResponse {
@@ -99,7 +101,9 @@ export interface AmenidadesResponse {
   possuiGaragem?: boolean
   vagasGaragem?: number
   espacosConveniencia?: string[]
+  espacosConvenienciaOutros?: string
   sistemaProtecaoIncendio?: string[]
+  sistemaProtecaoIncendioOutros?: string
   possuiRecargaEletricos?: boolean
   possuiBicicletario?: boolean
 }
@@ -115,6 +119,8 @@ export interface SeguroResponse {
   vencimentoApolice?: string
   seguradoraAtual?: string
   diasParaVencimento?: number
+  bonusAnosSemSinistro?: string
+  quantidadeSinistros?: string
 }
 
 // Request DTOs
@@ -164,8 +170,8 @@ export interface CreateCondominioRequest {
   vencimentoApolice?: string
   bonusAnosSemSinistro?: string
   quantidadeSinistros?: string
-  numeroCasas?: string
-  numeroSalas?: string
+  numeroCasas?: number
+  numeroSalas?: number
   seguradoraAtual?: string
   observacoes?: string
 }
@@ -234,7 +240,22 @@ export interface Condominio {
 }
 
 // ========== DOCUMENTOS ==========
-export type TipoDocumento = 'APOLICE' | 'ORCAMENTO' | 'CONDICOES_GERAIS' | 'LAUDO_VISTORIA' | 'SINISTRO' | 'OUTRO'
+export type TipoDocumento =
+  | 'APOLICE'
+  | 'ORCAMENTO'
+  | 'CONDICOES_GERAIS'
+  | 'LAUDO_VISTORIA'
+  | 'SINISTRO'
+  | 'CONVENCAO'
+  | 'REGIMENTO_INTERNO'
+  | 'ATA_ASSEMBLEIA'
+  | 'HABITE_SE'
+  | 'AVCB'
+  | 'ALVARA'
+  | 'LAUDO_TECNICO'
+  | 'PLANTA'
+  | 'CONTRATO'
+  | 'OUTRO'
 export type StatusProcessamento = 'PENDENTE' | 'PROCESSANDO' | 'CONCLUIDO' | 'ERRO'
 
 export interface DocumentoResponse {

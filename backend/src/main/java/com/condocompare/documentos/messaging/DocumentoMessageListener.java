@@ -329,52 +329,128 @@ public class DocumentoMessageListener {
     }
 
     @Transactional
-    protected void updateCondominioData(UUID condominioId, Map<String, Object> condominioData) {
+    public void updateCondominioData(UUID condominioId, Map<String, Object> condominioData) {
         condominioRepository.findById(condominioId).ifPresent(condo -> {
             boolean updated = false;
 
-            if (condominioData.get("cnpj") != null && (condo.getCnpj() == null || condo.getCnpj().isBlank())) {
-                condo.setCnpj((String) condominioData.get("cnpj"));
+            // Helper para extrair string limpa
+            java.util.function.Function<String, String> getStr = (key) -> {
+                Object v = condominioData.get(key);
+                if (v == null) return null;
+                String s = String.valueOf(v).trim();
+                return s.isEmpty() || "null".equalsIgnoreCase(s) ? null : s;
+            };
+
+            // Helper para extrair número
+            java.util.function.Function<String, Integer> getInt = (key) -> {
+                Object v = condominioData.get(key);
+                if (v == null) return null;
+                try { return ((Number) v).intValue(); }
+                catch (Exception e) {
+                    try { return Integer.parseInt(String.valueOf(v).trim()); }
+                    catch (Exception ex) { return null; }
+                }
+            };
+
+            // Strings - SEMPRE atualiza se vier valor
+            String nome = getStr.apply("nome");
+            if (nome != null && !nome.equals(condo.getNome())) {
+                condo.setNome(nome);
                 updated = true;
             }
-            if (condominioData.get("endereco") != null && (condo.getEndereco() == null || condo.getEndereco().isBlank())) {
-                condo.setEndereco((String) condominioData.get("endereco"));
+            String cnpj = getStr.apply("cnpj");
+            if (cnpj != null && !cnpj.equals(condo.getCnpj())) {
+                condo.setCnpj(cnpj);
                 updated = true;
             }
-            if (condominioData.get("cidade") != null && (condo.getCidade() == null || condo.getCidade().isBlank())) {
-                condo.setCidade((String) condominioData.get("cidade"));
+            String endereco = getStr.apply("endereco");
+            if (endereco != null && !endereco.equals(condo.getEndereco())) {
+                condo.setEndereco(endereco);
                 updated = true;
             }
-            if (condominioData.get("estado") != null && (condo.getEstado() == null || condo.getEstado().isBlank())) {
-                condo.setEstado((String) condominioData.get("estado"));
+            String numero = getStr.apply("numero");
+            if (numero != null && !numero.equals(condo.getNumero())) {
+                condo.setNumero(numero);
                 updated = true;
             }
-            if (condominioData.get("cep") != null && (condo.getCep() == null || condo.getCep().isBlank())) {
-                condo.setCep((String) condominioData.get("cep"));
+            String bairro = getStr.apply("bairro");
+            if (bairro != null && !bairro.equals(condo.getBairro())) {
+                condo.setBairro(bairro);
                 updated = true;
             }
-            if (condominioData.get("areaConstruida") != null && condo.getAreaConstruida() == null) {
+            String cidade = getStr.apply("cidade");
+            if (cidade != null && !cidade.equals(condo.getCidade())) {
+                condo.setCidade(cidade);
+                updated = true;
+            }
+            String estado = getStr.apply("estado");
+            if (estado != null && !estado.equals(condo.getEstado())) {
+                condo.setEstado(estado);
+                updated = true;
+            }
+            String cep = getStr.apply("cep");
+            if (cep != null && !cep.equals(condo.getCep())) {
+                condo.setCep(cep);
+                updated = true;
+            }
+
+            // Numéricos
+            Integer unidades = getInt.apply("numeroUnidades");
+            if (unidades != null && !unidades.equals(condo.getNumeroUnidades())) {
+                condo.setNumeroUnidades(unidades);
+                updated = true;
+            }
+            Integer blocos = getInt.apply("numeroBlocos");
+            if (blocos != null && !blocos.equals(condo.getNumeroBlocos())) {
+                condo.setNumeroBlocos(blocos);
+                updated = true;
+            }
+            Integer andares = getInt.apply("numeroAndares");
+            if (andares != null && !andares.equals(condo.getNumeroAndares())) {
+                condo.setNumeroAndares(andares);
+                updated = true;
+            }
+            Integer elevadores = getInt.apply("numeroElevadores");
+            if (elevadores != null && !elevadores.equals(condo.getNumeroElevadores())) {
+                condo.setNumeroElevadores(elevadores);
+                updated = true;
+            }
+            Integer anoConstrucao = getInt.apply("anoConstrucao");
+            if (anoConstrucao != null && !anoConstrucao.equals(condo.getAnoConstrucao())) {
+                condo.setAnoConstrucao(anoConstrucao);
+                updated = true;
+            }
+
+            // Área construída (BigDecimal)
+            Object areaObj = condominioData.get("areaConstruida");
+            if (areaObj != null) {
                 try {
-                    condo.setAreaConstruida(new java.math.BigDecimal(condominioData.get("areaConstruida").toString()));
-                    updated = true;
+                    java.math.BigDecimal area = new java.math.BigDecimal(areaObj.toString());
+                    if (!area.equals(condo.getAreaConstruida())) {
+                        condo.setAreaConstruida(area);
+                        updated = true;
+                    }
                 } catch (Exception ignored) {}
             }
-            if (condominioData.get("numeroUnidades") != null && condo.getNumeroUnidades() == null) {
+
+            // Tipo de construção
+            String tipoStr = getStr.apply("tipoConstrucao");
+            if (tipoStr != null) {
                 try {
-                    condo.setNumeroUnidades(((Number) condominioData.get("numeroUnidades")).intValue());
-                    updated = true;
-                } catch (Exception ignored) {}
-            }
-            if (condominioData.get("numeroBlocos") != null && condo.getNumeroBlocos() == null) {
-                try {
-                    condo.setNumeroBlocos(((Number) condominioData.get("numeroBlocos")).intValue());
-                    updated = true;
+                    com.condocompare.condominios.entity.TipoConstrucao tipo =
+                        com.condocompare.condominios.entity.TipoConstrucao.valueOf(tipoStr.toUpperCase());
+                    if (tipo != condo.getTipoConstrucao()) {
+                        condo.setTipoConstrucao(tipo);
+                        updated = true;
+                    }
                 } catch (Exception ignored) {}
             }
 
             if (updated) {
                 condominioRepository.save(condo);
                 log.info("Dados do condominio atualizados automaticamente: id={}", condominioId);
+            } else {
+                log.info("Nenhum campo do condominio precisava ser atualizado: id={}", condominioId);
             }
         });
     }

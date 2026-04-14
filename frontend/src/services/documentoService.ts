@@ -175,6 +175,15 @@ export const getTipoDocumentoLabel = (tipo: TipoDocumento): string => {
     CONDICOES_GERAIS: 'Condições Gerais',
     LAUDO_VISTORIA: 'Laudo de Vistoria',
     SINISTRO: 'Sinistro',
+    CONVENCAO: 'Convenção',
+    REGIMENTO_INTERNO: 'Regimento Interno',
+    ATA_ASSEMBLEIA: 'Ata de Assembleia',
+    HABITE_SE: 'Habite-se',
+    AVCB: 'AVCB (Bombeiros)',
+    ALVARA: 'Alvará',
+    LAUDO_TECNICO: 'Laudo Técnico',
+    PLANTA: 'Planta',
+    CONTRATO: 'Contrato',
     OUTRO: 'Outro',
   }
   return labels[tipo] || tipo

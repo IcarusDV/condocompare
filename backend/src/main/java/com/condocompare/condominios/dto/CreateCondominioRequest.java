@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public record CreateCondominioRequest(
     @NotBlank(message = "Nome é obrigatório")
@@ -85,5 +86,59 @@ public record CreateCondominioRequest(
     @Size(max = 255, message = "Seguradora deve ter no máximo 255 caracteres")
     String seguradoraAtual,
 
-    String observacoes
+    String observacoes,
+
+    // ============================================================
+    // ESTRUTURA ESTENDIDA
+    // ============================================================
+    Boolean possuiAreaComercial,
+
+    @DecimalMin(value = "0.0", message = "Tamanho da área comercial deve ser positivo")
+    BigDecimal tamanhoAreaComercial,
+
+    @Min(value = 0, message = "Número de funcionários registrados não pode ser negativo")
+    Integer numFuncionariosRegistrados,
+
+    @Size(max = 100, message = "Idade dos funcionários deve ter no máximo 100 caracteres")
+    String idadeFuncionariosRegistrados,
+
+    @Min(value = 0, message = "Número de pavimentos não pode ser negativo")
+    Integer numPavimentos,
+
+    Boolean possuiGaragem,
+
+    @Min(value = 0, message = "Número de vagas não pode ser negativo")
+    Integer vagasGaragem,
+
+    List<String> espacosConveniencia,
+
+    @Size(max = 255, message = "Espaços de conveniência outros deve ter no máximo 255 caracteres")
+    String espacosConvenienciaOutros,
+
+    List<String> sistemaProtecaoIncendio,
+
+    @Size(max = 255, message = "Sistema proteção incêndio outros deve ter no máximo 255 caracteres")
+    String sistemaProtecaoIncendioOutros,
+
+    Boolean possuiRecargaEletricos,
+
+    Boolean possuiBicicletario,
+
+    // ============================================================
+    // SEGURO ESTENDIDO
+    // ============================================================
+    @Size(max = 50, message = "Bônus deve ter no máximo 50 caracteres")
+    String bonusAnosSemSinistro,
+
+    @Size(max = 50, message = "Quantidade de sinistros deve ter no máximo 50 caracteres")
+    String quantidadeSinistros,
+
+    // ============================================================
+    // CAMPOS CONDICIONAIS (Tipos Horizontais)
+    // ============================================================
+    @Min(value = 0, message = "Número de casas não pode ser negativo")
+    Integer numeroCasas,
+
+    @Min(value = 0, message = "Número de salas não pode ser negativo")
+    Integer numeroSalas
 ) {}

@@ -47,9 +47,35 @@ import LocalParkingIcon from '@mui/icons-material/LocalParking'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import ElectricCarIcon from '@mui/icons-material/ElectricCar'
 import PedalBikeIcon from '@mui/icons-material/PedalBike'
-import { CreateCondominioRequest, UpdateCondominioRequest, TipoConstrucao, CondominioResponse } from '@/types'
+import { CreateCondominioRequest, UpdateCondominioRequest, TipoConstrucao, CondominioResponse, TipoDocumento } from '@/types'
 import { condominioService } from '@/services/condominioService'
+import { documentoService } from '@/services/documentoService'
 import { iaService } from '@/services/iaService'
+
+/**
+ * Detecta o tipo de documento pelo nome do arquivo
+ */
+const detectarTipoDocumento = (filename: string): TipoDocumento => {
+  const lower = filename.toLowerCase()
+  if (lower.includes('apolice') || lower.includes('apólice')) return 'APOLICE'
+  if (lower.includes('orcamento') || lower.includes('orçamento') || lower.includes('cotac') || lower.includes('cotaç')) return 'ORCAMENTO'
+  if (lower.includes('condicoes') || lower.includes('condições gerais')) return 'CONDICOES_GERAIS'
+  if (lower.includes('vistoria')) return 'LAUDO_VISTORIA'
+  if (lower.includes('sinistro')) return 'SINISTRO'
+  if (lower.includes('convenc') || lower.includes('convenç')) return 'CONVENCAO'
+  if (lower.includes('regimento')) return 'REGIMENTO_INTERNO'
+  if (lower.includes('ata')) return 'ATA_ASSEMBLEIA'
+  if (lower.includes('habite')) return 'HABITE_SE'
+  if (lower.includes('avcb') || lower.includes('bombeiros')) return 'AVCB'
+  if (lower.includes('alvara') || lower.includes('alvará')) return 'ALVARA'
+  if (lower.includes('laudo')) return 'LAUDO_TECNICO'
+  if (lower.includes('planta')) return 'PLANTA'
+  if (lower.includes('contrato')) return 'CONTRATO'
+  // Detecta seguradoras (Allianz, AXA, etc.) → orçamento
+  const seguradoras = ['allianz', 'axa', 'chubb', 'hdi', 'tokio', 'porto seguro', 'mapfre', 'bradesco', 'sulamerica', 'liberty', 'zurich']
+  if (seguradoras.some(s => lower.includes(s))) return 'ORCAMENTO'
+  return 'OUTRO'
+}
 
 interface CondominioFormProps {
   initialData?: CondominioResponse
@@ -154,8 +180,8 @@ const initialFormData: FormData = {
   vencimentoApolice: '',
   bonusAnosSemSinistro: '',
   quantidadeSinistros: '',
-  numeroCasas: '',
-  numeroSalas: '',
+  numeroCasas: undefined,
+  numeroSalas: undefined,
   seguradoraAtual: '',
   observacoes: '',
 }
@@ -386,10 +412,32 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
         vagasGaragem: formData.vagasGaragem ? Number(formData.vagasGaragem) : undefined,
       }
 
+      let condominioId: string
       if (isEditing && initialData) {
-        await condominioService.update(initialData.id, dataToSend as UpdateCondominioRequest)
+        const updated = await condominioService.update(initialData.id, dataToSend as UpdateCondominioRequest)
+        condominioId = updated.id
       } else {
-        await condominioService.create(dataToSend as CreateCondominioRequest)
+        const created = await condominioService.create(dataToSend as CreateCondominioRequest)
+        condominioId = created.id
+      }
+
+      // Upload dos documentos importados durante o cadastro
+      const filesToUpload = uploadedFiles.length > 0 ? uploadedFiles : (uploadedFile ? [uploadedFile] : [])
+      if (filesToUpload.length > 0 && !isEditing) {
+        for (const file of filesToUpload) {
+          try {
+            const tipo = detectarTipoDocumento(file.name)
+            const nome = file.name.replace(/\.[^/.]+$/, '') // remove extensão
+            await documentoService.upload({
+              file,
+              condominioId,
+              tipo,
+              nome,
+            })
+          } catch (uploadErr) {
+            console.error(`Erro ao fazer upload de ${file.name}:`, uploadErr)
+          }
+        }
       }
 
       router.push('/dashboard/condominios')

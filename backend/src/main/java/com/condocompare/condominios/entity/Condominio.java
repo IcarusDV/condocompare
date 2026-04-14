@@ -3,9 +3,12 @@ package com.condocompare.condominios.entity;
 import com.condocompare.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -115,4 +118,69 @@ public class Condominio extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String observacoes;
+
+    // ============================================================
+    // ESTRUTURA ESTENDIDA (V3 migration)
+    // ============================================================
+
+    @Column(name = "possui_area_comercial")
+    private Boolean possuiAreaComercial;
+
+    @Column(name = "tamanho_area_comercial")
+    private BigDecimal tamanhoAreaComercial;
+
+    @Column(name = "num_funcionarios_registrados")
+    private Integer numFuncionariosRegistrados;
+
+    @Column(name = "idade_funcionarios_registrados")
+    private String idadeFuncionariosRegistrados;
+
+    @Column(name = "num_pavimentos")
+    private Integer numPavimentos;
+
+    @Column(name = "possui_garagem")
+    private Boolean possuiGaragem;
+
+    @Column(name = "vagas_garagem")
+    private Integer vagasGaragem;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "espacos_conveniencia", columnDefinition = "text[]")
+    private List<String> espacosConveniencia;
+
+    @Column(name = "espacos_conveniencia_outros")
+    private String espacosConvenienciaOutros;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "sistema_protecao_incendio", columnDefinition = "text[]")
+    private List<String> sistemaProtecaoIncendio;
+
+    @Column(name = "sistema_protecao_incendio_outros")
+    private String sistemaProtecaoIncendioOutros;
+
+    @Column(name = "possui_recarga_eletricos")
+    private Boolean possuiRecargaEletricos;
+
+    @Column(name = "possui_bicicletario")
+    private Boolean possuiBicicletario;
+
+    // ============================================================
+    // SEGURO ESTENDIDO
+    // ============================================================
+
+    @Column(name = "bonus_anos_sem_sinistro")
+    private String bonusAnosSemSinistro;
+
+    @Column(name = "quantidade_sinistros")
+    private String quantidadeSinistros;
+
+    // ============================================================
+    // CAMPOS CONDICIONAIS (Tipos Horizontais)
+    // ============================================================
+
+    @Column(name = "numero_casas")
+    private Integer numeroCasas;
+
+    @Column(name = "numero_salas")
+    private Integer numeroSalas;
 }

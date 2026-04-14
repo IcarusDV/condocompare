@@ -132,7 +132,10 @@ TEXTO DO DOCUMENTO:
 {texto}
 """
 
-EXTRACTION_PROMPT_CONDOMINIO = """Voce e um assistente especializado em extrair dados de condominios de documentos de seguro.
+EXTRACTION_PROMPT_CONDOMINIO = """Voce e um assistente especializado em extrair dados de condominios de QUALQUER tipo de documento.
+
+O documento pode ser de qualquer tipo: convencao, ata de assembleia, habite-se, regimento interno,
+alvara, AVCB, laudo tecnico, planta, contrato, apolice de seguro, orcamento, etc.
 
 Analise o texto abaixo e extraia as seguintes informacoes do CONDOMINIO em formato JSON:
 
@@ -147,6 +150,10 @@ Analise o texto abaixo e extraia as seguintes informacoes do CONDOMINIO em forma
 - areaConstruida: Area construida em metros quadrados (numerico)
 - numeroUnidades: Quantidade de unidades/apartamentos (numerico)
 - numeroBlocos: Quantidade de blocos/torres (numerico)
+- numeroAndares: Quantidade de andares/pavimentos (numerico)
+- numeroElevadores: Quantidade de elevadores (numerico)
+- anoConstrucao: Ano de construcao (numerico, ex: 1998)
+- tipoConstrucao: Tipo do condominio (RESIDENCIAL, COMERCIAL, MISTO, RESIDENCIAL_HORIZONTAL, etc.)
 - seguradoraAtual: Nome da seguradora atual se mencionada
 - vencimentoApolice: Data de vencimento da apolice atual (formato YYYY-MM-DD)
 
@@ -154,7 +161,11 @@ IMPORTANTE:
 - Extraia APENAS informacoes que estao explicitamente no texto
 - Use null para campos nao encontrados
 - Para areas, use apenas o numero sem "m2"
-- Procure por informacoes como "Segurado:", "Endereco:", "CNPJ:", etc.
+- Em CONVENCOES procure: nome do condominio, CNPJ, endereco, numero de unidades
+- Em ATAS procure: nome do condominio, datas, decisoes
+- Em HABITE-SE procure: endereco, area construida, numero de pavimentos
+- Em AVCB/Alvara procure: endereco, area, numero de pavimentos
+- Em apolices/orcamentos procure: TODAS as informacoes acima
 
 Responda APENAS com o JSON, sem explicacoes.
 

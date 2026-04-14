@@ -95,6 +95,15 @@ const getTipoColor = (tipo: TipoDocumento): string => {
     CONDICOES_GERAIS: '#6b7280',
     LAUDO_VISTORIA: '#f59e0b',
     SINISTRO: '#ef4444',
+    CONVENCAO: '#0891b2',
+    REGIMENTO_INTERNO: '#0d9488',
+    ATA_ASSEMBLEIA: '#7c3aed',
+    HABITE_SE: '#65a30d',
+    AVCB: '#dc2626',
+    ALVARA: '#ea580c',
+    LAUDO_TECNICO: '#facc15',
+    PLANTA: '#14b8a6',
+    CONTRATO: '#a855f7',
     OUTRO: '#94a3b8',
   }
   return colors[tipo] || '#94a3b8'
@@ -559,6 +568,15 @@ export default function DocumentosPage() {
                   <MenuItem value="CONDICOES_GERAIS">Condições Gerais</MenuItem>
                   <MenuItem value="LAUDO_VISTORIA">Laudo de Vistoria</MenuItem>
                   <MenuItem value="SINISTRO">Sinistro</MenuItem>
+                  <MenuItem value="CONVENCAO">Convenção</MenuItem>
+                  <MenuItem value="REGIMENTO_INTERNO">Regimento Interno</MenuItem>
+                  <MenuItem value="ATA_ASSEMBLEIA">Ata de Assembleia</MenuItem>
+                  <MenuItem value="HABITE_SE">Habite-se</MenuItem>
+                  <MenuItem value="AVCB">AVCB (Bombeiros)</MenuItem>
+                  <MenuItem value="ALVARA">Alvará</MenuItem>
+                  <MenuItem value="LAUDO_TECNICO">Laudo Técnico</MenuItem>
+                  <MenuItem value="PLANTA">Planta</MenuItem>
+                  <MenuItem value="CONTRATO">Contrato</MenuItem>
                   <MenuItem value="OUTRO">Outro</MenuItem>
                 </Select>
               </FormControl>

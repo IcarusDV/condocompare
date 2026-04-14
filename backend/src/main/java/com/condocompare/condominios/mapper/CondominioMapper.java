@@ -41,6 +41,7 @@ public interface CondominioMapper {
     @Mapping(target = "sindicoId", ignore = true)
     void updateEntity(UpdateCondominioRequest request, @MappingTarget Condominio condominio);
 
+
     @Mapping(target = "endereco", expression = "java(toEnderecoResponse(condominio))")
     @Mapping(target = "caracteristicas", expression = "java(toCaracteristicasResponse(condominio))")
     @Mapping(target = "amenidades", expression = "java(toAmenidadesResponse(condominio))")
@@ -74,7 +75,9 @@ public interface CondominioMapper {
             c.getNumeroAndares(),
             c.getNumeroFuncionarios(),
             c.getAnoConstrucao(),
-            c.getTipoConstrucao()
+            c.getTipoConstrucao(),
+            c.getNumeroCasas(),
+            c.getNumeroSalas()
         );
     }
 
@@ -87,7 +90,21 @@ public interface CondominioMapper {
             c.getTemPlayground(),
             c.getTemChurrasqueira(),
             c.getTemQuadra(),
-            c.getTemPortaria24h()
+            c.getTemPortaria24h(),
+            // Estrutura estendida
+            c.getPossuiAreaComercial(),
+            c.getTamanhoAreaComercial(),
+            c.getNumFuncionariosRegistrados(),
+            c.getIdadeFuncionariosRegistrados(),
+            c.getNumPavimentos(),
+            c.getPossuiGaragem(),
+            c.getVagasGaragem(),
+            c.getEspacosConveniencia(),
+            c.getEspacosConvenienciaOutros(),
+            c.getSistemaProtecaoIncendio(),
+            c.getSistemaProtecaoIncendioOutros(),
+            c.getPossuiRecargaEletricos(),
+            c.getPossuiBicicletario()
         );
     }
 
@@ -104,7 +121,9 @@ public interface CondominioMapper {
         return new CondominioResponse.SeguroResponse(
             c.getVencimentoApolice(),
             c.getSeguradoraAtual(),
-            calcularDiasParaVencimento(c.getVencimentoApolice())
+            calcularDiasParaVencimento(c.getVencimentoApolice()),
+            c.getBonusAnosSemSinistro(),
+            c.getQuantidadeSinistros()
         );
     }
 

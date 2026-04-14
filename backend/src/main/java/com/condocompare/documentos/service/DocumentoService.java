@@ -48,6 +48,7 @@ public class DocumentoService {
     private final DocumentoMessagePublisher messagePublisher;
     private final PdfExtractionService pdfExtractionService;
     private final org.springframework.web.reactive.function.client.WebClient iaServiceWebClient;
+    private final com.condocompare.documentos.messaging.DocumentoMessageListener documentoMessageListener;
 
     private static final List<String> ALLOWED_MIME_TYPES = List.of(
         "application/pdf",
@@ -346,6 +347,20 @@ public class DocumentoService {
             documento.setStatus(StatusProcessamento.CONCLUIDO);
             documento.setErroProcessamento(null);
             documentoRepository.save(documento);
+
+            // 5. Atualizar dados do condomínio com info extraída
+            if (documento.getCondominioId() != null && dadosExtraidos.containsKey("condominio_data")) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> condominioData = (Map<String, Object>) dadosExtraidos.get("condominio_data");
+                    if (condominioData != null && !condominioData.isEmpty()) {
+                        documentoMessageListener.updateCondominioData(documento.getCondominioId(), condominioData);
+                        log.info("Condomínio atualizado com dados extraídos: id={}", documento.getCondominioId());
+                    }
+                } catch (Exception e) {
+                    log.warn("Falha ao atualizar condomínio com dados extraídos: {}", e.getMessage());
+                }
+            }
 
             log.info("=== REPROCESS CONCLUÍDO: id={}, premio={}, coberturas={} ===",
                 id, documento.getValorPremio(),
