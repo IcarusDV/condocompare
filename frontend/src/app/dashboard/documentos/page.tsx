@@ -46,7 +46,6 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import SyncIcon from '@mui/icons-material/Sync'
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import VisibilityIcon from '@mui/icons-material/Visibility'
-import FolderIcon from '@mui/icons-material/Folder'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import EditIcon from '@mui/icons-material/Edit'
 import RefreshIcon from '@mui/icons-material/Refresh'
@@ -216,11 +215,6 @@ export default function DocumentosPage() {
   }, [])
 
   const fetchData = useCallback(async () => {
-    if (!filters.condominioId) {
-      setData(null)
-      setLoading(false)
-      return
-    }
     try {
       setLoading(true)
       setError(null)
@@ -638,21 +632,8 @@ export default function DocumentosPage() {
         </Alert>
       )}
 
-      {/* No condominio selected message */}
-      {!filters.condominioId && (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <FolderIcon sx={{ fontSize: 48, color: 'grey.400', mb: 1 }} />
-          <Typography variant="h6" color="text.secondary">
-            Selecione um condominio para ver os documentos
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Use o filtro acima para escolher o condominio desejado.
-          </Typography>
-        </Paper>
-      )}
-
       {/* Table */}
-      {filters.condominioId && <Paper>
+      <Paper>
         <TableContainer>
           <Table>
             <TableHead>
@@ -884,7 +865,7 @@ export default function DocumentosPage() {
             `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
           }
         />
-      </Paper>}
+      </Paper>
 
       {/* Actions Menu */}
       <Menu

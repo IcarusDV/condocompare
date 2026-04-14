@@ -177,14 +177,10 @@ export default function CondominiosPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [exportAnchor, setExportAnchor] = useState<null | HTMLElement>(null)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' })
-  const [hasSearched, setHasSearched] = useState(() => {
-    return !!(searchParams.get('search') || searchParams.get('estado') || searchParams.get('cidade') || searchParams.get('tipoConstrucao') || searchParams.get('seguradora'))
-  })
-
   const queryFilter = useMemo(() => ({ ...filters, search: search || undefined }), [filters, search])
   const queryPagination = useMemo(() => ({ page, size: rowsPerPage, sort: 'nome,asc' }), [page, rowsPerPage])
 
-  const { data, isLoading: loading, error: queryError, refetch } = useCondominios(queryFilter, queryPagination, hasSearched)
+  const { data, isLoading: loading, error: queryError, refetch } = useCondominios(queryFilter, queryPagination, true)
   const deleteCondominio = useDeleteCondominio()
   const error = queryError ? 'Erro ao carregar condomínios. Tente novamente.' : null
 
@@ -223,13 +219,12 @@ export default function CondominiosPage() {
   }
 
   const handleSearchSubmit = () => {
-    if (search.trim()) setHasSearched(true)
+    // listagem é automática — mantido para compatibilidade com onClick do botão Buscar
   }
 
   const handleFilterChange = (key: keyof CondominioFilter, value: unknown) => {
     setFilters(prev => ({ ...prev, [key]: value || undefined }))
     setPage(0)
-    if (value) setHasSearched(true)
   }
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, id: string) => {
@@ -386,8 +381,7 @@ export default function CondominiosPage() {
       </Menu>
 
       {/* Stats Cards */}
-      {hasSearched && (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr' }, gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr' }, gap: 2, mb: 3 }}>
           {loading ? (
             Array.from({ length: 2 }).map((_, i) => (
               <Skeleton key={i} variant="rounded" height={88} />
@@ -415,7 +409,6 @@ export default function CondominiosPage() {
             </>
           )}
         </Box>
-      )}
 
       {/* Search and Filters */}
       <Paper sx={{ p: 2, mb: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -439,7 +432,6 @@ export default function CondominiosPage() {
             variant="contained"
             size="small"
             onClick={handleSearchSubmit}
-            disabled={!search.trim()}
           >
             Buscar
           </Button>
@@ -513,17 +505,6 @@ export default function CondominiosPage() {
       )}
 
       {/* Table */}
-      {!hasSearched ? (
-        <Paper sx={{ border: '1px solid', borderColor: 'divider', p: 6, textAlign: 'center' }}>
-          <SearchIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Busque por um condomínio
-          </Typography>
-          <Typography variant="body2" color="text.disabled">
-            Use a barra de busca acima para encontrar condomínios por nome, CNPJ ou cidade.
-          </Typography>
-        </Paper>
-      ) : (
       <Paper sx={{ border: '1px solid', borderColor: 'divider' }}>
         {/* Result count */}
         {data && !loading && (
@@ -747,7 +728,6 @@ export default function CondominiosPage() {
           />
         )}
       </Paper>
-      )}
 
       {/* Actions Menu */}
       <Menu
