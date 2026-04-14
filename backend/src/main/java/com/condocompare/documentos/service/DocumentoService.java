@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -642,31 +643,35 @@ public class DocumentoService {
                 .map(CoberturaDTO::valorLimite)
                 .reduce(BigDecimal.ZERO, BigDecimal::add) : null;
 
-        // Find common coverages (present in all quotes)
-        Set<String> coberturasComuns = new HashSet<>();
+        // Find common coverages (present in all quotes) — comparison is normalized,
+        // but display uses the original name from the first quote that introduced it.
+        Map<String, String> displayByKey = new LinkedHashMap<>();
+        Set<String> chavesComuns = new HashSet<>();
         if (!orcamentos.isEmpty() && !orcamentos.get(0).coberturas().isEmpty()) {
-            coberturasComuns = orcamentos.get(0).coberturas().stream()
-                .filter(CoberturaDTO::incluido)
-                .map(CoberturaDTO::nome)
-                .collect(Collectors.toSet());
+            chavesComuns = collectChavesCobertura(orcamentos.get(0), displayByKey);
 
             for (OrcamentoComparacaoDTO orc : orcamentos.subList(1, orcamentos.size())) {
-                Set<String> coberturas = orc.coberturas().stream()
-                    .filter(CoberturaDTO::incluido)
-                    .map(CoberturaDTO::nome)
-                    .collect(Collectors.toSet());
-                coberturasComuns.retainAll(coberturas);
+                Set<String> chaves = collectChavesCobertura(orc, displayByKey);
+                chavesComuns.retainAll(chaves);
+            }
+        } else {
+            for (OrcamentoComparacaoDTO orc : orcamentos) {
+                collectChavesCobertura(orc, displayByKey);
             }
         }
 
-        // Find exclusive coverages per quote
+        List<String> coberturasComuns = chavesComuns.stream()
+            .map(displayByKey::get)
+            .toList();
+
+        // Find exclusive coverages per quote (using normalized keys)
         Map<UUID, List<String>> coberturasExclusivas = new HashMap<>();
-        Set<String> finalCoberturasComuns = coberturasComuns;
+        Set<String> finalChavesComuns = chavesComuns;
         for (OrcamentoComparacaoDTO orc : orcamentos) {
             List<String> exclusivas = orc.coberturas().stream()
                 .filter(CoberturaDTO::incluido)
+                .filter(c -> !finalChavesComuns.contains(normalizeCoberturaNome(c.nome())))
                 .map(CoberturaDTO::nome)
-                .filter(nome -> !finalCoberturasComuns.contains(nome))
                 .toList();
             if (!exclusivas.isEmpty()) {
                 coberturasExclusivas.put(orc.id(), exclusivas);
@@ -687,6 +692,37 @@ public class DocumentoService {
             coberturasExclusivas,
             recomendacoes
         );
+    }
+
+    /**
+     * Coleta as chaves normalizadas das coberturas contratadas de um orçamento e
+     * registra o nome de display (primeira ocorrência) no map fornecido.
+     */
+    private Set<String> collectChavesCobertura(OrcamentoComparacaoDTO orc, Map<String, String> displayByKey) {
+        Set<String> chaves = new HashSet<>();
+        for (CoberturaDTO c : orc.coberturas()) {
+            if (!c.incluido() || c.nome() == null) continue;
+            String chave = normalizeCoberturaNome(c.nome());
+            if (chave.isEmpty()) continue;
+            chaves.add(chave);
+            displayByKey.putIfAbsent(chave, c.nome().trim());
+        }
+        return chaves;
+    }
+
+    /**
+     * Normaliza nome de cobertura para comparação: minúsculas, sem acentos,
+     * sem pontuação, espaços colapsados. "Incêndio, Raio" e "incendio raio" viram "incendio raio".
+     */
+    private String normalizeCoberturaNome(String nome) {
+        if (nome == null) return "";
+        String semAcento = Normalizer.normalize(nome, Normalizer.Form.NFD)
+            .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return semAcento
+            .toLowerCase(Locale.ROOT)
+            .replaceAll("[^a-z0-9\\s]", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
     }
 
     private List<RecomendacaoDTO> gerarRecomendacoes(

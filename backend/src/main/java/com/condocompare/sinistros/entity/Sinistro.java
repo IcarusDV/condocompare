@@ -9,7 +9,6 @@ import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -72,7 +71,7 @@ public class Sinistro extends BaseEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private List<Map<String, Object>> historico;
+    private List<HistoricoEvento> historico;
 
     @Column(name = "seguradora_protocolo", length = 100)
     private String seguradoraProtocolo;

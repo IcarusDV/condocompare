@@ -5,6 +5,7 @@ import com.condocompare.common.exception.ResourceNotFoundException;
 import com.condocompare.condominios.entity.Condominio;
 import com.condocompare.condominios.repository.CondominioRepository;
 import com.condocompare.sinistros.dto.*;
+import com.condocompare.sinistros.entity.HistoricoEvento;
 import com.condocompare.sinistros.entity.Sinistro;
 import com.condocompare.sinistros.entity.StatusSinistro;
 import com.condocompare.sinistros.entity.TipoSinistro;
@@ -57,11 +58,11 @@ public class SinistroService {
             .build();
 
         // Add initial event to history
-        Map<String, Object> evento = new HashMap<>();
-        evento.put("data", LocalDateTime.now().toString());
-        evento.put("descricao", "Sinistro aberto");
-        evento.put("usuario", currentUser.getName());
-        sinistro.getHistorico().add(evento);
+        sinistro.getHistorico().add(new HistoricoEvento(
+            LocalDateTime.now().toString(),
+            "Sinistro aberto",
+            currentUser.getName()
+        ));
 
         sinistro.setCreatedBy(currentUser.getId().toString());
         sinistro.setActive(true);
@@ -113,11 +114,11 @@ public class SinistroService {
             if (sinistro.getHistorico() == null) {
                 sinistro.setHistorico(new ArrayList<>());
             }
-            Map<String, Object> evento = new HashMap<>();
-            evento.put("data", LocalDateTime.now().toString());
-            evento.put("descricao", "Status alterado de " + oldStatus + " para " + request.status());
-            evento.put("usuario", currentUser.getName());
-            sinistro.getHistorico().add(evento);
+            sinistro.getHistorico().add(new HistoricoEvento(
+                LocalDateTime.now().toString(),
+                "Status alterado de " + oldStatus + " para " + request.status(),
+                currentUser.getName()
+            ));
         }
 
         sinistro.setUpdatedBy(currentUser.getId().toString());
@@ -146,11 +147,11 @@ public class SinistroService {
             sinistro.setHistorico(new ArrayList<>());
         }
 
-        Map<String, Object> evento = new HashMap<>();
-        evento.put("data", LocalDateTime.now().toString());
-        evento.put("descricao", request.descricao());
-        evento.put("usuario", currentUser.getName());
-        sinistro.getHistorico().add(evento);
+        sinistro.getHistorico().add(new HistoricoEvento(
+            LocalDateTime.now().toString(),
+            request.descricao(),
+            currentUser.getName()
+        ));
 
         sinistro.setUpdatedBy(currentUser.getId().toString());
 

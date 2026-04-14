@@ -42,7 +42,7 @@ public class VistoriaController {
 
     @GetMapping
     @Operation(summary = "Listar vistorias com filtros")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<Page<VistoriaListResponse>> findAll(
         @RequestParam(required = false) UUID condominioId,
         @RequestParam(required = false) TipoVistoria tipo,
@@ -125,7 +125,7 @@ public class VistoriaController {
 
     @GetMapping("/{id}/itens")
     @Operation(summary = "Listar itens do checklist da vistoria")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<List<VistoriaItem>> getItens(@PathVariable UUID id) {
         return ResponseEntity.ok(vistoriaService.getItens(id));
     }
@@ -173,7 +173,7 @@ public class VistoriaController {
 
     @GetMapping("/{id}/fotos")
     @Operation(summary = "Listar fotos da vistoria")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<List<VistoriaFoto>> getFotos(@PathVariable UUID id) {
         return ResponseEntity.ok(vistoriaService.getFotos(id));
     }

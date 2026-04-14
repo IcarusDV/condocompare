@@ -60,7 +60,7 @@ public class SinistroController {
 
     @GetMapping
     @Operation(summary = "Listar sinistros com filtros")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<Page<SinistroListResponse>> findAll(
         @RequestParam(required = false) UUID condominioId,
         @RequestParam(required = false) TipoSinistro tipo,
@@ -72,7 +72,7 @@ public class SinistroController {
 
     @GetMapping("/stats")
     @Operation(summary = "Estatísticas de sinistros")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA', 'ADMINISTRADORA', 'SINDICO')")
     public ResponseEntity<SinistroStatsResponse> getStats() {
         return ResponseEntity.ok(sinistroService.getStats());
     }
