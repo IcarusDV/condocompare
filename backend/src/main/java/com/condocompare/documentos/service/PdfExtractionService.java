@@ -158,10 +158,11 @@ public class PdfExtractionService {
             result.put("seguradoraNome", seguradoraNome);
         }
 
-        // Extract monetary values (premio) — prioriza valor no nome do arquivo
-        BigDecimal valorPremio = extractValorPremioDoFilename(filename);
+        // Extract monetary values (premio) — prioriza extração do conteúdo do PDF (IA real lê o documento).
+        // Filename é apenas fallback se o texto não tiver valor identificável.
+        BigDecimal valorPremio = extractValorPremio(text);
         if (valorPremio == null) {
-            valorPremio = extractValorPremio(text);
+            valorPremio = extractValorPremioDoFilename(filename);
         }
         if (valorPremio != null) {
             result.put("valorPremio", valorPremio);
@@ -275,6 +276,51 @@ public class PdfExtractionService {
     }
 
     private BigDecimal extractValorPremio(String text) {
+        // Strategy 0a: Tokio/Bradesco — tabela "Parcelas Parcela Juros Total" com o mesmo
+        // valor repetido na coluna Total (linhas sem juros). Conta valores repetidos e
+        // pega o que aparece pelo menos 6 vezes consecutivas (1x..6x sem juros).
+        Pattern repeatedTotal = Pattern.compile("(?i)parcelas?\\s*parcela\\s*\\(R\\$\\)\\s*juros\\s*\\(%\\)\\s*total\\s*\\(R\\$\\)([\\s\\S]{0,2000})");
+        Matcher rt = repeatedTotal.matcher(text);
+        if (rt.find()) {
+            String bloco = rt.group(1);
+            // Conta ocorrências de cada valor monetário no bloco
+            Matcher valMatcher = Pattern.compile("([\\d]{1,3}(?:\\.[\\d]{3})*,[\\d]{2})").matcher(bloco);
+            Map<String, Integer> contagem = new HashMap<>();
+            while (valMatcher.find()) {
+                String v = valMatcher.group(1);
+                contagem.merge(v, 1, Integer::sum);
+            }
+            // Pega o valor mais repetido (>= 4 ocorrências) com maior valor numérico
+            BigDecimal melhor = null;
+            int melhorContagem = 0;
+            for (Map.Entry<String, Integer> e : contagem.entrySet()) {
+                if (e.getValue() >= 4) {
+                    BigDecimal v = parseBrazilianMoney(e.getKey());
+                    if (v != null && v.compareTo(new BigDecimal("100")) > 0
+                        && (e.getValue() > melhorContagem
+                            || (e.getValue() == melhorContagem && melhor != null && v.compareTo(melhor) < 0))) {
+                        melhor = v;
+                        melhorContagem = e.getValue();
+                    }
+                }
+            }
+            if (melhor != null) return melhor;
+        }
+
+        // Strategy 0: Layout tabular "Prêmio Líquido IOF Prêmio Total" seguido de 3 valores em linha.
+        // Captura o 3º valor (Prêmio Total). Comum em Chubb, Bradesco, etc.
+        Pattern tabular3Cols = Pattern.compile(
+            "(?is)pr[êe]mio\\s*l[íi]quido\\s+iof\\s+pr[êe]mio\\s*total[\\s\\S]{0,200}?" +
+            "([\\d.]+,[\\d]{2})\\s+([\\d.]+,[\\d]{2})\\s+([\\d.]+,[\\d]{2})"
+        );
+        Matcher t3 = tabular3Cols.matcher(text);
+        if (t3.find()) {
+            BigDecimal val = parseBrazilianMoney(t3.group(3));
+            if (val != null && val.compareTo(new BigDecimal("100")) > 0) {
+                return val;
+            }
+        }
+
         // Strategy 1: Look for explicit "Total a pagar" or "Prêmio Total" (includes IOF)
         Pattern[] totalPatterns = {
                 Pattern.compile("(?i)total\\s+a\\s+pagar\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
@@ -309,7 +355,8 @@ public class PdfExtractionService {
             liquido = parseBrazilianMoney(lm.group(1));
         }
 
-        Pattern iofPattern = Pattern.compile("(?i)(?:IOF|valor\\s+do\\s+IOF)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})");
+        // IOF: exige R$ ou contexto de valor monetário; rejeita formatos de alíquota (ex: "IOF: 7,38%")
+        Pattern iofPattern = Pattern.compile("(?i)(?:valor\\s+do\\s+IOF|IOF\\s*[\\-:]?\\s*R\\$)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})(?!\\s*%)");
         Matcher im = iofPattern.matcher(text);
         if (im.find()) {
             iof = parseBrazilianMoney(im.group(1));

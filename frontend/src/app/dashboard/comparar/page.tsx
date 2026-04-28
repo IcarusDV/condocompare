@@ -57,6 +57,7 @@ import Looks3Icon from '@mui/icons-material/Looks3'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import SearchIcon from '@mui/icons-material/Search'
 import HistoryIcon from '@mui/icons-material/History'
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
 import { useRouter } from 'next/navigation'
@@ -221,6 +222,7 @@ export default function CompararPage() {
   const [loadingCondominios, setLoadingCondominios] = useState(true)
   const [loadingOrcamentos, setLoadingOrcamentos] = useState(false)
   const [loadingComparacao, setLoadingComparacao] = useState(false)
+  const [reprocessandoIa, setReprocessandoIa] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [iaAnalise, setIaAnalise] = useState<string | null>(null)
   const [iaLoading, setIaLoading] = useState(false)
@@ -294,6 +296,33 @@ export default function CompararPage() {
       if (prev.length >= 5) return prev
       return [...prev, id]
     })
+  }
+
+  const handleReprocessarTudoComIa = async () => {
+    if (orcamentos.length === 0) return
+    setReprocessandoIa(true)
+    setError(null)
+    try {
+      const ids = orcamentos.map(o => o.id)
+      // Reprocessa em sequência para não sobrecarregar a IA
+      for (const id of ids) {
+        try {
+          await documentoService.reprocess(id)
+        } catch (e) {
+          console.error('Falha ao reprocessar', id, e)
+        }
+      }
+      // Recarrega lista de orçamentos com dadosExtraidos atualizados
+      const refreshed = await documentoService.listByCondominioAndTipo(selectedCondominio, 'ORCAMENTO')
+      setOrcamentos(refreshed)
+      setComparacao(null)
+      setSnackbar({ open: true, message: 'Orçamentos re-extraídos com IA. Selecione e compare novamente.', severity: 'success' })
+    } catch (err) {
+      console.error('Erro no reprocessamento em massa:', err)
+      setError('Erro ao re-extrair orçamentos com IA')
+    } finally {
+      setReprocessandoIa(false)
+    }
   }
 
   const handleComparar = async () => {
@@ -697,9 +726,21 @@ export default function CompararPage() {
                 <Chip label={`${orcamentos.length} encontrado${orcamentos.length > 1 ? 's' : ''}`} size="small" variant="outlined" />
               )}
             </Box>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
               {selectedOrcamentos.length > 0 && (
                 <Chip label={`${selectedOrcamentos.length} selecionado${selectedOrcamentos.length > 1 ? 's' : ''}`} color="primary" size="small" />
+              )}
+              {orcamentos.length > 0 && (
+                <Button
+                  variant="outlined"
+                  startIcon={reprocessandoIa ? <CircularProgress size={16} /> : <AutoFixHighIcon />}
+                  onClick={handleReprocessarTudoComIa}
+                  disabled={reprocessandoIa}
+                  size="small"
+                  sx={{ borderColor: '#a855f7', color: '#7e22ce' }}
+                >
+                  {reprocessandoIa ? 'Re-extraindo com IA...' : 'Re-extrair com IA'}
+                </Button>
               )}
               <Button
                 variant="contained"
