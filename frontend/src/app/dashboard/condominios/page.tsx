@@ -323,7 +323,7 @@ export default function CondominiosPage() {
             onClick={(e) => setExportAnchor(e.currentTarget)}
             disabled={!data?.content.length}
           >
-            Exportar
+            Relatório
           </Button>
           {canEdit && (
             <Button
