@@ -147,4 +147,16 @@ public class ParceiroController {
     }
 
     public record CategoriaResponse(String codigo, String descricao) {}
+
+    public record OfertaIaRequest(UUID condominioId) {}
+    public record OfertaIaResponse(String texto) {}
+
+    @PostMapping("/{id}/oferta-ia")
+    public ResponseEntity<OfertaIaResponse> gerarOfertaIa(
+        @PathVariable UUID id,
+        @RequestBody OfertaIaRequest request
+    ) {
+        String texto = parceiroService.gerarOfertaComIA(id, request.condominioId());
+        return ResponseEntity.ok(new OfertaIaResponse(texto));
+    }
 }

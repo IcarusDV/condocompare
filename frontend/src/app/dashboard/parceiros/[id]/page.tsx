@@ -13,6 +13,7 @@ import {
   Skeleton,
   Rating,
   Avatar,
+  CircularProgress,
   Tooltip,
   Divider,
   IconButton,
@@ -72,67 +73,7 @@ import {
   CategoriaParceiro,
   CATEGORIAS_PARCEIRO,
   CondominioListResponse,
-  CondominioResponse,
 } from '@/types'
-
-/**
- * Gera um texto de oferta personalizada com base nas categorias do parceiro
- * cruzando com as características do condomínio.
- */
-function gerarOfertaTexto(p: ParceiroResponse, c: CondominioResponse): string {
-  const cats = (p.categorias || []).map((cat) => cat.toString())
-  const car = c.caracteristicas
-  const am = c.amenidades
-  const detalhes: string[] = []
-
-  if (cats.some((cat) => /elevador/i.test(cat)) && car.numeroElevadores) {
-    detalhes.push(`• Manutenção de ${car.numeroElevadores} elevador(es) — manutenção preventiva mensal`)
-  }
-  if (cats.some((cat) => /el[ée]trica|el[ée]trico/i.test(cat))) {
-    detalhes.push(`• Inspeção elétrica completa para edificação${car.anoConstrucao ? ` de ${new Date().getFullYear() - car.anoConstrucao} anos` : ''}`)
-  }
-  if (cats.some((cat) => /hidr[áa]ulic/i.test(cat))) {
-    detalhes.push('• Diagnóstico hidráulico — vazamentos, ralos, bombas e reservatório')
-  }
-  if (cats.some((cat) => /limpeza/i.test(cat))) {
-    detalhes.push(`• Limpeza completa de áreas comuns${car.areaConstruida ? ` (${car.areaConstruida} m²)` : ''}`)
-  }
-  if (cats.some((cat) => /portaria|seguran[çc]a/i.test(cat))) {
-    detalhes.push('• Avaliação de portaria 24h e CFTV — incluindo fluxo de entrada e saída')
-  }
-  if (cats.some((cat) => /jardim|paisag/i.test(cat))) {
-    detalhes.push('• Manutenção mensal de áreas verdes e jardins')
-  }
-  if (cats.some((cat) => /pintura|pintor/i.test(cat))) {
-    detalhes.push('• Avaliação de pintura externa e interna — fachada e áreas comuns')
-  }
-  if (cats.some((cat) => /sinistro|inc[êe]ndio|fogo/i.test(cat))) {
-    detalhes.push('• Inspeção do sistema de combate a incêndio (extintores, hidrantes, sprinklers)')
-  }
-  if (cats.some((cat) => /piscina/i.test(cat)) && am.temPiscina) {
-    detalhes.push('• Tratamento e manutenção semanal da piscina')
-  }
-  if (cats.some((cat) => /advoc/i.test(cat))) {
-    detalhes.push('• Assessoria jurídica condominial — revisão de convenção, regimento e contratos')
-  }
-
-  if (detalhes.length === 0) {
-    detalhes.push('• Atendimento personalizado conforme as necessidades do condomínio')
-  }
-
-  return [
-    `Oferta para ${c.nome}`,
-    car.numeroUnidades ? `(${car.numeroUnidades} unidades` + (car.numeroBlocos ? `, ${car.numeroBlocos} bloco(s)` : '') + ')' : '',
-    '',
-    `${p.nomeFantasia || p.nome} oferece o seguinte pacote para o seu condomínio:`,
-    '',
-    ...detalhes,
-    '',
-    p.contatoNome ? `Contato: ${p.contatoNome}` + (p.contatoCargo ? ` (${p.contatoCargo})` : '') : '',
-    p.telefone ? `Telefone: ${p.telefone}` : '',
-    p.email ? `E-mail: ${p.email}` : '',
-  ].filter(Boolean).join('\n')
-}
 
 // ─── Category helpers ──────────────────────────────────────────
 
@@ -192,8 +133,8 @@ export default function ParceiroDetalhePage() {
   const [ofertaDialogOpen, setOfertaDialogOpen] = useState(false)
   const [ofertaCondominios, setOfertaCondominios] = useState<CondominioListResponse[]>([])
   const [ofertaCondominioId, setOfertaCondominioId] = useState<string>('')
-  const [ofertaCondominioFull, setOfertaCondominioFull] = useState<CondominioResponse | null>(null)
   const [ofertaTexto, setOfertaTexto] = useState<string>('')
+  const [ofertaLoading, setOfertaLoading] = useState(false)
 
   const loadParceiro = useCallback(async () => {
     try {
@@ -221,19 +162,20 @@ export default function ParceiroDetalhePage() {
       .catch((err) => console.error('Erro ao listar condominios:', err))
   }, [ofertaDialogOpen, ofertaCondominios.length])
 
-  // Carrega detalhes do condominio escolhido
+  // Gera oferta com IA quando condomínio é selecionado
   useEffect(() => {
-    if (!ofertaCondominioId) {
-      setOfertaCondominioFull(null)
+    if (!ofertaCondominioId || !parceiro) {
       setOfertaTexto('')
       return
     }
-    condominioService.getById(ofertaCondominioId)
-      .then((c) => {
-        setOfertaCondominioFull(c)
-        if (parceiro) setOfertaTexto(gerarOfertaTexto(parceiro, c))
+    setOfertaLoading(true)
+    parceiroService.gerarOfertaIA(parceiro.id, ofertaCondominioId)
+      .then((texto) => setOfertaTexto(texto))
+      .catch((err) => {
+        console.error('Erro ao gerar oferta:', err)
+        setOfertaTexto('Não foi possível gerar a oferta. Tente novamente em instantes.')
       })
-      .catch((err) => console.error('Erro ao buscar condominio:', err))
+      .finally(() => setOfertaLoading(false))
   }, [ofertaCondominioId, parceiro])
 
   const handleDelete = async () => {
@@ -645,7 +587,15 @@ export default function ParceiroDetalhePage() {
               ))}
             </Select>
           </FormControl>
-          {ofertaCondominioFull && (
+          {ofertaLoading && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 3 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2" color="text.secondary">
+                Gerando oferta com IA...
+              </Typography>
+            </Box>
+          )}
+          {!ofertaLoading && ofertaCondominioId && (
             <TextField
               fullWidth
               multiline
@@ -653,7 +603,7 @@ export default function ParceiroDetalhePage() {
               value={ofertaTexto}
               onChange={(e) => setOfertaTexto(e.target.value)}
               label="Texto da oferta (editável)"
-              helperText="Edite livremente antes de copiar ou enviar."
+              helperText="Gerado por IA — edite livremente antes de copiar ou enviar."
             />
           )}
         </DialogContent>

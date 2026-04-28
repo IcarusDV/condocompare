@@ -130,6 +130,14 @@ export const parceiroService = {
     )
     return response.data
   },
+
+  async gerarOfertaIA(parceiroId: string, condominioId: string): Promise<string> {
+    const response = await api.post<{ texto: string }>(
+      `${BASE_URL}/${parceiroId}/oferta-ia`,
+      { condominioId }
+    )
+    return response.data.texto
+  },
 }
 
 export default parceiroService

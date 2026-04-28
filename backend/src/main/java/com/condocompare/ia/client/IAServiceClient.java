@@ -208,6 +208,27 @@ public class IAServiceClient {
         }
     }
 
+    /**
+     * Gera oferta personalizada de um parceiro para um condomínio via IA.
+     * Recebe um payload com `parceiro` e `condominio` (estrutura conforme ia-service/parceiros.py).
+     */
+    public String gerarOfertaParceiro(Map<String, Object> payload) {
+        try {
+            Map<String, Object> response = iaServiceWebClient.post()
+                .uri("/parceiros/oferta")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(payload)
+                .retrieve()
+                .bodyToMono(new org.springframework.core.ParameterizedTypeReference<Map<String, Object>>() {})
+                .timeout(Duration.ofSeconds(60))
+                .block();
+            return response != null ? (String) response.get("texto") : null;
+        } catch (Exception e) {
+            log.error("Erro ao gerar oferta de parceiro: {}", e.getMessage());
+            throw new RuntimeException("Erro ao gerar oferta com IA: " + e.getMessage());
+        }
+    }
+
     public String generateReport(Map<String, Object> reportRequest) {
         try {
             Map<String, Object> response = iaServiceWebClient.post()

@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api import documents, chat, diagnostico, rag, vistoria, reports
+from src.api import documents, chat, diagnostico, rag, vistoria, reports, parceiros
 from src.config import settings
 
 
@@ -38,6 +38,7 @@ app.include_router(diagnostico.router, prefix="/api/v1/diagnostico", tags=["diag
 app.include_router(rag.router, prefix="/api/v1/rag", tags=["rag"])
 app.include_router(vistoria.router, prefix="/api/v1/vistoria", tags=["vistoria"])
 app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
+app.include_router(parceiros.router, prefix="/api/v1/parceiros", tags=["parceiros"])
 
 
 @app.get("/health")

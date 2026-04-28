@@ -26,6 +26,7 @@ import {
   CardContent,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CancelIcon from '@mui/icons-material/Cancel'
 import WarningIcon from '@mui/icons-material/Warning'
@@ -90,6 +91,10 @@ export default function VistoriaDetalhePage() {
 
   // Laudo dialog
   const [laudoDialogOpen, setLaudoDialogOpen] = useState(false)
+
+  // Delete dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Share link
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -207,6 +212,19 @@ export default function VistoriaDetalhePage() {
     } catch (err) {
       console.error('Error deleting foto:', err)
       setError('Erro ao remover foto')
+    }
+  }
+
+  const handleDeleteVistoria = async () => {
+    try {
+      setDeleting(true)
+      await vistoriaService.delete(id)
+      router.push('/dashboard/vistorias')
+    } catch (err) {
+      console.error('Error deleting vistoria:', err)
+      setError('Erro ao excluir vistoria')
+      setDeleting(false)
+      setDeleteDialogOpen(false)
     }
   }
 
@@ -341,7 +359,29 @@ export default function VistoriaDetalhePage() {
             />
           </Box>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          {vistoria.status === 'AGENDADA' && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleUpdateStatus('EM_ANDAMENTO')}
+              disabled={saving}
+              sx={{ bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}
+            >
+              Iniciar Vistoria
+            </Button>
+          )}
+          {vistoria.status === 'EM_ANDAMENTO' && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => handleUpdateStatus('CONCLUIDA')}
+              disabled={saving}
+              sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
+            >
+              Concluir Vistoria
+            </Button>
+          )}
           {vistoria.sharedToken ? (
             <Button
               variant="outlined"
@@ -365,6 +405,15 @@ export default function VistoriaDetalhePage() {
               {generatingLink ? 'Gerando...' : 'Gerar Link'}
             </Button>
           )}
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            startIcon={<DeleteOutlineIcon />}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            Excluir
+          </Button>
         </Box>
       </Box>
 
@@ -816,6 +865,22 @@ export default function VistoriaDetalhePage() {
           </Box>
         )}
       </Paper>
+
+      {/* Delete Vistoria Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => !deleting && setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Excluir Vistoria</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Tem certeza que deseja excluir esta vistoria? Esta ação não pode ser desfeita.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>Cancelar</Button>
+          <Button onClick={handleDeleteVistoria} disabled={deleting} color="error" variant="contained">
+            {deleting ? 'Excluindo...' : 'Excluir'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Laudo Full Dialog */}
       <Dialog open={laudoDialogOpen} onClose={() => setLaudoDialogOpen(false)} maxWidth="md" fullWidth>

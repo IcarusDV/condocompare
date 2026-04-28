@@ -1,5 +1,8 @@
 package com.condocompare.parceiros.service;
 
+import com.condocompare.condominios.entity.Condominio;
+import com.condocompare.condominios.repository.CondominioRepository;
+import com.condocompare.ia.client.IAServiceClient;
 import com.condocompare.parceiros.dto.*;
 import com.condocompare.parceiros.entity.CategoriaParceiro;
 import com.condocompare.parceiros.entity.Parceiro;
@@ -19,9 +22,17 @@ import java.util.*;
 public class ParceiroService {
 
     private final ParceiroRepository parceiroRepository;
+    private final CondominioRepository condominioRepository;
+    private final IAServiceClient iaServiceClient;
 
-    public ParceiroService(ParceiroRepository parceiroRepository) {
+    public ParceiroService(
+        ParceiroRepository parceiroRepository,
+        CondominioRepository condominioRepository,
+        IAServiceClient iaServiceClient
+    ) {
         this.parceiroRepository = parceiroRepository;
+        this.condominioRepository = condominioRepository;
+        this.iaServiceClient = iaServiceClient;
     }
 
     @Transactional
@@ -189,5 +200,61 @@ public class ParceiroService {
         parceiro.setContatoCargo(request.contatoCargo());
         parceiro.setObservacoes(request.observacoes());
         parceiro.setLogoUrl(request.logoUrl());
+    }
+
+    /**
+     * Gera oferta personalizada do parceiro para o condomínio chamando o ia-service.
+     */
+    public String gerarOfertaComIA(UUID parceiroId, UUID condominioId) {
+        Parceiro parceiro = parceiroRepository.findById(parceiroId)
+            .orElseThrow(() -> new EntityNotFoundException("Parceiro não encontrado: " + parceiroId));
+        Condominio cond = condominioRepository.findById(condominioId)
+            .orElseThrow(() -> new EntityNotFoundException("Condomínio não encontrado: " + condominioId));
+
+        Map<String, Object> parceiroPayload = new HashMap<>();
+        parceiroPayload.put("nome", parceiro.getNome());
+        parceiroPayload.put("nomeFantasia", parceiro.getNomeFantasia());
+        parceiroPayload.put("categorias", parceiro.getCategorias() != null
+            ? parceiro.getCategorias().stream().map(Enum::name).toList()
+            : List.of());
+        parceiroPayload.put("descricaoServicos", parceiro.getDescricaoServicos());
+        parceiroPayload.put("areaAtuacao", parceiro.getAreaAtuacao());
+        parceiroPayload.put("contatoNome", parceiro.getContatoNome());
+        parceiroPayload.put("contatoCargo", parceiro.getContatoCargo());
+        parceiroPayload.put("telefone", parceiro.getTelefone());
+        parceiroPayload.put("email", parceiro.getEmail());
+
+        Map<String, Object> amen = new HashMap<>();
+        amen.put("temPiscina", cond.getTemPiscina());
+        amen.put("temAcademia", cond.getTemAcademia());
+        amen.put("temSalaoFestas", cond.getTemSalaoFestas());
+        amen.put("temPlayground", cond.getTemPlayground());
+        amen.put("temChurrasqueira", cond.getTemChurrasqueira());
+        amen.put("temQuadra", cond.getTemQuadra());
+        amen.put("temPortaria24h", cond.getTemPortaria24h());
+        amen.put("possuiGaragem", cond.getPossuiGaragem());
+        amen.put("possuiBicicletario", cond.getPossuiBicicletario());
+
+        Map<String, Object> condPayload = new HashMap<>();
+        condPayload.put("nome", cond.getNome());
+        condPayload.put("cnpj", cond.getCnpj());
+        condPayload.put("cidade", cond.getCidade());
+        condPayload.put("estado", cond.getEstado());
+        condPayload.put("tipoConstrucao", cond.getTipoConstrucao() != null ? cond.getTipoConstrucao().name() : null);
+        condPayload.put("numeroUnidades", cond.getNumeroUnidades());
+        condPayload.put("numeroBlocos", cond.getNumeroBlocos());
+        condPayload.put("numeroAndares", cond.getNumeroAndares());
+        condPayload.put("numeroElevadores", cond.getNumeroElevadores());
+        condPayload.put("areaConstruida", cond.getAreaConstruida());
+        condPayload.put("anoConstrucao", cond.getAnoConstrucao());
+        condPayload.put("numeroFuncionarios", cond.getNumeroFuncionarios());
+        condPayload.put("amenidades", amen);
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("parceiro", parceiroPayload);
+        payload.put("condominio", condPayload);
+
+        String texto = iaServiceClient.gerarOfertaParceiro(payload);
+        return texto != null ? texto : "Não foi possível gerar a oferta neste momento. Tente novamente.";
     }
 }
