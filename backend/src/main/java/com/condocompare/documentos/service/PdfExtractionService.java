@@ -158,8 +158,11 @@ public class PdfExtractionService {
             result.put("seguradoraNome", seguradoraNome);
         }
 
-        // Extract monetary values (premio)
-        BigDecimal valorPremio = extractValorPremio(text);
+        // Extract monetary values (premio) — prioriza valor no nome do arquivo
+        BigDecimal valorPremio = extractValorPremioDoFilename(filename);
+        if (valorPremio == null) {
+            valorPremio = extractValorPremio(text);
+        }
         if (valorPremio != null) {
             result.put("valorPremio", valorPremio);
         }
@@ -216,33 +219,58 @@ public class PdfExtractionService {
             }
         }
 
-        // Priority 2: Look for seguradora near explicit labels like "Seguradora:", "Cia de Seguros:", SUSEP
+        // Priority 2: Procurar a primeira seguradora CONHECIDA no texto, contando ocorrências
+        // (a cia que aparece mais vezes no PDF é provavelmente a emissora — texto de outras
+        // seguradoras pode aparecer como referência/comparação).
+        String lowerText = text.toLowerCase();
+        String melhor = null;
+        int melhorContagem = 0;
+        for (String seg : SEGURADORAS) {
+            String alvo = seg.toLowerCase();
+            int contagem = 0;
+            int idx = 0;
+            while ((idx = lowerText.indexOf(alvo, idx)) != -1) {
+                contagem++;
+                idx += alvo.length();
+            }
+            if (contagem > melhorContagem) {
+                melhorContagem = contagem;
+                melhor = seg;
+            }
+        }
+        if (melhor != null) return melhor;
+
+        // Priority 3: Label explícito como fallback (mas só se contiver uma cia conhecida)
         Pattern labelPattern = Pattern.compile(
-                "(?i)(?:seguradora|companhia de seguros|cia\\.? de seguros|seguros s[./]a|c[óo]digo\\s*susep)\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s&.]+)",
+                "(?i)(?:seguradora|companhia de seguros|cia\\.? de seguros|seguros s[./]a)\\s*:?\\s*([A-ZÀ-Ú][A-Za-zÀ-ú\\s&.]{3,60})",
                 Pattern.UNICODE_CHARACTER_CLASS);
         Matcher m = labelPattern.matcher(text);
         if (m.find()) {
             String found = m.group(1).trim().replaceAll("\\s+", " ");
-            if (found.length() > 3 && found.length() < 80) {
-                // Check if the found text contains a known seguradora name
-                String lowerFound = found.toLowerCase();
-                for (String seg : SEGURADORAS) {
-                    if (lowerFound.contains(seg.toLowerCase())) {
-                        return seg;
-                    }
+            String lowerFound = found.toLowerCase();
+            for (String seg : SEGURADORAS) {
+                if (lowerFound.contains(seg.toLowerCase())) {
+                    return seg;
                 }
-                return found;
             }
         }
 
-        // Priority 3: Check full text for known seguradoras (first match)
-        String lowerText = text.toLowerCase();
-        for (String seg : SEGURADORAS) {
-            if (lowerText.contains(seg.toLowerCase())) {
-                return seg;
-            }
-        }
+        return null;
+    }
 
+    /**
+     * Extrai valor do prêmio do nome do arquivo quando o usuário usa o padrão
+     * "Seguradora - R$X.XXX,XX.pdf" (muito comum nos uploads). Mais confiável que
+     * regex no texto, porque o PDF pode ter vários valores (parcelas, planos, etc.).
+     */
+    private BigDecimal extractValorPremioDoFilename(String filename) {
+        if (filename == null) return null;
+        Pattern p = Pattern.compile("R?\\$?\\s*([\\d.]+,[\\d]{2})");
+        Matcher m = p.matcher(filename);
+        if (m.find()) {
+            BigDecimal v = parseBrazilianMoney(m.group(1));
+            if (v != null && v.compareTo(new BigDecimal("100")) > 0) return v;
+        }
         return null;
     }
 
@@ -319,8 +347,16 @@ public class PdfExtractionService {
         Pattern[] patterns = {
                 // "Vigência: das 24h do dia 12/12/2024 às 24h do dia 12/12/2025"
                 Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*(?:das\\s*)?(?:\\d+h\\s*)?(?:do\\s*)?dia\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                // Allianz: "Vigência: das 24H de 12/12/2025 às 24H de 12/12/2026"
+                Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*das\\s*\\d+h\\s*de\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 // "De 12/12/2025 até 12/12/2026" or "De 12/12/2025 a 12/12/2026"
                 Pattern.compile("(?i)\\bde\\s+(\\d{2}/\\d{2}/\\d{4})\\s*(?:até|ate|a)\\s*\\d{2}/\\d{2}/\\d{4}"),
+                // HDI: "12/12/2025 até 12/12/2026" (sem "de" antes)
+                Pattern.compile("(?i)(\\d{2}/\\d{2}/\\d{4})\\s+(?:até|ate)\\s+\\d{2}/\\d{2}/\\d{4}"),
+                // AXA: "Início de vigência: 12/12/2025"
+                Pattern.compile("(?i)in[íi]cio\\s*de\\s*vig[êe]ncia\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                // Chubb: layout tabular "Inicio de Vigência ... <linha> 12/12/2025 12/12/2026"
+                Pattern.compile("(?is)in[íi]cio\\s*de\\s*vig[êe]ncia.{0,250}?\\b(\\d{2}/\\d{2}/\\d{4})\\b\\s*\\d{2}/\\d{2}/\\d{4}"),
                 Pattern.compile("(?i)(?:in[íi]cio\\s*(?:da\\s*)?vig[êe]ncia|vig[êe]ncia\\s*(?:de|a\\s*partir\\s*de|in[íi]cio))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)(?:in[íi]cio|vigente\\s+(?:a\\s+partir|desde))\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})\\s*(?:a|até|ate|-)\\s*\\d{2}/\\d{2}/\\d{4}"),
@@ -340,8 +376,16 @@ public class PdfExtractionService {
         Pattern[] patterns = {
                 // "das 24h do dia DD/MM/YYYY às 24h do dia DD/MM/YYYY"
                 Pattern.compile("(?i)das\\s*\\d+h\\s*do\\s*dia\\s*\\d{2}/\\d{2}/\\d{4}\\s*[àa]s\\s*\\d+h\\s*do\\s*dia\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                // Allianz: "das 24H de DD/MM/YYYY às 24H de DD/MM/YYYY"
+                Pattern.compile("(?i)das\\s*\\d+h\\s*de\\s*\\d{2}/\\d{2}/\\d{4}\\s*[àa]s\\s*\\d+h\\s*de\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 // "De 12/12/2025 até 12/12/2026"
                 Pattern.compile("(?i)\\bde\\s+\\d{2}/\\d{2}/\\d{4}\\s*(?:até|ate|a)\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                // HDI: "12/12/2025 até 12/12/2026" (sem "de" antes)
+                Pattern.compile("(?i)\\d{2}/\\d{2}/\\d{4}\\s+(?:até|ate)\\s+(\\d{2}/\\d{2}/\\d{4})"),
+                // AXA: "Fim de vigência: 12/12/2026"
+                Pattern.compile("(?i)fim\\s*de\\s*vig[êe]ncia\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
+                // Chubb: layout tabular "Inicio de Vigência ... <linha> 12/12/2025 12/12/2026"
+                Pattern.compile("(?is)in[íi]cio\\s*de\\s*vig[êe]ncia.{0,250}?\\b\\d{2}/\\d{2}/\\d{4}\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)(?:t[ée]rmino|vencimento|fim)\\s*(?:da\\s*)?(?:vig[êe]ncia)?\\s*:?\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)vig[êe]ncia\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
                 Pattern.compile("(?i)per[íi]odo\\s*:?\\s*\\d{2}/\\d{2}/\\d{4}\\s*(?:a|até|ate|-)\\s*(\\d{2}/\\d{2}/\\d{4})"),
@@ -504,14 +548,20 @@ public class PdfExtractionService {
         String lowerText = text.toLowerCase();
         int maxParcelasSemJuros = 0;
 
-        // Strategy 1: HDI style "6x - 1.053,20" - take the FIRST Nx (sem juros row)
-        // HDI shows: 6x sem juros, then 10x com juros
-        Pattern hdiPattern = Pattern.compile("(?i)(\\d+)x\\s*-\\s*[\\d.,]+");
-        Matcher hm = hdiPattern.matcher(text);
-        if (hm.find()) {
+        // Strategy 1: HDI tabela "Nx - VALOR1 VALOR2 - VALOR3...".
+        // Quando VALOR1 == VALOR2 a linha é SEM juros — pega o maior N que satisfaz.
+        Pattern hdiTabela = Pattern.compile("(?i)(\\d+)x\\s*-\\s*([\\d.]+,[\\d]{2})\\s+([\\d.]+,[\\d]{2})");
+        Matcher hm = hdiTabela.matcher(text);
+        int hdiMaxSemJuros = 0;
+        while (hm.find()) {
             int n = Integer.parseInt(hm.group(1));
-            if (n >= 2 && n <= 12) maxParcelasSemJuros = n;
+            String v1 = hm.group(2);
+            String v2 = hm.group(3);
+            if (n >= 1 && n <= 12 && v1.equals(v2) && n > hdiMaxSemJuros) {
+                hdiMaxSemJuros = n;
+            }
         }
+        if (hdiMaxSemJuros > maxParcelasSemJuros) maxParcelasSemJuros = hdiMaxSemJuros;
 
         // Strategy 2: AXA style "0 + N boleto" - count how many unique "boleto" options
         // AXA shows plans: "1 + 5 boleto" = 6 parcelas. Take first block (sem juros)
