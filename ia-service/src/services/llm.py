@@ -309,6 +309,15 @@ def format_condominio_data(data: Dict[str, Any]) -> str:
         lines.append(f"- Area Construida: {data['areaConstruida']} m2")
     if data.get("anoConstrucao"):
         lines.append(f"- Ano Construcao: {data['anoConstrucao']}")
+    if data.get("anoFundacaoCNPJ") and not data.get("anoConstrucao"):
+        idade = data.get("idadeViaCNPJ") or "N/A"
+        lines.append(
+            f"- Ano de fundacao do CNPJ (Receita Federal): {data['anoFundacaoCNPJ']} "
+            f"(~{idade} anos) — usar como referencia da idade da edificacao quando o ano "
+            f"de construcao nao foi informado"
+        )
+    if data.get("cnpj"):
+        lines.append(f"- CNPJ: {data['cnpj']}")
 
     amenidades = []
     if data.get("temPiscina"):

@@ -134,6 +134,27 @@ async def diagnostico_condominio(request: DiagnosticoRequest):
             if not condominio_nome and request.dados_condominio.get("nome"):
                 condominio_nome = request.dados_condominio["nome"]
 
+        # Se não há ano de construção mas há CNPJ, busca data de fundação na Receita Federal (BrasilAPI).
+        # Usado pela IA como referência da idade da edificação para ajustar coberturas.
+        cnpj = condominio_data.get("cnpj")
+        if cnpj and not condominio_data.get("anoConstrucao"):
+            try:
+                cnpj_clean = "".join(c for c in cnpj if c.isdigit())
+                if len(cnpj_clean) == 14:
+                    async with httpx.AsyncClient(timeout=8.0) as client:
+                        resp = await client.get(f"https://brasilapi.com.br/api/cnpj/v1/{cnpj_clean}")
+                        if resp.status_code == 200:
+                            cnpj_data = resp.json()
+                            data_inicio = cnpj_data.get("data_inicio_atividade")
+                            if data_inicio:
+                                ano_fundacao = int(data_inicio[:4])
+                                condominio_data["anoFundacaoCNPJ"] = ano_fundacao
+                                condominio_data["idadeViaCNPJ"] = (
+                                    __import__("datetime").datetime.now().year - ano_fundacao
+                                )
+            except Exception as e:
+                print(f"Warning: nao foi possivel consultar Receita Federal: {e}")
+
         # Attach orcamento-level data (premios, vigencia, seguradoras) for richer analysis
         if request.dados_orcamentos:
             condominio_data["orcamentos_detalhados"] = request.dados_orcamentos
