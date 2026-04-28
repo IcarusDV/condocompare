@@ -208,17 +208,11 @@ export default function SeguradoraDetailPage() {
       {/* Stats Cards */}
       {stats && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={6}>
             <StatsCard icon={<PolicyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Total Apólices" value={stats.totalApolices} color="#3b82f6" />
           </Grid>
-          <Grid item xs={6} md={3}>
-            <StatsCard icon={<ShieldIcon sx={{ color: 'white', fontSize: 24 }} />} label="Apólices Vigentes" value={stats.apolicesVigentes} color="#10b981" />
-          </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={6}>
             <StatsCard icon={<AttachMoneyIcon sx={{ color: 'white', fontSize: 24 }} />} label="Prêmio Médio" value={formatCurrency(stats.premioTotalMedio)} color="#f59e0b" />
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <StatsCard icon={<PeopleIcon sx={{ color: 'white', fontSize: 24 }} />} label="Condomínios" value={stats.totalCondominios} color="#6366f1" />
           </Grid>
         </Grid>
       )}

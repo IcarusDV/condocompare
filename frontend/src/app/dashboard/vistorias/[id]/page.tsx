@@ -34,8 +34,6 @@ import PendingIcon from '@mui/icons-material/Pending'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck'
 import DescriptionIcon from '@mui/icons-material/Description'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import StopIcon from '@mui/icons-material/Stop'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
@@ -108,8 +106,21 @@ export default function VistoriaDetalhePage() {
         vistoriaService.getFotos(id),
       ])
       setVistoria(vistoriaData)
-      setItens(itensData)
       setFotos(fotosData)
+      // Auto-carrega checklist padrão se vistoria estiver vazia
+      if (itensData.length === 0) {
+        try {
+          const loaded = await vistoriaService.loadDefaultChecklist(id)
+          setItens(loaded)
+          const refreshed = await vistoriaService.getById(id)
+          setVistoria(refreshed)
+        } catch (e) {
+          console.error('Error auto-loading checklist:', e)
+          setItens(itensData)
+        }
+      } else {
+        setItens(itensData)
+      }
     } catch (err) {
       console.error('Error loading vistoria:', err)
       setError('Erro ao carregar vistoria')
@@ -354,28 +365,6 @@ export default function VistoriaDetalhePage() {
               {generatingLink ? 'Gerando...' : 'Gerar Link'}
             </Button>
           )}
-          {vistoria.status === 'AGENDADA' && (
-            <Button
-              variant="contained"
-              startIcon={<PlayArrowIcon />}
-              onClick={() => handleUpdateStatus('EM_ANDAMENTO')}
-              disabled={saving}
-              sx={{ bgcolor: '#f59e0b', '&:hover': { bgcolor: '#d97706' } }}
-            >
-              Iniciar
-            </Button>
-          )}
-          {vistoria.status === 'EM_ANDAMENTO' && (
-            <Button
-              variant="contained"
-              startIcon={<StopIcon />}
-              onClick={() => handleUpdateStatus('CONCLUIDA')}
-              disabled={saving}
-              color="success"
-            >
-              Concluir
-            </Button>
-          )}
         </Box>
       </Box>
 
@@ -494,17 +483,7 @@ export default function VistoriaDetalhePage() {
               <Chip label={`${totalItens} itens`} size="small" variant="outlined" />
             )}
           </Box>
-          {totalItens === 0 ? (
-            <Button
-              variant="contained"
-              startIcon={<PlaylistAddCheckIcon />}
-              onClick={handleLoadDefaultChecklist}
-              disabled={saving}
-              sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' } }}
-            >
-              {saving ? 'Carregando...' : 'Carregar Checklist Padrão (25 itens)'}
-            </Button>
-          ) : (
+          {totalItens > 0 && (
             <Box sx={{ display: 'flex', gap: 1 }}>
               {Object.entries(STATUS_ITEM_CONFIG).map(([key, config]) => {
                 const count = itens.filter((i) => i.status === key).length

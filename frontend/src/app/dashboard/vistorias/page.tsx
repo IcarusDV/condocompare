@@ -324,8 +324,7 @@ export default function VistoriasPage() {
                 >
                   <MenuItem value="INICIAL">Inicial</MenuItem>
                   <MenuItem value="PERIODICA">Periódica</MenuItem>
-                  <MenuItem value="SINISTRO">Sinistro</MenuItem>
-                  <MenuItem value="RENOVACAO">Renovação</MenuItem>
+                  <MenuItem value="CONSTATACAO">Constatação</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

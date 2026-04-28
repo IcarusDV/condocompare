@@ -1,19 +1,12 @@
 package com.condocompare.documentos.messaging;
 
 import com.condocompare.common.config.RabbitMQConfig;
-import com.condocompare.condominios.entity.Condominio;
 import com.condocompare.condominios.repository.CondominioRepository;
-import com.condocompare.documentos.entity.Documento;
 import com.condocompare.documentos.entity.StatusProcessamento;
 import com.condocompare.documentos.entity.TipoDocumento;
 import com.condocompare.documentos.repository.DocumentoRepository;
 import com.condocompare.documentos.service.MinioService;
 import com.condocompare.documentos.service.PdfExtractionService;
-import com.condocompare.notificacoes.entity.TipoNotificacao;
-import com.condocompare.notificacoes.service.NotificacaoService;
-import com.condocompare.users.entity.Role;
-import com.condocompare.users.entity.User;
-import com.condocompare.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -25,7 +18,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,8 +29,6 @@ public class DocumentoMessageListener {
     private final DocumentoRepository documentoRepository;
     private final CondominioRepository condominioRepository;
     private final MinioService minioService;
-    private final NotificacaoService notificacaoService;
-    private final UserRepository userRepository;
     private final PdfExtractionService pdfExtractionService;
     private final WebClient iaServiceWebClient;
 
@@ -121,9 +111,9 @@ public class DocumentoMessageListener {
             }
         }
 
-        // 6. Success
+        // 6. Success — sucesso de processamento NÃO gera notificação (ruído).
+        // Notificações ficam reservadas para erros e avisos relevantes.
         updateStatus(documentoId, StatusProcessamento.CONCLUIDO, null);
-        createProcessingNotification(documentoId, message.getCondominioId(), tipoFinal);
         log.info("Documento processado com sucesso: id={}", documentoId);
     }
 
@@ -455,36 +445,4 @@ public class DocumentoMessageListener {
         });
     }
 
-    private void createProcessingNotification(UUID documentoId, UUID condominioId, String tipo) {
-        try {
-            String condominioNome = "N/A";
-            if (condominioId != null) {
-                condominioNome = condominioRepository.findById(condominioId)
-                        .map(Condominio::getNome)
-                        .orElse("N/A");
-            }
-
-            String titulo = "Documento processado com sucesso";
-            String mensagem = String.format("[%s] Documento do tipo %s foi processado automaticamente.",
-                    condominioNome, tipo);
-
-            // Notify ADMIN and CORRETORA users
-            List<User> usuarios = userRepository.findByRoleInAndActiveTrue(
-                    List.of(Role.ADMIN, Role.CORRETORA)
-            );
-
-            for (User user : usuarios) {
-                notificacaoService.criarNotificacao(
-                        user.getId(),
-                        TipoNotificacao.DOCUMENTO_PROCESSADO,
-                        titulo,
-                        mensagem,
-                        "DOCUMENTO",
-                        documentoId
-                );
-            }
-        } catch (Exception e) {
-            log.warn("Falha ao criar notificacao de processamento: {}", e.getMessage());
-        }
-    }
 }

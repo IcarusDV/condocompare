@@ -44,6 +44,7 @@ import ApartmentIcon from '@mui/icons-material/Apartment'
 import SecurityIcon from '@mui/icons-material/Security'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import UploadIcon from '@mui/icons-material/Upload'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import { condominioService } from '@/services/condominioService'
 import { CondominioListResponse, CondominioFilter, TipoConstrucao, StatusApolice, Page } from '@/types'
@@ -51,6 +52,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { exportToCsv } from '@/utils/exportCsv'
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext'
 import { useCondominios, useDeleteCondominio } from '@/hooks/queries/useCondominios'
+import { DocumentoUploadDialog } from '@/components/documentos/DocumentoUploadDialog'
 
 const statusConfig: Record<StatusApolice, { label: string; color: string; bgColor: string; icon: React.ElementType }> = {
   VENCIDA: { label: 'Vencida', color: '#dc2626', bgColor: '#fef2f2', icon: ErrorIcon },
@@ -176,6 +178,7 @@ export default function CondominiosPage() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [exportAnchor, setExportAnchor] = useState<null | HTMLElement>(null)
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string }>({ open: false, message: '' })
   const queryFilter = useMemo(() => ({ ...filters, search: search || undefined }), [filters, search])
   const queryPagination = useMemo(() => ({ page, size: rowsPerPage, sort: 'nome,asc' }), [page, rowsPerPage])
@@ -327,6 +330,16 @@ export default function CondominiosPage() {
           </Button>
           {canEdit && (
             <Button
+              variant="outlined"
+              startIcon={<UploadIcon />}
+              onClick={() => setUploadDialogOpen(true)}
+              sx={{ borderColor: '#3b82f6', color: '#3b82f6' }}
+            >
+              Upload Documento
+            </Button>
+          )}
+          {canEdit && (
+            <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => router.push('/dashboard/condominios/novo')}
@@ -401,10 +414,6 @@ export default function CondominiosPage() {
                 icon={CheckCircleIcon}
                 color="#16a34a"
                 bgColor="#f0fdf4"
-                onClick={() => {
-                  setFilters({ apoliceVencendo: false, apoliceVencida: false })
-                  setPage(0)
-                }}
               />
             </>
           )}
@@ -762,6 +771,16 @@ export default function CondominiosPage() {
         onClose={() => setSnackbar({ open: false, message: '' })}
         message={snackbar.message}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+
+      {/* Upload Documento Dialog */}
+      <DocumentoUploadDialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        onSuccess={() => {
+          setUploadDialogOpen(false)
+          setSnackbar({ open: true, message: 'Documento(s) enviado(s) com sucesso.' })
+        }}
       />
     </Box>
   )

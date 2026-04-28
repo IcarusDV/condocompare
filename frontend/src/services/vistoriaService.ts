@@ -156,9 +156,8 @@ export async function fetchExternalVistoria(token: string): Promise<ExternalVist
 export const getTipoVistoriaLabel = (tipo: TipoVistoria): string => {
   const labels: Record<TipoVistoria, string> = {
     INICIAL: 'Inicial',
-    PERIODICA: 'Periodica',
-    SINISTRO: 'Sinistro',
-    RENOVACAO: 'Renovacao',
+    PERIODICA: 'Periódica',
+    CONSTATACAO: 'Constatação',
   }
   return labels[tipo] || tipo
 }

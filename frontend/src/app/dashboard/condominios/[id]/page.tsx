@@ -142,7 +142,18 @@ function buildMapUrl(c: CondominioResponse): string {
     'Brasil',
   ].filter(Boolean).join(', ')
   const q = encodeURIComponent(parts)
-  return `https://www.openstreetmap.org/export/embed.html?bbox=&layer=mapnik&marker=&query=${q}`
+  return `https://maps.google.com/maps?q=${q}&t=k&z=18&output=embed`
+}
+
+function formatEnderecoLine(c: CondominioResponse): string {
+  const rua = c.endereco.endereco?.trim()
+  const num = c.endereco.numero?.trim()
+  const compl = c.endereco.complemento?.trim()
+  const parts: string[] = []
+  if (rua) parts.push(rua)
+  if (num) parts.push(num)
+  if (compl) parts.push(compl)
+  return parts.join(' — ') || '—'
 }
 
 export default function CondominioDetalhesPage() {
@@ -462,31 +473,6 @@ export default function CondominioDetalhesPage() {
         </Grid>
         <Grid item xs={6} md={3}>
           <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-            <Box sx={{
-              width: 48, height: 48, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              bgcolor: statusApolice === 'VIGENTE' ? '#dcfce7' : statusApolice === 'VENCENDO' ? '#fef3c7' : statusApolice === 'VENCIDA' ? '#fecaca' : '#f1f5f9',
-            }}>
-              <GppGoodIcon sx={{
-                color: statusApolice === 'VIGENTE' ? '#22c55e' : statusApolice === 'VENCENDO' ? '#f59e0b' : statusApolice === 'VENCIDA' ? '#ef4444' : '#94a3b8',
-              }} />
-            </Box>
-            <Box>
-              <Typography variant="h5" fontWeight="bold">
-                {condominio.seguro.diasParaVencimento !== undefined && condominio.seguro.diasParaVencimento !== null
-                  ? (condominio.seguro.diasParaVencimento < 0
-                    ? `${Math.abs(condominio.seguro.diasParaVencimento)}d`
-                    : `${condominio.seguro.diasParaVencimento}d`)
-                  : '—'}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {condominio.seguro.diasParaVencimento !== undefined && condominio.seguro.diasParaVencimento < 0
-                  ? 'Vencida ha' : 'Vence em'}
-              </Typography>
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item xs={6} md={3}>
-          <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
             <Box sx={{ width: 48, height: 48, borderRadius: 2, bgcolor: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <AssignmentIcon sx={{ color: '#3b82f6' }} />
             </Box>
@@ -620,11 +606,7 @@ export default function CondominioDetalhesPage() {
                   <LocationOnIcon color="primary" />
                   <Typography variant="h6" fontWeight="600">Endereco</Typography>
                 </Box>
-                <Typography>
-                  {condominio.endereco.endereco}
-                  {condominio.endereco.numero && `, ${condominio.endereco.numero}`}
-                  {condominio.endereco.complemento && ` - ${condominio.endereco.complemento}`}
-                </Typography>
+                <Typography>{formatEnderecoLine(condominio)}</Typography>
                 <Typography color="text.secondary">
                   {condominio.endereco.bairro && `${condominio.endereco.bairro}, `}
                   {condominio.endereco.cidade && `${condominio.endereco.cidade}`}
@@ -635,17 +617,19 @@ export default function CondominioDetalhesPage() {
                     CEP: {condominio.endereco.cep}
                   </Typography>
                 )}
-                {/* Mini Map */}
-                {condominio.endereco.cidade && (
-                  <Box sx={{ mt: 2, borderRadius: 2, overflow: 'hidden', border: '1px solid #e2e8f0', height: 180 }}>
+                {/* Mini Map (Google Maps satélite) */}
+                {(condominio.endereco.cidade || condominio.endereco.endereco) && (
+                  <Box sx={{ mt: 2, borderRadius: 2, overflow: 'hidden', border: '1px solid #e2e8f0', height: 280 }}>
                     <iframe
                       width="100%"
-                      height="180"
+                      height="280"
                       frameBorder="0"
                       scrolling="no"
                       src={buildMapUrl(condominio)}
                       style={{ border: 0 }}
-                      title="Localizacao do condominio"
+                      title="Localização do condomínio"
+                      loading="lazy"
+                      allowFullScreen
                     />
                   </Box>
                 )}

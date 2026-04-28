@@ -282,9 +282,30 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
     if (step === 0) {
       if (!formData.nome.trim()) errors.nome = 'Nome é obrigatório'
+      if (!formData.cnpj?.trim()) errors.cnpj = 'CNPJ é obrigatório'
     }
     if (step === 1) {
       if (!formData.endereco.trim()) errors.endereco = 'Endereço é obrigatório'
+      if (!formData.numero?.trim()) errors.numero = 'Número é obrigatório'
+      if (!formData.bairro?.trim()) errors.bairro = 'Bairro é obrigatório'
+      if (!formData.cidade?.trim()) errors.cidade = 'Cidade é obrigatória'
+      if (!formData.estado?.trim()) errors.estado = 'UF é obrigatória'
+      if (!formData.cep?.trim()) errors.cep = 'CEP é obrigatório'
+    }
+    if (step === 2) {
+      if (!formData.areaConstruida) errors.areaConstruida = 'Área construída é obrigatória'
+      if (!formData.numeroUnidades) errors.numeroUnidades = 'Número de unidades é obrigatório'
+      if (formData.numeroBlocos === undefined || formData.numeroBlocos === null) errors.numeroBlocos = 'Número de blocos é obrigatório'
+      if (formData.numeroElevadores === undefined || formData.numeroElevadores === null) errors.numeroElevadores = 'Número de elevadores é obrigatório'
+      if (!formData.numeroAndares) errors.numeroAndares = 'Número de andares é obrigatório'
+      if (formData.numeroFuncionarios === undefined || formData.numeroFuncionarios === null) errors.numeroFuncionarios = 'Número de funcionários é obrigatório'
+      if (!formData.anoConstrucao) errors.anoConstrucao = 'Ano de construção é obrigatório'
+      if (!formData.tipoConstrucao) errors.tipoConstrucao = 'Tipo é obrigatório'
+    }
+    if (step === 3) {
+      if (!formData.sindicoNome?.trim()) errors.sindicoNome = 'Nome do síndico é obrigatório'
+      if (!formData.sindicoEmail?.trim()) errors.sindicoEmail = 'E-mail do síndico é obrigatório'
+      if (!formData.sindicoTelefone?.trim()) errors.sindicoTelefone = 'Telefone do síndico é obrigatório'
     }
 
     setValidationErrors(errors)
@@ -548,10 +569,13 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               />
               <TextField
                 fullWidth
+                required
                 label="CNPJ"
                 value={formData.cnpj || ''}
                 onChange={(e) => handleChange('cnpj', e.target.value)}
                 placeholder="00.000.000/0001-00"
+                error={!!validationErrors.cnpj}
+                helperText={validationErrors.cnpj}
               />
               <FormControl fullWidth>
                 <InputLabel>Tipo</InputLabel>
@@ -581,7 +605,12 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                   <MenuItem value="DESOCUPADO">Desocupado</MenuItem>
                   <MenuItem value="OUTROS">Outros</MenuItem>
                 </Select>
-                <Typography variant="caption" color="primary" sx={{ mt: 0.5, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="primary"
+                  sx={{ mt: 0.5, display: 'block', cursor: 'pointer', textDecoration: 'underline', '&:hover': { color: 'primary.dark' } }}
+                  onClick={() => router.push('/dashboard/assistente')}
+                >
                   💡 Dúvidas no TIPO? Solicite auxílio para a IA no Assistente.
                 </Typography>
               </FormControl>
@@ -611,7 +640,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
+                required
                 label="CEP"
+                error={!!validationErrors.cep}
+                helperText={validationErrors.cep}
                 value={formData.cep || ''}
                 onChange={(e) => {
                   handleChange('cep', e.target.value)
@@ -652,9 +684,12 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               />
               <TextField
                 fullWidth
+                required
                 label="Número"
                 value={formData.numero || ''}
                 onChange={(e) => handleChange('numero', e.target.value)}
+                error={!!validationErrors.numero}
+                helperText={validationErrors.numero}
               />
               <TextField
                 fullWidth
@@ -666,17 +701,23 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 2fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
+                required
                 label="Bairro"
                 value={formData.bairro || ''}
                 onChange={(e) => handleChange('bairro', e.target.value)}
+                error={!!validationErrors.bairro}
+                helperText={validationErrors.bairro}
               />
               <TextField
                 fullWidth
+                required
                 label="Cidade"
                 value={formData.cidade || ''}
                 onChange={(e) => handleChange('cidade', e.target.value)}
+                error={!!validationErrors.cidade}
+                helperText={validationErrors.cidade}
               />
-              <FormControl fullWidth>
+              <FormControl fullWidth required error={!!validationErrors.estado}>
                 <InputLabel>UF</InputLabel>
                 <Select
                   value={formData.estado || ''}
@@ -688,6 +729,9 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                     <MenuItem key={uf} value={uf}>{uf}</MenuItem>
                   ))}
                 </Select>
+                {validationErrors.estado && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>{validationErrors.estado}</Typography>
+                )}
               </FormControl>
             </Box>
           </Box>
@@ -700,54 +744,87 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2 }}>
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Área Construída (m²)"
                 value={formData.areaConstruida || ''}
                 onChange={(e) => handleChange('areaConstruida', e.target.value)}
+                error={!!validationErrors.areaConstruida}
+                helperText={validationErrors.areaConstruida}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Unidades"
                 value={formData.numeroUnidades || ''}
                 onChange={(e) => handleChange('numeroUnidades', e.target.value)}
+                error={!!validationErrors.numeroUnidades}
+                helperText={validationErrors.numeroUnidades}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Blocos"
-                value={formData.numeroBlocos || ''}
+                value={formData.numeroBlocos ?? ''}
                 onChange={(e) => handleChange('numeroBlocos', e.target.value)}
+                error={!!validationErrors.numeroBlocos}
+                helperText={validationErrors.numeroBlocos}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Elevadores"
-                value={formData.numeroElevadores || ''}
+                value={formData.numeroElevadores ?? ''}
                 onChange={(e) => handleChange('numeroElevadores', e.target.value)}
+                error={!!validationErrors.numeroElevadores}
+                helperText={validationErrors.numeroElevadores}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Andares"
                 value={formData.numeroAndares || ''}
                 onChange={(e) => handleChange('numeroAndares', e.target.value)}
+                error={!!validationErrors.numeroAndares}
+                helperText={validationErrors.numeroAndares}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Funcionários"
-                value={formData.numeroFuncionarios || ''}
+                value={formData.numeroFuncionarios ?? ''}
                 onChange={(e) => handleChange('numeroFuncionarios', e.target.value)}
+                error={!!validationErrors.numeroFuncionarios}
+                helperText={validationErrors.numeroFuncionarios}
               />
               <TextField
                 fullWidth
+                required
                 type="number"
                 label="Ano Construção"
                 value={formData.anoConstrucao || ''}
                 onChange={(e) => handleChange('anoConstrucao', e.target.value)}
+                error={!!validationErrors.anoConstrucao}
+                helperText={validationErrors.anoConstrucao}
               />
             </Box>
+
+            {/* Aviso de cobertura de vida quando há funcionários */}
+            {((formData.numeroFuncionarios && formData.numeroFuncionarios > 0) ||
+              (formData.numFuncionariosRegistrados && formData.numFuncionariosRegistrados > 0)) && (
+              <Alert severity="warning" icon={<SecurityIcon />} sx={{ mt: 1 }}>
+                <Typography variant="body2" fontWeight={600}>Cobertura de Vida Obrigatória</Typography>
+                <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
+                  Conforme convenção coletiva vigente no município/região, é obrigatória a contratação
+                  de seguro de vida para os funcionários registrados do condomínio.
+                </Typography>
+              </Alert>
+            )}
 
             {/* Estrutura */}
             <Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Estrutura</Typography>
@@ -930,10 +1007,10 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
               />
               <TextField
                 fullWidth
-                label="Faixa Etaria Funcionarios"
+                label="Idade de cada funcionário"
+                placeholder="Ex: 28, 35, 42"
                 value={formData.idadeFuncionariosRegistrados || ''}
                 onChange={(e) => handleChange('idadeFuncionariosRegistrados', e.target.value)}
-                placeholder="Ex: 25-55 anos"
               />
             </Box>
 
@@ -1016,22 +1093,31 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
             <TextField
               fullWidth
+              required
               label="Nome do Síndico"
               value={formData.sindicoNome || ''}
               onChange={(e) => handleChange('sindicoNome', e.target.value)}
+              error={!!validationErrors.sindicoNome}
+              helperText={validationErrors.sindicoNome}
             />
             <TextField
               fullWidth
+              required
               type="email"
               label="E-mail"
               value={formData.sindicoEmail || ''}
               onChange={(e) => handleChange('sindicoEmail', e.target.value)}
+              error={!!validationErrors.sindicoEmail}
+              helperText={validationErrors.sindicoEmail}
             />
             <TextField
               fullWidth
+              required
               label="Telefone"
               value={formData.sindicoTelefone || ''}
               onChange={(e) => handleChange('sindicoTelefone', e.target.value)}
+              error={!!validationErrors.sindicoTelefone}
+              helperText={validationErrors.sindicoTelefone}
             />
           </Box>
         )

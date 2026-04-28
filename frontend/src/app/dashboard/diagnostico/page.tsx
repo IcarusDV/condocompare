@@ -23,6 +23,8 @@ import {
   LinearProgress,
   Checkbox as MuiCheckbox,
   Snackbar,
+  Autocomplete,
+  TextField,
 } from '@mui/material'
 import Checkbox from '@mui/material/Checkbox'
 import AnalyticsIcon from '@mui/icons-material/Analytics'
@@ -49,8 +51,6 @@ import FireExtinguisherIcon from '@mui/icons-material/FireExtinguisher'
 import GavelIcon from '@mui/icons-material/Gavel'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import ShareIcon from '@mui/icons-material/Share'
 import HistoryIcon from '@mui/icons-material/History'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck'
@@ -347,9 +347,11 @@ export default function DiagnosticoPage() {
       setError(null)
       setCostEstimate(null)
 
+      // Diagnóstico foca apenas em características/vistoria/documentos — sem orçamentos.
+      const orcamentosParaAnalise: string[] = []
       let coberturas: CoberturaDTO[] = []
       const dadosOrcamentos: Array<Record<string, unknown>> = []
-      for (const orcId of selectedOrcamentos) {
+      for (const orcId of orcamentosParaAnalise) {
         const doc = await documentoService.getById(orcId)
         const dados = doc.dadosExtraidos as { coberturas?: CoberturaDTO[]; condicoesEspeciais?: string[]; descontos?: number; formaPagamento?: string; observacoesInternas?: string } | undefined
         const orcCoberturas = dados?.coberturas || []
@@ -825,47 +827,47 @@ export default function DiagnosticoPage() {
         <Typography variant="h6" fontWeight="600" gutterBottom>Selecionar Condomínio</Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} md={5}>
-            <FormControl fullWidth>
-              <InputLabel>Condomínio</InputLabel>
-              <Select value={selectedCondominio} label="Condomínio" onChange={(e) => setSelectedCondominio(e.target.value)} disabled={loadingCondominios}>
-                {condominios.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <ApartmentIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-                      {c.nome}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Autocomplete
+              fullWidth
+              disabled={loadingCondominios}
+              options={condominios}
+              value={condominios.find((c) => c.id === selectedCondominio) || null}
+              onChange={(_, value) => setSelectedCondominio(value?.id || '')}
+              getOptionLabel={(c) => c.nome || ''}
+              isOptionEqualToValue={(opt, val) => opt.id === val.id}
+              filterOptions={(options, state) => {
+                const q = state.inputValue.trim().toLowerCase()
+                if (!q) return options
+                return options.filter((c) =>
+                  c.nome?.toLowerCase().includes(q) ||
+                  c.cnpj?.replace(/\D/g, '').includes(q.replace(/\D/g, '')) ||
+                  c.cidade?.toLowerCase().includes(q)
+                )
+              }}
+              renderOption={(props, c) => (
+                <Box component="li" {...props} key={c.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ApartmentIcon sx={{ color: '#6366f1', fontSize: 20 }} />
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>{c.nome}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {c.cnpj || 'sem CNPJ'} {c.cidade ? `• ${c.cidade}/${c.estado || ''}` : ''}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField {...params} label="Condomínio" placeholder="Buscar por nome, CNPJ ou cidade..." />
+              )}
+              ListboxProps={{ style: { maxHeight: 320 } }}
+            />
           </Grid>
           <Grid item xs={12} md={5}>
-            <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>Orçamentos para análise (até 5)</Typography>
-            {loadingOrcamentos ? <Skeleton variant="rounded" height={40} /> : orcamentos.length === 0 ? (
-              <Alert severity="info" sx={{ py: 0.5 }}>{selectedCondominio ? 'Nenhum orçamento preenchido encontrado' : 'Selecione um condomínio'}</Alert>
-            ) : (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {orcamentos.map((o) => {
-                  const isSelected = selectedOrcamentos.includes(o.id)
-                  return (
-                    <Chip key={o.id} label={o.seguradoraNome || o.nome}
-                      onClick={() => {
-                        if (isSelected) setSelectedOrcamentos((prev) => prev.filter((id) => id !== o.id))
-                        else if (selectedOrcamentos.length < 5) setSelectedOrcamentos((prev) => [...prev, o.id])
-                      }}
-                      color={isSelected ? 'primary' : 'default'} variant={isSelected ? 'filled' : 'outlined'}
-                      icon={<Checkbox checked={isSelected} size="small" sx={{ p: 0, '& .MuiSvgIcon-root': { fontSize: 18 } }} />}
-                      sx={{ cursor: 'pointer' }}
-                    />
-                  )
-                })}
-              </Box>
-            )}
-            {selectedOrcamentos.length > 0 && (
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                {selectedOrcamentos.length} orçamento(s) selecionado(s)
+            <Alert severity="info" icon={<AnalyticsIcon />} sx={{ py: 0.5 }}>
+              <Typography variant="body2" fontWeight={600}>Gestão de Risco</Typography>
+              <Typography variant="caption" component="div" sx={{ mt: 0.5 }}>
+                A IA analisa apenas as características do condomínio, vistorias e documentos cadastrados — sem orçamentos.
               </Typography>
-            )}
+            </Alert>
           </Grid>
           <Grid item xs={12} md={2}>
             <Button variant="contained" fullWidth size="large"
@@ -877,11 +879,6 @@ export default function DiagnosticoPage() {
           </Grid>
         </Grid>
 
-        {selectedCondominio && selectedOrcamentos.length > 0 && totalCoberturas > 0 && (
-          <Alert severity="success" sx={{ mt: 2 }} icon={<CheckCircleIcon />}>
-            <strong>{totalCoberturas} coberturas encontradas</strong> nos {selectedOrcamentos.length} orçamento(s) selecionado(s).
-          </Alert>
-        )}
         {selectedCondominio && selectedOrcamentos.length > 0 && totalCoberturas === 0 && (
           <Alert severity="warning" sx={{ mt: 2 }}>Orçamentos sem coberturas preenchidas. A análise será feita apenas com as características do condomínio.</Alert>
         )}
@@ -1295,18 +1292,6 @@ export default function DiagnosticoPage() {
               sx={{ borderColor: '#3b82f6', color: '#3b82f6', textTransform: 'none', '&:hover': { borderColor: '#2563eb', bgcolor: '#eff6ff' } }}>
               {loadingReport ? 'Gerando...' : 'Exportar PDF'}
             </Button>
-            <Tooltip title="Copiar resumo">
-              <IconButton onClick={handleCopyResumo} sx={{ border: '1px solid #e2e8f0' }}>
-                <ContentCopyIcon sx={{ fontSize: 20 }} />
-              </IconButton>
-            </Tooltip>
-            {typeof window !== 'undefined' && 'share' in navigator && (
-              <Tooltip title="Compartilhar">
-                <IconButton onClick={handleShare} sx={{ border: '1px solid #e2e8f0' }}>
-                  <ShareIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-              </Tooltip>
-            )}
             <Button variant="contained" startIcon={<AutoAwesomeIcon />}
               onClick={() => router.push('/dashboard/assistente?context=diagnostico')}
               sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' }, textTransform: 'none' }}>

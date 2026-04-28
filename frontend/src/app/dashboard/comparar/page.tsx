@@ -56,7 +56,6 @@ import LooksTwoIcon from '@mui/icons-material/LooksTwo'
 import Looks3Icon from '@mui/icons-material/Looks3'
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import SearchIcon from '@mui/icons-material/Search'
-import SaveIcon from '@mui/icons-material/Save'
 import HistoryIcon from '@mui/icons-material/History'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
@@ -66,6 +65,7 @@ import { iaService } from '@/services/iaService'
 import { documentoService } from '@/services/documentoService'
 import {
   CondominioListResponse,
+  CondominioResponse,
   DocumentoListResponse,
   ComparacaoResultadoDTO,
   OrcamentoComparacaoDTO,
@@ -139,6 +139,39 @@ const getSeguradoraGradient = (seguradoraNome: string): string => {
   return 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
 }
 
+// Mapeia field.key (extraído de orçamento) para o valor correspondente no cadastro do condomínio
+function getCadastroValue(cond: CondominioResponse | null, key: string): unknown {
+  if (!cond) return undefined
+  const c = cond.caracteristicas
+  switch (key) {
+    case 'tipoCondominio':
+      return c?.tipoConstrucao
+    case 'numeroElevadores':
+      return c?.numeroElevadores
+    case 'anoConstrucao':
+      return c?.anoConstrucao
+    case 'idadeConstrucao':
+      return c?.anoConstrucao ? `${new Date().getFullYear() - c.anoConstrucao} anos` : undefined
+    case 'numeroUnidades':
+      return c?.numeroUnidades
+    case 'numeroBlocos':
+      return c?.numeroBlocos
+    case 'numeroPavimentos':
+    case 'numeroAndares':
+      return c?.numeroAndares
+    case 'areaConstruida':
+      return c?.areaConstruida
+    case 'numeroFuncionarios':
+      return c?.numeroFuncionarios
+    case 'placaSolar':
+      return cond.amenidades?.temPlacasSolares
+    case 'bonus':
+      return cond.seguro?.bonusAnosSemSinistro
+    default:
+      return undefined
+  }
+}
+
 // Fields for "Analise de Informacoes" comparison
 // Keys match backend PdfExtractionService.extractCondominioData() output inside condominio_data
 const INFO_FIELDS: { key: string; label: string; path?: string; format?: (v: unknown) => string }[] = [
@@ -184,6 +217,7 @@ export default function CompararPage() {
   const [orcamentos, setOrcamentos] = useState<DocumentoListResponse[]>([])
   const [selectedOrcamentos, setSelectedOrcamentos] = useState<string[]>([])
   const [comparacao, setComparacao] = useState<ComparacaoResultadoDTO | null>(null)
+  const [condominioFull, setCondominioFull] = useState<CondominioResponse | null>(null)
   const [loadingCondominios, setLoadingCondominios] = useState(true)
   const [loadingOrcamentos, setLoadingOrcamentos] = useState(false)
   const [loadingComparacao, setLoadingComparacao] = useState(false)
@@ -195,8 +229,6 @@ export default function CompararPage() {
   const [matrixSearch, setMatrixSearch] = useState('')
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' })
   const [savedComparisons, setSavedComparisons] = useState<SavedComparison[]>([])
-  const [saveDialogOpen, setSaveDialogOpen] = useState(false)
-  const [saveName, setSaveName] = useState('')
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
 
@@ -230,6 +262,7 @@ export default function CompararPage() {
       setOrcamentos([])
       setSelectedOrcamentos([])
       setComparacao(null)
+      setCondominioFull(null)
       return
     }
 
@@ -237,11 +270,12 @@ export default function CompararPage() {
       try {
         setLoadingOrcamentos(true)
         setError(null)
-        const response = await documentoService.listByCondominioAndTipo(
-          selectedCondominio,
-          'ORCAMENTO'
-        )
+        const [response, full] = await Promise.all([
+          documentoService.listByCondominioAndTipo(selectedCondominio, 'ORCAMENTO'),
+          condominioService.getById(selectedCondominio).catch(() => null),
+        ])
         setOrcamentos(response)
+        setCondominioFull(full)
         setSelectedOrcamentos([])
         setComparacao(null)
       } catch (err) {
@@ -449,25 +483,25 @@ export default function CompararPage() {
     }
   }
 
-  // === Save Comparison ===
-  const handleSaveComparison = () => {
-    if (!comparacao || !saveName.trim()) return
+  // Auto-save quando uma comparação é gerada (silencioso, sem snackbar)
+  useEffect(() => {
+    if (!comparacao || !selectedCondominioData) return
     const newSave: SavedComparison = {
       id: crypto.randomUUID(),
-      name: saveName.trim(),
-      condominioNome: selectedCondominioData?.nome || '',
+      name: `${selectedCondominioData.nome} - ${new Date().toLocaleDateString('pt-BR')}`,
+      condominioNome: selectedCondominioData.nome,
       condominioId: selectedCondominio,
       orcamentoIds: selectedOrcamentos,
       seguradoras: comparacao.orcamentos.map(o => o.seguradoraNome),
       date: new Date().toISOString(),
     }
-    const updated = [newSave, ...savedComparisons]
-    setSavedComparisons(updated)
-    localStorage.setItem('saved_comparisons', JSON.stringify(updated))
-    setSaveDialogOpen(false)
-    setSaveName('')
-    setSnackbar({ open: true, message: 'Comparação salva com sucesso!', severity: 'success' })
-  }
+    setSavedComparisons(prev => {
+      const updated = [newSave, ...prev].slice(0, 50)
+      localStorage.setItem('saved_comparisons', JSON.stringify(updated))
+      return updated
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparacao])
 
   const handleLoadComparison = (saved: SavedComparison) => {
     setHistoryDialogOpen(false)
@@ -811,9 +845,6 @@ export default function CompararPage() {
         <>
           {/* Action bar */}
           <Box sx={{ display: 'flex', gap: 1, mb: 3, justifyContent: 'flex-end' }}>
-            <Button variant="outlined" startIcon={<SaveIcon />} onClick={() => { setSaveName(`${selectedCondominioData?.nome || 'Comparacao'} - ${new Date().toLocaleDateString('pt-BR')}`); setSaveDialogOpen(true) }} size="small">
-              Salvar
-            </Button>
             <Button
               variant="contained"
               startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <PictureAsPdfIcon />}
@@ -855,15 +886,6 @@ export default function CompararPage() {
                         {isMelhorCB && <Chip icon={<BalanceIcon />} label="Melhor Custo-Benefício" size="small" sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 600, '& .MuiChip-icon': { color: '#d97706' } }} />}
                       </Box>
                       <CardContent sx={{ p: 2 }}>
-                        <Box sx={{ mb: 1.5 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                            <Typography variant="caption" fontWeight={600}>Coberturas</Typography>
-                            <Typography variant="caption" fontWeight={600} color="primary">
-                              {orc.coberturasIncluidas}/{allCoberturas.length} ({Math.round(orc.coberturaPercent)}%)
-                            </Typography>
-                          </Box>
-                          <LinearProgress variant="determinate" value={orc.coberturaPercent} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: orc.coberturaPercent >= 80 ? '#22c55e' : orc.coberturaPercent >= 50 ? '#f59e0b' : '#ef4444' } }} />
-                        </Box>
                         <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1 }}>
                           <Box sx={{ p: 1, borderRadius: 1, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <Typography variant="caption" color="text.secondary" display="block">Pagamento</Typography>
@@ -888,7 +910,7 @@ export default function CompararPage() {
             <Paper sx={{ p: 3, mb: 3, border: '2px solid #FFD700', bgcolor: '#fffbeb' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <EmojiEventsIcon sx={{ color: '#ca8a04', fontSize: 28 }} />
-                <Typography variant="h6" fontWeight="700">Recomendação</Typography>
+                <Typography variant="h6" fontWeight="700">Resumo</Typography>
               </Box>
               <Grid container spacing={2}>
                 {comparacao.resumo.recomendacoes.map((rec, idx) => {
@@ -910,26 +932,30 @@ export default function CompararPage() {
             </Paper>
           )}
 
-          {/* === ANALISE DE INFORMACOES === */}
+          {/* === ANÁLISE DE INFORMAÇÕES === */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Analise de Informacoes</Typography>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>Análise de Informações</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Comparacao das informacoes do imovel e da apolice extraidas de cada orcamento
+              Comparação das informações de cada orçamento com o cadastro do condomínio
             </Typography>
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow sx={{ bgcolor: '#0f172a' }}>
-                    <TableCell sx={{ fontWeight: 600, color: 'white', minWidth: 200 }}>Informacao</TableCell>
+                    <TableCell sx={{ fontWeight: 600, color: 'white', minWidth: 200 }}>Informação</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600, color: 'white', minWidth: 140, bgcolor: '#1e3a8a' }}>Cadastro</TableCell>
                     {comparacao.orcamentos.map((orc) => (
                       <TableCell key={orc.id} align="center" sx={{ fontWeight: 600, color: 'white', minWidth: 140 }}>{orc.seguradoraNome}</TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {/* Vigencia row */}
+                  {/* Vigência row */}
                   <TableRow sx={{ bgcolor: '#fafafa' }}>
-                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>Vigencia</TableCell>
+                    <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>Vigência</TableCell>
+                    <TableCell align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: '#eff6ff' }}>
+                      {condominioFull?.seguro?.vencimentoApolice ? `até ${formatDate(condominioFull.seguro.vencimentoApolice)}` : '-'}
+                    </TableCell>
                     {comparacao.orcamentos.map((orc) => (
                       <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0' }}>
                         {formatDate(orc.dataVigenciaInicio)} a {formatDate(orc.dataVigenciaFim)}
@@ -938,19 +964,29 @@ export default function CompararPage() {
                     ))}
                   </TableRow>
                   {INFO_FIELDS.map((field, rowIdx) => {
+                    const cadastroVal = getCadastroValue(condominioFull, field.key)
                     const values = comparacao.orcamentos.map((orc) => {
                       if (field.path === 'root') return (orc as unknown as Record<string, unknown>)[field.key]
                       const dados = orc.dadosExtraidos || {}
                       const condoData = (dados.condominio_data || {}) as Record<string, unknown>
-                      // Check condominio_data first, then top-level dadosExtraidos
                       return condoData[field.key] ?? dados[field.key]
                     })
-                    const hasAnyValue = values.some((v) => v !== undefined && v !== null)
+                    const hasAnyValue = values.some((v) => v !== undefined && v !== null) || (cadastroVal !== undefined && cadastroVal !== null)
                     if (!hasAnyValue) return null
-                    const allSame = values.every((v) => JSON.stringify(v) === JSON.stringify(values[0]))
+                    const allValuesIncludingCadastro = [cadastroVal, ...values]
+                    const allSame = allValuesIncludingCadastro.every((v) => JSON.stringify(v) === JSON.stringify(allValuesIncludingCadastro[0]))
+                    const formatVal = (v: unknown): string => {
+                      if (v === undefined || v === null || v === '') return '-'
+                      if (Array.isArray(v)) return v.length > 0 ? v.join(', ') : '-'
+                      if (field.format) return field.format(v)
+                      return String(v)
+                    }
                     return (
                       <TableRow key={field.key} sx={{ bgcolor: rowIdx % 2 === 0 ? 'white' : '#fafafa', '&:hover': { bgcolor: '#f1f5f9' } }}>
                         <TableCell sx={{ fontWeight: 600, bgcolor: '#f8fafc', borderRight: '1px solid #e2e8f0' }}>{field.label}</TableCell>
+                        <TableCell align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: '#eff6ff', fontWeight: 600 }}>
+                          <Typography variant="body2" fontWeight={600} color="#1e3a8a">{formatVal(cadastroVal)}</Typography>
+                        </TableCell>
                         {comparacao.orcamentos.map((orc) => {
                           let val: unknown
                           if (field.path === 'root') {
@@ -960,16 +996,11 @@ export default function CompararPage() {
                             const condoData = (dados.condominio_data || {}) as Record<string, unknown>
                             val = condoData[field.key] ?? dados[field.key]
                           }
-                          const formatVal = (v: unknown): string => {
-                            if (v === undefined || v === null || v === '') return '-'
-                            if (Array.isArray(v)) return v.length > 0 ? v.join(', ') : '-'
-                            if (field.format) return field.format(v)
-                            return String(v)
-                          }
                           const formatted = formatVal(val)
+                          const divergeDoCadastro = cadastroVal !== undefined && cadastroVal !== null && val !== undefined && val !== null && JSON.stringify(val) !== JSON.stringify(cadastroVal)
                           return (
-                            <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: !allSame && val !== undefined && val !== null ? '#fef3c7' : undefined }}>
-                              <Typography variant="body2" fontWeight={!allSame ? 600 : 400}>{formatted}</Typography>
+                            <TableCell key={orc.id} align="center" sx={{ borderLeft: '1px solid #e2e8f0', bgcolor: divergeDoCadastro ? '#fef3c7' : (!allSame && val !== undefined && val !== null ? '#fff7ed' : undefined) }}>
+                              <Typography variant="body2" fontWeight={divergeDoCadastro ? 600 : 400} color={divergeDoCadastro ? '#92400e' : 'inherit'}>{formatted}</Typography>
                             </TableCell>
                           )
                         })}
@@ -981,7 +1012,7 @@ export default function CompararPage() {
             </TableContainer>
             {comparacao.orcamentos.every((orc) => !orc.dadosExtraidos || Object.keys(orc.dadosExtraidos).length === 0) && (
               <Box sx={{ textAlign: 'center', py: 3 }}>
-                <Typography variant="body2" color="text.secondary">Nenhuma informacao adicional extraida dos orcamentos. Reprocesse os documentos para extrair dados do imovel.</Typography>
+                <Typography variant="body2" color="text.secondary">Nenhuma informação adicional extraída dos orçamentos. Reprocesse os documentos para extrair dados.</Typography>
               </Box>
             )}
           </Paper>
@@ -1013,9 +1044,13 @@ export default function CompararPage() {
                       const bestLimite = limites.length > 0 ? Math.max(...limites) : 0
                       const bestFranquia = franquias.length > 0 ? Math.min(...franquias) : 0
 
+                      // Detecta linhas que são, na verdade, franquia (texto com %, "indenizáveis", "mínimo")
+                      const looksLikeFranquia = /%|indeniz[áa]veis|m[íi]nimo|sobre os preju[íi]zos/i.test(coberturaNome)
+                      const displayNome = looksLikeFranquia ? `Franquia — ${coberturaNome}` : coberturaNome
+
                       return (
                         <TableRow key={coberturaNome} sx={{ bgcolor: rowIdx % 2 === 0 ? 'white' : '#fafafa', '&:hover': { bgcolor: '#f1f5f9' } }}>
-                          <TableCell sx={{ fontWeight: 500, fontSize: '0.8rem', borderRight: '1px solid #e2e8f0' }}>{coberturaNome}</TableCell>
+                          <TableCell sx={{ fontWeight: 500, fontSize: '0.8rem', borderRight: '1px solid #e2e8f0', color: looksLikeFranquia ? '#92400e' : 'inherit' }}>{displayNome}</TableCell>
                           {comparacao.orcamentos.map((orc) => {
                             const cob = getCoberturaValue(orc, coberturaNome)
                             const tem = cob?.incluido
@@ -1172,19 +1207,6 @@ export default function CompararPage() {
         </>
         )
       })()}
-
-      {/* Save Dialog */}
-      <Dialog open={saveDialogOpen} onClose={() => setSaveDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Salvar Comparação</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Salve esta comparação para consultar depois sem precisar refazer.</Typography>
-          <TextField fullWidth label="Nome da comparação" value={saveName} onChange={(e) => setSaveName(e.target.value)} autoFocus size="small" />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSaveDialogOpen(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleSaveComparison} disabled={!saveName.trim()} sx={{ bgcolor: '#6366f1', '&:hover': { bgcolor: '#4f46e5' } }}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
 
       {/* History Dialog */}
       <Dialog open={historyDialogOpen} onClose={() => setHistoryDialogOpen(false)} maxWidth="sm" fullWidth>

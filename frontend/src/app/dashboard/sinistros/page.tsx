@@ -29,6 +29,7 @@ import {
   CircularProgress,
   TablePagination,
   Tooltip,
+  Menu,
   InputAdornment,
   LinearProgress,
   Accordion,
@@ -61,7 +62,6 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import ThumbUpAltIcon from '@mui/icons-material/ThumbUpAlt'
 import ThumbDownAltIcon from '@mui/icons-material/ThumbDownAlt'
 import SpeedIcon from '@mui/icons-material/Speed'
-import BarChartIcon from '@mui/icons-material/BarChart'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useConfirmDialog } from '@/contexts/ConfirmDialogContext'
@@ -171,7 +171,7 @@ export default function SinistrosPage() {
   const [dataFim, setDataFim] = useState('')
 
   // Chart toggle
-  const [showChart, setShowChart] = useState(false)
+  const [relatorioAnchor, setRelatorioAnchor] = useState<HTMLElement | null>(null)
 
   const sinistroFilter = useMemo(() => ({
     condominioId: filterCondominioId || undefined,
@@ -313,7 +313,6 @@ export default function SinistrosPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
   }
 
-  const chartMax = stats?.sinistrosPorMes?.reduce((max, m) => Math.max(max, m.total), 0) || 1
 
   return (
     <Box sx={{ maxWidth: 1400, mx: 'auto' }}>
@@ -326,9 +325,18 @@ export default function SinistrosPage() {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={handleExportCSV} disabled={!sinistros.length}>CSV</Button>
-          <Button variant="outlined" size="small" startIcon={<PictureAsPdfIcon />} onClick={() => handleExport('pdf')} sx={{ borderColor: '#ef4444', color: '#ef4444' }}>PDF</Button>
-          <Button variant="outlined" size="small" startIcon={<TableChartIcon />} onClick={() => handleExport('excel')} sx={{ borderColor: '#10b981', color: '#10b981' }}>Excel</Button>
+          <Button variant="outlined" size="small" startIcon={<FileDownloadIcon />} onClick={(e) => setRelatorioAnchor(e.currentTarget)} disabled={!sinistros.length}>Relatório</Button>
+          <Menu anchorEl={relatorioAnchor} open={Boolean(relatorioAnchor)} onClose={() => setRelatorioAnchor(null)}>
+            <MenuItem onClick={() => { handleExportCSV(); setRelatorioAnchor(null) }}>
+              <FileDownloadIcon fontSize="small" sx={{ mr: 1 }} /> CSV
+            </MenuItem>
+            <MenuItem onClick={() => { handleExport('pdf'); setRelatorioAnchor(null) }}>
+              <PictureAsPdfIcon fontSize="small" sx={{ mr: 1, color: '#ef4444' }} /> PDF
+            </MenuItem>
+            <MenuItem onClick={() => { handleExport('excel'); setRelatorioAnchor(null) }}>
+              <TableChartIcon fontSize="small" sx={{ mr: 1, color: '#10b981' }} /> Excel
+            </MenuItem>
+          </Menu>
           <Button variant="outlined" startIcon={<HelpOutlineIcon />} onClick={() => router.push('/dashboard/assistente?context=sinistro&from=sinistros')} sx={{ borderColor: '#6366f1', color: '#6366f1' }}>Ajuda IA</Button>
           {canRegisterSinistro && (
             <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenDialog} sx={{ bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}>Registrar Sinistro</Button>
@@ -412,46 +420,6 @@ export default function SinistrosPage() {
           </Paper>
         </Grid>
       </Grid>
-
-      {/* Mini Chart */}
-      {stats?.sinistrosPorMes && stats.sinistrosPorMes.length > 0 && (
-        <Paper sx={{ p: 2, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: showChart ? 2 : 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <BarChartIcon sx={{ color: '#6366f1', fontSize: 20 }} />
-              <Typography variant="subtitle2" fontWeight="bold">Sinistros por Mês</Typography>
-              <Chip label={`${stats.sinistrosPorMes.length} meses`} size="small" sx={{ height: 20, fontSize: '0.65rem', bgcolor: '#ede9fe', color: '#6366f1' }} />
-            </Box>
-            <Button size="small" onClick={() => setShowChart(!showChart)} sx={{ color: '#6366f1', textTransform: 'none', fontSize: '0.75rem' }}>
-              {showChart ? 'Ocultar' : 'Expandir'}
-            </Button>
-          </Box>
-          {showChart && (
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 0.5, height: 120, px: 1 }}>
-              {stats.sinistrosPorMes.map((m) => (
-                <Tooltip key={m.mes} title={`${m.mes}: ${m.total} sinistro(s)`} arrow>
-                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>{m.total}</Typography>
-                    <Box sx={{
-                      width: '100%',
-                      maxWidth: 40,
-                      height: `${Math.max((m.total / chartMax) * 80, 4)}px`,
-                      bgcolor: '#6366f1',
-                      borderRadius: '4px 4px 0 0',
-                      minHeight: 4,
-                      transition: 'all 0.3s ease',
-                      '&:hover': { bgcolor: '#4f46e5', transform: 'scaleY(1.05)' },
-                    }} />
-                    <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#94a3b8' }}>
-                      {m.mes.slice(5)}
-                    </Typography>
-                  </Box>
-                </Tooltip>
-              ))}
-            </Box>
-          )}
-        </Paper>
-      )}
 
       {/* Filters */}
       <Paper sx={{ p: 2, mb: 3, border: '1px solid #e2e8f0', boxShadow: 'none' }}>
@@ -686,17 +654,11 @@ export default function SinistrosPage() {
             <Grid item xs={12} md={6}>
               <TextField fullWidth size="small" label="Data da Ocorrência" type="datetime-local" value={formData.dataOcorrencia} onChange={(e) => setFormData(p => ({ ...p, dataOcorrencia: e.target.value }))} InputLabelProps={{ shrink: true }} required />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Local da Ocorrência" value={formData.localOcorrencia} onChange={(e) => setFormData(p => ({ ...p, localOcorrencia: e.target.value }))} />
-            </Grid>
             <Grid item xs={12}>
               <TextField fullWidth size="small" label="Descrição" multiline rows={3} value={formData.descricao} onChange={(e) => setFormData(p => ({ ...p, descricao: e.target.value }))} required />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField fullWidth size="small" label="Valor Estimado do Prejuízo (R$)" type="number" value={formData.valorPrejuizo || ''} onChange={(e) => setFormData(p => ({ ...p, valorPrejuizo: e.target.value ? parseFloat(e.target.value) : undefined }))} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField fullWidth size="small" label="Cobertura Acionada" value={formData.coberturaAcionada} onChange={(e) => setFormData(p => ({ ...p, coberturaAcionada: e.target.value }))} placeholder="Ex: Incêndio, Raio e Explosão" />
             </Grid>
             <Grid item xs={12}>
               <TextField fullWidth size="small" label="Observações" multiline rows={2} value={formData.observacoes} onChange={(e) => setFormData(p => ({ ...p, observacoes: e.target.value }))} />

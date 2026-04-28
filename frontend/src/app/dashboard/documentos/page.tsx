@@ -44,7 +44,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ErrorIcon from '@mui/icons-material/Error'
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty'
 import SyncIcon from '@mui/icons-material/Sync'
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import EditIcon from '@mui/icons-material/Edit'
@@ -436,19 +435,6 @@ export default function DocumentosPage() {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Chip
-            icon={<AutoAwesomeIcon sx={{ fontSize: '16px !important' }} />}
-            label="Extração IA ativada"
-            size="small"
-            sx={{
-              bgcolor: '#f0fdf4',
-              color: '#166534',
-              border: '1px solid #bbf7d0',
-              fontWeight: 600,
-              fontSize: '0.75rem',
-              '& .MuiChip-icon': { color: '#22c55e' },
-            }}
-          />
           <Button
             variant="outlined"
             size="small"
@@ -456,7 +442,7 @@ export default function DocumentosPage() {
             onClick={handleExportCSV}
             disabled={!data?.content.length}
           >
-            Exportar CSV
+            Relatórios
           </Button>
           {canUpload && (
             <Button

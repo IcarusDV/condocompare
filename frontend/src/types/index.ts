@@ -439,7 +439,7 @@ export const COBERTURAS_PADRAO = [
 
 // ========== VISTORIAS ==========
 
-export type TipoVistoria = 'INICIAL' | 'PERIODICA' | 'SINISTRO' | 'RENOVACAO'
+export type TipoVistoria = 'INICIAL' | 'PERIODICA' | 'CONSTATACAO'
 export type StatusVistoria = 'AGENDADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA'
 
 export interface VistoriaResponse {
