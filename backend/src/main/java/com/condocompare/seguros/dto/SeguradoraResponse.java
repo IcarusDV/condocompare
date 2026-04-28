@@ -1,6 +1,7 @@
 package com.condocompare.seguros.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,5 +21,8 @@ public record SeguradoraResponse(
     List<String> regras,
     List<String> iaConhecimento,
     BigDecimal rating,
-    Integer totalAvaliacoes
+    Integer totalAvaliacoes,
+    String condicoesGeraisUrl,
+    String condicoesGeraisNomeArquivo,
+    LocalDateTime condicoesGeraisAtualizadoEm
 ) {}

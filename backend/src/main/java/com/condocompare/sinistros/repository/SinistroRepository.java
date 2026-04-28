@@ -2,7 +2,6 @@ package com.condocompare.sinistros.repository;
 
 import com.condocompare.sinistros.entity.Sinistro;
 import com.condocompare.sinistros.entity.StatusSinistro;
-import com.condocompare.sinistros.entity.TipoSinistro;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

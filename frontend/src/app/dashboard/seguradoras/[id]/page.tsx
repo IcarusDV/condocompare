@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   Box,
@@ -30,9 +30,8 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import BusinessIcon from '@mui/icons-material/Business'
 import EditIcon from '@mui/icons-material/Edit'
 import StarIcon from '@mui/icons-material/Star'
-import GavelIcon from '@mui/icons-material/Gavel'
 import SmartToyIcon from '@mui/icons-material/SmartToy'
-import VerifiedIcon from '@mui/icons-material/Verified'
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import PolicyIcon from '@mui/icons-material/Policy'
 import PeopleIcon from '@mui/icons-material/People'
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney'
@@ -83,6 +82,8 @@ export default function SeguradoraDetailPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const cgFileInputRef = useRef<HTMLInputElement>(null)
+  const [cgUploading, setCgUploading] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -274,37 +275,63 @@ export default function SeguradoraDetailPage() {
             )}
           </Paper>
 
-          {/* Regras */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <GavelIcon sx={{ color: '#6366f1' }} />
-              <Typography variant="h6" fontWeight="bold">Regras e Particularidades</Typography>
-            </Box>
-            {(seguradora.regras || []).length > 0 ? (
-              <Box component="ul" sx={{ m: 0, pl: 2.5, '& li': { mb: 1 } }}>
-                {(seguradora.regras || []).map((regra, i) => (
-                  <Typography component="li" variant="body2" key={i} sx={{ lineHeight: 1.6 }}>{regra}</Typography>
-                ))}
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary">Nenhuma regra cadastrada</Typography>
-            )}
-          </Paper>
-
-          {/* IA Conhecimento */}
+          {/* Condições Gerais (PDF) */}
           <Paper sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <SmartToyIcon sx={{ color: '#10b981' }} />
-              <Typography variant="h6" fontWeight="bold">O que a IA sabe</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PictureAsPdfIcon sx={{ color: '#ef4444' }} />
+                <Typography variant="h6" fontWeight="bold">Condições Gerais</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <input
+                  ref={cgFileInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  hidden
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    try {
+                      setCgUploading(true)
+                      const updated = await seguradoraService.uploadCondicoesGerais(seguradora.id, file)
+                      setSeguradora(updated)
+                    } catch (err) {
+                      console.error('Erro upload CG:', err)
+                    } finally {
+                      setCgUploading(false)
+                      e.target.value = ''
+                    }
+                  }}
+                />
+                <Button size="small" variant="outlined" onClick={() => cgFileInputRef.current?.click()} disabled={cgUploading}>
+                  {cgUploading ? 'Enviando...' : (seguradora.condicoesGeraisUrl ? 'Substituir' : 'Upload PDF')}
+                </Button>
+                {seguradora.condicoesGeraisUrl && (
+                  <Button size="small" variant="outlined" color="error" onClick={async () => {
+                    try {
+                      const updated = await seguradoraService.removerCondicoesGerais(seguradora.id)
+                      setSeguradora(updated)
+                    } catch (err) { console.error(err) }
+                  }}>Remover</Button>
+                )}
+              </Box>
             </Box>
-            {(seguradora.iaConhecimento || []).length > 0 ? (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {(seguradora.iaConhecimento || []).map((info, i) => (
-                  <Chip key={i} icon={<VerifiedIcon sx={{ fontSize: '16px !important' }} />} label={info} sx={{ bgcolor: '#d1fae5', color: '#065f46', fontWeight: 500, '& .MuiChip-icon': { color: '#10b981' } }} />
-                ))}
+            {seguradora.condicoesGeraisUrl ? (
+              <Box>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PictureAsPdfIcon sx={{ fontSize: 18, color: '#ef4444' }} />
+                  {seguradora.condicoesGeraisNomeArquivo || 'Condições Gerais.pdf'}
+                </Typography>
+                {seguradora.condicoesGeraisAtualizadoEm && (
+                  <Typography variant="caption" color="text.secondary">
+                    Atualizado em {new Date(seguradora.condicoesGeraisAtualizadoEm).toLocaleDateString('pt-BR')}
+                  </Typography>
+                )}
               </Box>
             ) : (
-              <Typography variant="body2" color="text.secondary">Nenhum conhecimento IA cadastrado</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma Condição Geral cadastrada. Faça o upload do PDF mais recente para que a IA possa consultá-lo.
+              </Typography>
             )}
           </Paper>
         </Grid>

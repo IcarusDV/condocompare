@@ -59,12 +59,80 @@ import WindowIcon from '@mui/icons-material/Window'
 import GroupsIcon from '@mui/icons-material/Groups'
 import ShieldIcon from '@mui/icons-material/Shield'
 import BuildIcon from '@mui/icons-material/Build'
+import HandshakeIcon from '@mui/icons-material/Handshake'
+import FormControl from '@mui/material/FormControl'
+import InputLabel from '@mui/material/InputLabel'
+import Select from '@mui/material/Select'
+import MenuItem from '@mui/material/MenuItem'
+import TextField from '@mui/material/TextField'
 import { parceiroService } from '@/services/parceiroService'
+import { condominioService } from '@/services/condominioService'
 import {
   ParceiroResponse,
   CategoriaParceiro,
   CATEGORIAS_PARCEIRO,
+  CondominioListResponse,
+  CondominioResponse,
 } from '@/types'
+
+/**
+ * Gera um texto de oferta personalizada com base nas categorias do parceiro
+ * cruzando com as características do condomínio.
+ */
+function gerarOfertaTexto(p: ParceiroResponse, c: CondominioResponse): string {
+  const cats = (p.categorias || []).map((cat) => cat.toString())
+  const car = c.caracteristicas
+  const am = c.amenidades
+  const detalhes: string[] = []
+
+  if (cats.some((cat) => /elevador/i.test(cat)) && car.numeroElevadores) {
+    detalhes.push(`• Manutenção de ${car.numeroElevadores} elevador(es) — manutenção preventiva mensal`)
+  }
+  if (cats.some((cat) => /el[ée]trica|el[ée]trico/i.test(cat))) {
+    detalhes.push(`• Inspeção elétrica completa para edificação${car.anoConstrucao ? ` de ${new Date().getFullYear() - car.anoConstrucao} anos` : ''}`)
+  }
+  if (cats.some((cat) => /hidr[áa]ulic/i.test(cat))) {
+    detalhes.push('• Diagnóstico hidráulico — vazamentos, ralos, bombas e reservatório')
+  }
+  if (cats.some((cat) => /limpeza/i.test(cat))) {
+    detalhes.push(`• Limpeza completa de áreas comuns${car.areaConstruida ? ` (${car.areaConstruida} m²)` : ''}`)
+  }
+  if (cats.some((cat) => /portaria|seguran[çc]a/i.test(cat))) {
+    detalhes.push('• Avaliação de portaria 24h e CFTV — incluindo fluxo de entrada e saída')
+  }
+  if (cats.some((cat) => /jardim|paisag/i.test(cat))) {
+    detalhes.push('• Manutenção mensal de áreas verdes e jardins')
+  }
+  if (cats.some((cat) => /pintura|pintor/i.test(cat))) {
+    detalhes.push('• Avaliação de pintura externa e interna — fachada e áreas comuns')
+  }
+  if (cats.some((cat) => /sinistro|inc[êe]ndio|fogo/i.test(cat))) {
+    detalhes.push('• Inspeção do sistema de combate a incêndio (extintores, hidrantes, sprinklers)')
+  }
+  if (cats.some((cat) => /piscina/i.test(cat)) && am.temPiscina) {
+    detalhes.push('• Tratamento e manutenção semanal da piscina')
+  }
+  if (cats.some((cat) => /advoc/i.test(cat))) {
+    detalhes.push('• Assessoria jurídica condominial — revisão de convenção, regimento e contratos')
+  }
+
+  if (detalhes.length === 0) {
+    detalhes.push('• Atendimento personalizado conforme as necessidades do condomínio')
+  }
+
+  return [
+    `Oferta para ${c.nome}`,
+    car.numeroUnidades ? `(${car.numeroUnidades} unidades` + (car.numeroBlocos ? `, ${car.numeroBlocos} bloco(s)` : '') + ')' : '',
+    '',
+    `${p.nomeFantasia || p.nome} oferece o seguinte pacote para o seu condomínio:`,
+    '',
+    ...detalhes,
+    '',
+    p.contatoNome ? `Contato: ${p.contatoNome}` + (p.contatoCargo ? ` (${p.contatoCargo})` : '') : '',
+    p.telefone ? `Telefone: ${p.telefone}` : '',
+    p.email ? `E-mail: ${p.email}` : '',
+  ].filter(Boolean).join('\n')
+}
 
 // ─── Category helpers ──────────────────────────────────────────
 
@@ -121,6 +189,11 @@ export default function ParceiroDetalhePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [snackMessage, setSnackMessage] = useState<string | null>(null)
+  const [ofertaDialogOpen, setOfertaDialogOpen] = useState(false)
+  const [ofertaCondominios, setOfertaCondominios] = useState<CondominioListResponse[]>([])
+  const [ofertaCondominioId, setOfertaCondominioId] = useState<string>('')
+  const [ofertaCondominioFull, setOfertaCondominioFull] = useState<CondominioResponse | null>(null)
+  const [ofertaTexto, setOfertaTexto] = useState<string>('')
 
   const loadParceiro = useCallback(async () => {
     try {
@@ -139,6 +212,29 @@ export default function ParceiroDetalhePage() {
   useEffect(() => {
     loadParceiro()
   }, [loadParceiro])
+
+  // Carrega condominios quando o dialog de oferta é aberto
+  useEffect(() => {
+    if (!ofertaDialogOpen || ofertaCondominios.length > 0) return
+    condominioService.list({}, { size: 100 })
+      .then((res) => setOfertaCondominios(res.content))
+      .catch((err) => console.error('Erro ao listar condominios:', err))
+  }, [ofertaDialogOpen, ofertaCondominios.length])
+
+  // Carrega detalhes do condominio escolhido
+  useEffect(() => {
+    if (!ofertaCondominioId) {
+      setOfertaCondominioFull(null)
+      setOfertaTexto('')
+      return
+    }
+    condominioService.getById(ofertaCondominioId)
+      .then((c) => {
+        setOfertaCondominioFull(c)
+        if (parceiro) setOfertaTexto(gerarOfertaTexto(parceiro, c))
+      })
+      .catch((err) => console.error('Erro ao buscar condominio:', err))
+  }, [ofertaCondominioId, parceiro])
 
   const handleDelete = async () => {
     try {
@@ -265,6 +361,11 @@ export default function ParceiroDetalhePage() {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="contained" startIcon={<HandshakeIcon />}
+            onClick={() => setOfertaDialogOpen(true)}
+            sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}>
+            Gerar Oferta
+          </Button>
           <Button variant="contained" startIcon={<EditIcon />}
             onClick={() => router.push(`/dashboard/parceiros/${id}/editar`)}
             sx={{ bgcolor: 'rgba(255,255,255,0.2)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}>
@@ -515,6 +616,70 @@ export default function ParceiroDetalhePage() {
           )}
         </Grid>
       </Grid>
+
+      {/* ─── Oferta Dialog ────────────────────────────── */}
+      <Dialog
+        open={ofertaDialogOpen}
+        onClose={() => { setOfertaDialogOpen(false); setOfertaCondominioId(''); setOfertaTexto('') }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <HandshakeIcon sx={{ color: '#16a34a' }} />
+          Gerar Oferta Personalizada
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Selecione um condomínio. A oferta é gerada automaticamente cruzando as
+            categorias do parceiro com as características do condomínio.
+          </DialogContentText>
+          <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+            <InputLabel>Condomínio</InputLabel>
+            <Select
+              value={ofertaCondominioId}
+              label="Condomínio"
+              onChange={(e) => setOfertaCondominioId(e.target.value)}
+            >
+              {ofertaCondominios.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.nome} {c.cidade ? `— ${c.cidade}/${c.estado || ''}` : ''}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          {ofertaCondominioFull && (
+            <TextField
+              fullWidth
+              multiline
+              rows={14}
+              value={ofertaTexto}
+              onChange={(e) => setOfertaTexto(e.target.value)}
+              label="Texto da oferta (editável)"
+              helperText="Edite livremente antes de copiar ou enviar."
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setOfertaDialogOpen(false); setOfertaCondominioId(''); setOfertaTexto('') }}>
+            Cancelar
+          </Button>
+          {ofertaTexto && (
+            <Button
+              variant="contained"
+              startIcon={<ContentCopyIcon />}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(ofertaTexto)
+                  setSnackMessage('Oferta copiada para a área de transferência')
+                } catch (err) {
+                  console.error(err)
+                }
+              }}
+              sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
+            >
+              Copiar
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
 
       {/* ─── Delete Dialog ────────────────────────────── */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>

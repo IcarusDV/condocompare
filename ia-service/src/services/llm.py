@@ -146,15 +146,30 @@ async def analyze_condominio(
     condominio_data: Dict[str, Any],
     coberturas: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """Analisa condominio e gera diagnostico"""
+    """Analisa condominio e gera diagnostico de gestao de risco.
 
-    prompt = f"""Analise o seguinte condominio e suas coberturas de seguro:
+    Quando `coberturas` esta vazio, o foco e 100% em GESTAO DE RISCO:
+    avaliar caracteristicas, vistoria e documentos para apontar coberturas
+    NECESSARIAS, riscos e cuidados — sem opinar sobre orcamentos.
+    """
+
+    sem_coberturas = not coberturas
+    contexto_coberturas = (
+        "NAO HA ORCAMENTOS/APOLICES PARA ANALISAR. Foque a analise nas caracteristicas\n"
+        "do condominio para apontar quais coberturas sao OBRIGATORIAS, RECOMENDADAS\n"
+        "e quais cuidados sao necessarios — independente de seguradora especifica.\n"
+        "Os campos 'coberturas_adequadas' e 'coberturas_insuficientes' DEVEM ficar vazios.\n"
+        "Use 'coberturas_ausentes' para listar TODAS as coberturas recomendadas com base no perfil."
+        if sem_coberturas
+        else f"COBERTURAS ATUAIS:\n{format_coberturas(coberturas)}"
+    )
+
+    prompt = f"""Faca a GESTAO DE RISCO do seguinte condominio (apenas area comum):
 
 DADOS DO CONDOMINIO:
 {format_condominio_data(condominio_data)}
 
-COBERTURAS ATUAIS:
-{format_coberturas(coberturas)}
+{contexto_coberturas}
 
 Gere um diagnostico completo em formato JSON com a seguinte estrutura:
 {{

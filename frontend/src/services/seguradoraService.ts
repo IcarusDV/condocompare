@@ -51,4 +51,20 @@ export const seguradoraService = {
     })
     return response.data
   },
+
+  async uploadCondicoesGerais(id: string, file: File): Promise<SeguradoraResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await api.post<SeguradoraResponse>(
+      `${BASE_URL}/${id}/condicoes-gerais`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    )
+    return response.data
+  },
+
+  async removerCondicoesGerais(id: string): Promise<SeguradoraResponse> {
+    const response = await api.delete<SeguradoraResponse>(`${BASE_URL}/${id}/condicoes-gerais`)
+    return response.data
+  },
 }

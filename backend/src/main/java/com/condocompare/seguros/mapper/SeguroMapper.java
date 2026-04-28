@@ -26,7 +26,10 @@ public class SeguroMapper {
             seguradora.getRegras() != null ? java.util.Arrays.asList(seguradora.getRegras()) : java.util.Collections.emptyList(),
             seguradora.getIaConhecimento() != null ? java.util.Arrays.asList(seguradora.getIaConhecimento()) : java.util.Collections.emptyList(),
             seguradora.getRating(),
-            seguradora.getTotalAvaliacoes()
+            seguradora.getTotalAvaliacoes(),
+            seguradora.getCondicoesGeraisUrl(),
+            seguradora.getCondicoesGeraisNomeArquivo(),
+            seguradora.getCondicoesGeraisAtualizadoEm()
         );
     }
 

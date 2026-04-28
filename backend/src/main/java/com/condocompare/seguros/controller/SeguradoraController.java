@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -73,5 +74,22 @@ public class SeguradoraController {
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         seguradoraService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/condicoes-gerais", consumes = "multipart/form-data")
+    @Operation(summary = "Upload das Condições Gerais (PDF) da seguradora")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
+    public ResponseEntity<SeguradoraResponse> uploadCondicoesGerais(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ResponseEntity.ok(seguradoraService.uploadCondicoesGerais(id, file));
+    }
+
+    @DeleteMapping("/{id}/condicoes-gerais")
+    @Operation(summary = "Remover Condições Gerais da seguradora")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CORRETORA')")
+    public ResponseEntity<SeguradoraResponse> removerCondicoesGerais(@PathVariable UUID id) {
+        return ResponseEntity.ok(seguradoraService.removerCondicoesGerais(id));
     }
 }

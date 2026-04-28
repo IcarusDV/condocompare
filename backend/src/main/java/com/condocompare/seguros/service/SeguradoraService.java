@@ -11,13 +11,16 @@ import com.condocompare.seguros.entity.StatusApolice;
 import com.condocompare.seguros.mapper.SeguroMapper;
 import com.condocompare.seguros.repository.ApoliceRepository;
 import com.condocompare.seguros.repository.SeguradoraRepository;
+import com.condocompare.documentos.service.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,6 +31,7 @@ public class SeguradoraService {
     private final SeguradoraRepository seguradoraRepository;
     private final ApoliceRepository apoliceRepository;
     private final SeguroMapper seguroMapper;
+    private final MinioService minioService;
 
     @Transactional
     public SeguradoraResponse create(CreateSeguradoraRequest request) {
@@ -171,6 +175,54 @@ public class SeguradoraService {
         Seguradora seguradora = findEntityById(id);
         seguradora.setActive(false);
         seguradoraRepository.save(seguradora);
+    }
+
+    @Transactional
+    public SeguradoraResponse uploadCondicoesGerais(UUID id, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException("Arquivo vazio");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equalsIgnoreCase("application/pdf")) {
+            throw new BusinessException("Apenas arquivos PDF são aceitos");
+        }
+        if (file.getSize() > 50L * 1024 * 1024) {
+            throw new BusinessException("Arquivo excede 50MB");
+        }
+
+        Seguradora seguradora = findEntityById(id);
+
+        // Remove o anterior se existir
+        if (StringUtils.hasText(seguradora.getCondicoesGeraisUrl())) {
+            try {
+                minioService.deleteFile(seguradora.getCondicoesGeraisUrl());
+            } catch (Exception ignored) { /* segue mesmo se não conseguir remover */ }
+        }
+
+        // Reusa o mesmo upload do MinioService — usa o id da seguradora como "condominioId" lógico
+        String objectKey = minioService.uploadFile(file, id, "seguradoras/condicoes-gerais");
+
+        seguradora.setCondicoesGeraisUrl(objectKey);
+        seguradora.setCondicoesGeraisNomeArquivo(file.getOriginalFilename());
+        seguradora.setCondicoesGeraisAtualizadoEm(LocalDateTime.now());
+        seguradora = seguradoraRepository.save(seguradora);
+
+        return seguroMapper.toSeguradoraResponse(seguradora);
+    }
+
+    @Transactional
+    public SeguradoraResponse removerCondicoesGerais(UUID id) {
+        Seguradora seguradora = findEntityById(id);
+        if (StringUtils.hasText(seguradora.getCondicoesGeraisUrl())) {
+            try {
+                minioService.deleteFile(seguradora.getCondicoesGeraisUrl());
+            } catch (Exception ignored) { /* nao bloquear */ }
+        }
+        seguradora.setCondicoesGeraisUrl(null);
+        seguradora.setCondicoesGeraisNomeArquivo(null);
+        seguradora.setCondicoesGeraisAtualizadoEm(null);
+        seguradora = seguradoraRepository.save(seguradora);
+        return seguroMapper.toSeguradoraResponse(seguradora);
     }
 
     public Seguradora findEntityById(UUID id) {

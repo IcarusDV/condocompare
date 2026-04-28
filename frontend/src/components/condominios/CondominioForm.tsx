@@ -49,6 +49,7 @@ import ElectricCarIcon from '@mui/icons-material/ElectricCar'
 import PedalBikeIcon from '@mui/icons-material/PedalBike'
 import { CreateCondominioRequest, UpdateCondominioRequest, TipoConstrucao, CondominioResponse, TipoDocumento } from '@/types'
 import { condominioService } from '@/services/condominioService'
+import { cnpjService } from '@/services/cnpjService'
 import { documentoService } from '@/services/documentoService'
 import { iaService } from '@/services/iaService'
 
@@ -237,6 +238,7 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
 
   // CEP lookup state
   const [cepLoading, setCepLoading] = useState(false)
+  const [cnpjLoading, setCnpjLoading] = useState(false)
 
   const handleChange = (field: keyof FormData, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -246,6 +248,36 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
         delete next[field]
         return next
       })
+    }
+  }
+
+  const handleCnpjLookup = async (cnpj: string) => {
+    const clean = cnpj.replace(/\D/g, '')
+    if (clean.length !== 14) return
+
+    setCnpjLoading(true)
+    try {
+      const data = await cnpjService.buscar(clean)
+      const anoConstrucao = data.dataAbertura
+        ? Number(data.dataAbertura.slice(0, 4))
+        : undefined
+      setFormData(prev => ({
+        ...prev,
+        nome: prev.nome || data.razaoSocial || data.nomeFantasia || '',
+        endereco: prev.endereco || data.logradouro || '',
+        numero: prev.numero || data.numero || '',
+        complemento: prev.complemento || data.complemento || '',
+        bairro: prev.bairro || data.bairro || '',
+        cidade: prev.cidade || data.municipio || '',
+        estado: prev.estado || data.uf || '',
+        cep: prev.cep || data.cep || '',
+        anoConstrucao: prev.anoConstrucao || anoConstrucao,
+      }))
+      setSnackbar({ open: true, message: 'Dados preenchidos via Receita Federal.', severity: 'success' })
+    } catch {
+      // silencioso — CNPJ pode estar incompleto durante digitação
+    } finally {
+      setCnpjLoading(false)
     }
   }
 
@@ -572,10 +604,19 @@ export function CondominioForm({ initialData, isEditing = false }: CondominioFor
                 required
                 label="CNPJ"
                 value={formData.cnpj || ''}
-                onChange={(e) => handleChange('cnpj', e.target.value)}
+                onChange={(e) => {
+                  handleChange('cnpj', e.target.value)
+                  const clean = e.target.value.replace(/\D/g, '')
+                  if (clean.length === 14) handleCnpjLookup(e.target.value)
+                }}
                 placeholder="00.000.000/0001-00"
                 error={!!validationErrors.cnpj}
-                helperText={validationErrors.cnpj}
+                helperText={validationErrors.cnpj || (cnpjLoading ? 'Consultando Receita Federal...' : ' ')}
+                InputProps={{
+                  endAdornment: cnpjLoading ? (
+                    <InputAdornment position="end"><CircularProgress size={18} /></InputAdornment>
+                  ) : undefined,
+                }}
               />
               <FormControl fullWidth>
                 <InputLabel>Tipo</InputLabel>

@@ -4,7 +4,6 @@ import com.condocompare.common.exception.BusinessException;
 import com.condocompare.common.exception.ResourceNotFoundException;
 import com.condocompare.condominios.entity.Condominio;
 import com.condocompare.condominios.repository.CondominioRepository;
-import com.condocompare.users.entity.Role;
 import com.condocompare.users.entity.User;
 import com.condocompare.users.repository.UserRepository;
 import com.condocompare.vistorias.dto.*;

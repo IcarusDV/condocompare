@@ -251,9 +251,14 @@ public class PdfExtractionService {
         Pattern[] totalPatterns = {
                 Pattern.compile("(?i)total\\s+a\\s+pagar\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
                 Pattern.compile("(?i)(?:prêmio|premio)\\s*total\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)(?:prêmio|premio)\\s*bruto\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
                 Pattern.compile("(?i)total\\s+geral\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
                 Pattern.compile("(?i)valor\\s+total\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
                 Pattern.compile("(?i)valor\\s+total\\s+do\\s+seguro\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)custo\\s+total\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)custo\\s+total\\s+da\\s+ap[óo]lice\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)pr[êe]mio\\s+total\\s+da\\s+ap[óo]lice\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
+                Pattern.compile("(?i)valor\\s+do\\s+(?:prêmio|premio)\\s*:?\\s*(?:R\\$)?\\s*([\\d.]+,[\\d]{2})"),
         };
 
         for (Pattern p : totalPatterns) {

@@ -1,7 +1,6 @@
 package com.condocompare.vistorias.repository;
 
 import com.condocompare.vistorias.entity.StatusVistoria;
-import com.condocompare.vistorias.entity.TipoVistoria;
 import com.condocompare.vistorias.entity.Vistoria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1103,6 +1103,9 @@ export interface SeguradoraResponse {
   iaConhecimento?: string[]
   rating?: number
   totalAvaliacoes?: number
+  condicoesGeraisUrl?: string
+  condicoesGeraisNomeArquivo?: string
+  condicoesGeraisAtualizadoEm?: string
   createdAt?: string
 }
 

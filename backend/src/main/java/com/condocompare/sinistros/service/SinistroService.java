@@ -10,7 +10,6 @@ import com.condocompare.sinistros.entity.Sinistro;
 import com.condocompare.sinistros.entity.StatusSinistro;
 import com.condocompare.sinistros.entity.TipoSinistro;
 import com.condocompare.sinistros.repository.SinistroRepository;
-import com.condocompare.users.entity.Role;
 import com.condocompare.users.entity.User;
 import com.condocompare.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

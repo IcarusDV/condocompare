@@ -7,6 +7,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "seguradoras", schema = "condocompare")
@@ -61,4 +62,13 @@ public class Seguradora extends BaseEntity {
 
     @Column(name = "total_avaliacoes")
     private Integer totalAvaliacoes;
+
+    @Column(name = "condicoes_gerais_url", columnDefinition = "TEXT")
+    private String condicoesGeraisUrl;
+
+    @Column(name = "condicoes_gerais_nome_arquivo", length = 255)
+    private String condicoesGeraisNomeArquivo;
+
+    @Column(name = "condicoes_gerais_atualizado_em")
+    private LocalDateTime condicoesGeraisAtualizadoEm;
 }
